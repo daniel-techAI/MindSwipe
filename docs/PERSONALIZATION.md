@@ -1,36 +1,42 @@
-# Personalization Questions
+# MindSwipe Personalization
 
-Use these answers to make Mind Swipe feel less generic.
+These choices are now locked in as the working product direction.
+
+## Selected Direction
+
+- Audience: broke comeback
+- Tone: direct bro, store-safe
+- Public brand: MindSwipe
+- Creator identity: not public-facing for now
 
 ## Audience
 
-Default used for now: broke comeback audience.
+MindSwipe is for people with low money, low discipline, too much scrolling, and pressure to fix life fast.
 
-Choose one:
+Primary use cases:
 
-- Broke comeback: people with low money, low discipline, and pressure to fix life fast.
-- Student focus: people trying to study, stop scrolling, and build confidence.
-- Worker grind: people moving country, working hard jobs, and trying to build options.
-- General self-growth: broader and safer, but less sharp.
+- User is about to doomscroll and wants a better 3-minute input.
+- User feels broke, stuck, or behind and needs one useful move.
+- User wants discipline without a fake motivational lecture.
+- User is working hard or moving countries and needs quick mental anchors.
 
-## Tone
+## Tone Rules
 
-Default used for now: direct but store-safe.
-
-Choose one:
-
-- Direct bro: blunt, simple, motivational, not cringe.
-- Clean serious: professional and calmer.
-- Hard mode: harsher and more intense, but riskier for users and stores.
+- Plain words.
+- Direct, not corporate.
+- Blunt, but not abusive.
+- Practical over inspirational.
+- No school-style quizzes.
+- No fake guru energy.
+- Every card should leave one small move.
 
 ## Personal Details Needed Later
 
 - Support email
-- Developer/public creator name
-- Whether to mention Daniel or keep the product anonymous
+- Privacy policy hosted URL
+- Final developer name for Google Play
 - Preferred reminder phrase
 - Any topics to avoid
-- Any personal story to use in store copy
 
 ## Content Packs To Add Next
 

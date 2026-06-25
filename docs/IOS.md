@@ -1,6 +1,6 @@
-# Mind Swipe iOS Plan
+# MindSwipe iOS Plan
 
-Mind Swipe should stay in one shared repository for now. The React app is the source of truth, and Capacitor can wrap the same web build for Android and iOS.
+MindSwipe should stay in one shared repository for now. The React app is the source of truth, and Capacitor can wrap the same web build for Android and iOS.
 
 ## Why not a second repo yet
 

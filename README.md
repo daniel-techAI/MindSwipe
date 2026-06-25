@@ -1,8 +1,14 @@
-# Mind Swipe
+# MindSwipe
 
-Mind Swipe replaces doomscrolling with short, useful learning sessions.
+MindSwipe replaces doomscrolling with short, useful rescue sessions for people trying to rebuild discipline, money, focus, and options from a rough starting point.
 
 This repo is intentionally kept lean so GitHub Actions can build the Android APK remotely without needing Replit, pnpm, or a slow local machine.
+
+## Product Direction
+
+- Audience: broke comeback first
+- Tone: direct bro, store-safe, blunt without being cringe
+- Public brand: MindSwipe, not tied to Daniel publicly for now
 
 ## What it does now
 

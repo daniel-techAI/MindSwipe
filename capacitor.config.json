@@ -1,6 +1,6 @@
 {
   "appId": "com.mindswipe.app",
-  "appName": "Mind Swipe",
+  "appName": "MindSwipe",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {

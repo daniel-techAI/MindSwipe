@@ -1,7 +1,7 @@
 {
-  "name": "Mind Swipe",
-  "short_name": "Mind Swipe",
-  "description": "Replace doomscrolling with short useful learning sessions.",
+  "name": "MindSwipe",
+  "short_name": "MindSwipe",
+  "description": "Replace doomscrolling with short useful rescue sessions.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
