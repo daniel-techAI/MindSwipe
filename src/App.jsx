@@ -165,6 +165,25 @@ const lessons = [
   }
 ];
 
+const actionMoves = {
+  'money-1': 'Before calling anything profit, write one line: money in minus all costs. If the second number is ugly, the idea is not dead, it just needs fixing.',
+  'money-2': 'Open your notes and write: paid when, bills when, survive how long. That is your cash-flow reality check.',
+  'money-3': 'Search for people already complaining about the problem. If nobody is talking about it, do not build yet.',
+  'mind-1': 'Do one slightly embarrassing useful thing today. Send the message, ask the question, post the thing. Most people will forget faster than you think.',
+  'mind-2': 'Say the state out loud: “I am stressed, not broken.” That tiny wording change gives you room to choose the next move.',
+  'mind-3': 'When boredom hits, start a 60-second replacement: stand up, learn one card, or clean one visible thing. Do not negotiate with the feed first.',
+  'habit-1': 'If you missed yesterday, make today tiny. Two minutes counts. The goal is to keep the identity alive.',
+  'habit-2': 'Cut the task until it feels almost stupid: one sentence, one rep, one tab closed. Starting is the real target.',
+  'habit-3': 'Pick the replacement before the urge hits. If TikTok is the old reward, your new reward needs to be ready in one tap.',
+  'strategy-1': 'Ask “and then what?” twice before a decision. The second answer usually reveals the real cost.',
+  'strategy-2': 'Name one exact group you can help first. If you cannot describe them clearly, you cannot reach them cheaply.',
+  'strategy-3': 'Give the next move a hard limit: 20 minutes, no spending, one feature. Limits make the answer easier.',
+  'health-1': 'Tonight, protect the first 30 minutes before sleep. No feed, dim screen, same bedtime target. Recovery compounds.',
+  'health-2': 'Before reacting, walk for ten minutes. If the problem still matters after the walk, handle it cleaner.',
+  'people-1': 'Before giving advice, ask what the other person actually wants: comfort, ideas, or help deciding.',
+  'people-2': 'Replace “how are you?” with “what are you trying to fix this week?” Better questions create better conversations.'
+};
+
 const interests = ['Money', 'Mind', 'Habits', 'Strategy', 'Health', 'People'];
 const triggerOptions = ['Bored in bed', 'Avoiding work', 'Stressed', 'Waiting around', 'After waking up'];
 const moods = [
@@ -184,6 +203,10 @@ function daysBetween(from, to) {
   const start = new Date(`${from}T00:00:00`);
   const end = new Date(`${to}T00:00:00`);
   return Math.round((end - start) / 86400000);
+}
+
+function getMove(lesson) {
+  return actionMoves[lesson.id] || 'Steal the idea, use it once today, then keep moving.';
 }
 
 function loadProgress() {
@@ -240,7 +263,7 @@ function App() {
   const [selectedTrigger, setSelectedTrigger] = useState(progress.trigger || triggerOptions[0]);
   const [sessionIndex, setSessionIndex] = useState(0);
   const [activeMood, setActiveMood] = useState('Need focus');
-  const [answerOpen, setAnswerOpen] = useState(false);
+  const [moveOpen, setMoveOpen] = useState(false);
   const [reviewIndex, setReviewIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
 
@@ -268,7 +291,7 @@ function App() {
   const missions = [
     { id: 'rescue', label: 'Complete one rescue', done: todayDone },
     { id: 'save', label: 'Save one useful card', done: progress.savedToday === today },
-    { id: 'review', label: 'Review saved cards', done: progress.reviewedToday === today || savedLessons.length === 0 }
+    { id: 'review', label: 'Replay one saved idea', done: progress.reviewedToday === today || savedLessons.length === 0 }
   ];
   const missionDoneCount = missions.filter((mission) => mission.done).length;
 
@@ -287,7 +310,7 @@ function App() {
   function startSession(mood = activeMood) {
     setActiveMood(typeof mood === 'string' ? mood : mood.label);
     setSessionIndex(0);
-    setAnswerOpen(false);
+    setMoveOpen(false);
     setScreen('learn');
   }
 
@@ -308,7 +331,7 @@ function App() {
       freezes: nextProgress.sessions > 0 && completedSessions % 4 === 0 ? nextProgress.freezes + 1 : nextProgress.freezes
     });
     setSessionIndex(0);
-    setAnswerOpen(false);
+    setMoveOpen(false);
     setScreen('complete');
   }
 
@@ -319,13 +342,7 @@ function App() {
     }
     commit(nextProgress);
     setSessionIndex(sessionIndex + 1);
-    setAnswerOpen(false);
-  }
-
-  function toggleSave(id) {
-    const isSaved = progress.saved.includes(id);
-    const nextSaved = isSaved ? progress.saved.filter((item) => item !== id) : [...progress.saved, id];
-    commit({ ...progress, saved: nextSaved, savedToday: isSaved ? progress.savedToday : today });
+    setMoveOpen(false);
   }
 
   function saveAndContinue(lesson) {
@@ -354,12 +371,12 @@ function App() {
 
     commit(next);
     setSessionIndex(sessionIndex + 1);
-    setAnswerOpen(false);
+    setMoveOpen(false);
   }
 
   function completeReview() {
     commit({ ...progress, xp: progress.xp + 5, reviewedToday: today });
-    setAnswerOpen(false);
+    setMoveOpen(false);
     setReviewIndex(savedLessons.length ? (reviewIndex + 1) % savedLessons.length : 0);
   }
 
@@ -421,32 +438,39 @@ function App() {
       <main className="app sessionShell">
         <header className="topBar">
           <button className="ghost" onClick={() => setScreen('home')}>Close</button>
-          <div className="progressText">Card {sessionIndex + 1} of {nextSession.length}</div>
+          <div className="progressText">Swipe session</div>
         </header>
-        <div className="meter"><span style={{ width: `${((sessionIndex + 1) / nextSession.length) * 100}%` }} /></div>
-        <section
-          className="lessonCard swipeCard"
-          onTouchStart={(event) => setTouchStart(event.changedTouches[0].clientX)}
-          onTouchEnd={(event) => handleTouchEnd(event, lesson)}
-        >
-          <div className="swipeHint"><span>Save</span><span>Skip</span></div>
-          <div className="cardMeta">
-            <span className="pill">{lesson.area}</span>
-            <span>{activeMood}</span>
-          </div>
-          <h1>{lesson.title}</h1>
-          <p className="hook">{lesson.hook}</p>
-          <p>{lesson.body}</p>
-          <div className={answerOpen ? 'quiz open' : 'quiz'}>
-            <strong>{lesson.quiz}</strong>
-            {answerOpen ? <span>{lesson.answer}</span> : <button className="textButton" onClick={() => setAnswerOpen(true)}>Show answer</button>}
-          </div>
-          <div className="sessionActions">
-            <button className="secondary" onClick={() => saveAndContinue(lesson)}>Save</button>
-            <button className="secondary" onClick={skipLesson}>Skip</button>
-            <button className="primary" onClick={() => completeLesson(lesson)}>Got it</button>
-          </div>
-        </section>
+        <div className="cardDots" aria-label="Session progress">
+          {nextSession.map((item, index) => (
+            <span key={item.id} className={index === sessionIndex ? 'active' : index < sessionIndex ? 'done' : ''} />
+          ))}
+        </div>
+        <div className="cardDeck">
+          <section
+            className="lessonCard swipeCard"
+            onTouchStart={(event) => setTouchStart(event.changedTouches[0].clientX)}
+            onTouchEnd={(event) => handleTouchEnd(event, lesson)}
+          >
+            <div className="swipeHint"><span>Save</span><span>Skip</span></div>
+            <div className="cardMeta">
+              <span className="pill">{lesson.area}</span>
+              <span>{sessionIndex + 1} / {nextSession.length}</span>
+            </div>
+            <h1>{lesson.title}</h1>
+            <p className="hook">{lesson.hook}</p>
+            <p className="ideaText">{lesson.body}</p>
+            <div className={moveOpen ? 'moveBox open' : 'moveBox'}>
+              <span className="miniLabel">Tiny move</span>
+              {moveOpen ? <strong>{getMove(lesson)}</strong> : <strong>Want the part you can actually use?</strong>}
+              {moveOpen ? <p>No test. Just steal the move, save it, or keep swiping.</p> : <button className="textButton" onClick={() => setMoveOpen(true)}>Show me the move</button>}
+            </div>
+          </section>
+        </div>
+        <div className="swipeControls">
+          <button className="roundAction skipAction" onClick={skipLesson}><span>Skip</span></button>
+          <button className="roundAction saveAction" onClick={() => saveAndContinue(lesson)}><span>Save</span></button>
+          <button className="roundAction doneAction" onClick={() => completeLesson(lesson)}><span>Done</span></button>
+        </div>
       </main>
     );
   }
@@ -457,24 +481,26 @@ function App() {
       <main className="app">
         <header className="topBar">
           <button className="ghost" onClick={() => setScreen('home')}>Back</button>
-          <div className="progressText">Saved review</div>
+          <div className="progressText">Saved ideas</div>
         </header>
         {lesson ? (
           <section className="lessonCard compact">
             <span className="pill">{lesson.area}</span>
             <h1>{lesson.title}</h1>
-            <p className="hook">{lesson.quiz}</p>
-            <div className={answerOpen ? 'quiz open' : 'quiz'}>
-              {answerOpen ? <span>{lesson.answer}</span> : <button className="textButton" onClick={() => setAnswerOpen(true)}>Reveal answer</button>}
+            <p className="hook">{lesson.hook}</p>
+            <p className="ideaText">{lesson.body}</p>
+            <div className="moveBox open">
+              <span className="miniLabel">Saved move</span>
+              <strong>{getMove(lesson)}</strong>
             </div>
             <div className="actions single">
-              <button className="primary" onClick={completeReview}>Remembered it</button>
+              <button className="primary" onClick={completeReview}>Next saved idea</button>
             </div>
           </section>
         ) : (
           <section className="emptyState">
-            <h1>No saved cards yet.</h1>
-            <p>Save useful cards during a session. They will become quick review drills here.</p>
+            <h1>No saved ideas yet.</h1>
+            <p>Save useful cards during a session. They will come back here without turning into homework.</p>
             <button className="primary wide" onClick={() => startSession('Need focus')}>Start a session</button>
           </section>
         )}
@@ -488,7 +514,7 @@ function App() {
         <section className="heroPanel completionPanel">
           <p className="eyebrow">Session complete</p>
           <h1>You beat the scroll for 3 minutes.</h1>
-          <p className="lead">That is the loop: catch the impulse, learn three useful things, and leave before it becomes another feed.</p>
+          <p className="lead">No homework, no test. You caught the impulse and took three better inputs.</p>
           <div className="rewardGrid">
             <div><strong>+45</strong><span>possible XP</span></div>
             <div><strong>{progress.minutesReplaced}</strong><span>minutes rescued</span></div>
@@ -579,7 +605,7 @@ function App() {
 
       <section className="sectionBlock">
         <div className="sectionTitle">
-          <h2>Saved review</h2>
+          <h2>Saved ideas</h2>
           <button className="textButton" onClick={() => setScreen('review')}>Open</button>
         </div>
         {savedLessons.length ? (
@@ -587,7 +613,7 @@ function App() {
             {savedLessons.slice(0, 3).map((lesson) => <span key={lesson.id}>{lesson.title}</span>)}
           </div>
         ) : (
-          <p className="muted">Save a card during a session to build your review stack.</p>
+          <p className="muted">Save a card during a session to keep the ideas worth stealing.</p>
         )}
       </section>
     </main>

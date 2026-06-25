@@ -8,9 +8,10 @@ This repo is intentionally kept lean so GitHub Actions can build the Android APK
 
 - Onboards users around their scroll trigger and interest lanes
 - Offers Rescue Mode for boredom, stress, focus, and money ideas
-- Runs quick 3-card learning sessions with touch swipe gestures plus Save, Skip, and Got it controls
+- Runs quick 3-card learning sessions with touch swipe gestures plus Save, Skip, and Done controls
+- Uses hook-first cards with useful tiny moves instead of school-style quizzes
 - Tracks XP, streaks, streak freezes, completed cards, saved cards, sessions, daily missions, and rescued minutes in local storage
-- Includes a saved-card review mode
+- Includes a saved-ideas replay mode
 - Includes PWA metadata, a privacy policy draft, and Capacitor Android config
 - Includes a GitHub Actions workflow that builds a debug APK
 

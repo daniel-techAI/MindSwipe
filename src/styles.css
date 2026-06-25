@@ -371,9 +371,56 @@ h3 {
 .sessionShell {
   display: flex;
   flex-direction: column;
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
+}
+
+.cardDots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.cardDots span {
+  height: 6px;
+  border-radius: 999px;
+  background: #2d3338;
+}
+
+.cardDots span.active {
+  background: #73d0c2;
+}
+
+.cardDots span.done {
+  background: #f2c14e;
+}
+
+.cardDeck {
+  position: relative;
+  flex: 1;
+  display: grid;
+  min-height: 0;
+}
+
+.cardDeck::before,
+.cardDeck::after {
+  position: absolute;
+  inset: 10px 12px -10px;
+  z-index: 0;
+  border: 1px solid #293035;
+  border-radius: 8px;
+  background: #14171b;
+  content: "";
+}
+
+.cardDeck::after {
+  inset: 20px 24px -20px;
+  opacity: 0.55;
 }
 
 .lessonCard {
+  position: relative;
+  z-index: 1;
   flex: 1;
   min-height: 0;
 }
@@ -383,6 +430,7 @@ h3 {
 }
 
 .swipeCard {
+  min-height: 560px;
   touch-action: pan-y;
 }
 
@@ -397,11 +445,16 @@ h3 {
 
 .hook {
   color: #f2c14e !important;
-  font-size: 19px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 900;
 }
 
-.quiz {
+.ideaText {
+  border-left: 3px solid #304b46;
+  padding-left: 13px;
+}
+
+.moveBox {
   display: grid;
   gap: 10px;
   border: 1px solid #384046;
@@ -410,13 +463,26 @@ h3 {
   padding: 15px;
 }
 
-.quiz strong {
+.moveBox.open {
+  border-color: #735f2c;
+  background: #1f1a12;
+}
+
+.moveBox strong {
+  color: #fff9ed;
   line-height: 1.35;
 }
 
-.quiz span {
+.moveBox p {
+  margin: 0;
+  color: #b8b0a2;
+}
+
+.miniLabel {
   color: #f2c14e;
-  line-height: 1.45;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .actions,
@@ -432,6 +498,43 @@ h3 {
 
 .sessionActions {
   grid-template-columns: 1fr 1fr 1.35fr;
+}
+
+.swipeControls {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 12px;
+  padding-top: 22px;
+}
+
+.roundAction {
+  min-height: 58px;
+  border: 1px solid #3b4247;
+  border-radius: 999px;
+  background: #121418;
+  color: #f7f1e8;
+  font-weight: 900;
+}
+
+.roundAction span {
+  display: block;
+  white-space: nowrap;
+}
+
+.skipAction {
+  border-color: #5a3632;
+  color: #f0a08b;
+}
+
+.saveAction {
+  border-color: #31554f;
+  color: #d2fff7;
+}
+
+.doneAction {
+  border: 0;
+  background: #f2c14e;
+  color: #17130b;
 }
 
 .actions.single {
@@ -463,12 +566,18 @@ h3 {
   }
 
   .scoreboard,
-  .sessionActions {
+  .sessionActions,
+  .swipeControls {
     gap: 7px;
   }
 
   .scoreboard div,
-  .sessionActions button {
+  .sessionActions button,
+  .roundAction {
     padding: 12px 10px;
+  }
+
+  .swipeCard {
+    min-height: 520px;
   }
 }
