@@ -6,13 +6,14 @@ This repo is intentionally kept lean so GitHub Actions can build the Android APK
 
 ## What it does now
 
-- Onboards users around their scroll trigger and interest lanes
+- Onboards users around their scroll trigger, interest lanes, and first content pack
 - Offers Rescue Mode for boredom, stress, focus, and money ideas
+- Includes serious content packs: No Money Comeback, Discipline, Social Confidence, Work Grind, Focus, and Online Income Basics
 - Runs quick 3-card learning sessions with touch swipe gestures plus Save, Skip, and Done controls
 - Uses hook-first cards with useful tiny moves instead of school-style quizzes
-- Tracks XP, streaks, streak freezes, completed cards, saved cards, sessions, daily missions, and rescued minutes in local storage
+- Tracks XP, streaks, streak freezes, completed cards, saved cards, sessions, daily missions, reminder preference, and rescued minutes in local storage
 - Includes a saved-ideas replay mode
-- Includes PWA metadata, a privacy policy draft, and Capacitor Android config
+- Includes PWA metadata, a privacy policy draft, Capacitor Android config, and store-prep docs
 - Includes a GitHub Actions workflow that builds a debug APK
 
 ## Remote APK build

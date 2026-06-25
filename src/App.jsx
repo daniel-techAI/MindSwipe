@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { extraActionMoves, extraLessons, packOptions } from './content.js';
 import './styles.css';
+import './packs.css';
 
 const lessons = [
   {
@@ -184,6 +186,8 @@ const actionMoves = {
   'people-2': 'Replace “how are you?” with “what are you trying to fix this week?” Better questions create better conversations.'
 };
 
+const allLessons = [...lessons, ...extraLessons];
+const allActionMoves = { ...actionMoves, ...extraActionMoves };
 const interests = ['Money', 'Mind', 'Habits', 'Strategy', 'Health', 'People'];
 const triggerOptions = ['Bored in bed', 'Avoiding work', 'Stressed', 'Waiting around', 'After waking up'];
 const moods = [
@@ -206,7 +210,13 @@ function daysBetween(from, to) {
 }
 
 function getMove(lesson) {
-  return actionMoves[lesson.id] || 'Steal the idea, use it once today, then keep moving.';
+  return allActionMoves[lesson.id] || 'Steal the idea, use it once today, then keep moving.';
+}
+
+function getPackPool(activePack) {
+  if (activePack === 'all') return allLessons;
+  if (activePack === 'starter') return allLessons.filter((lesson) => !lesson.pack || lesson.pack === 'starter');
+  return allLessons.filter((lesson) => lesson.pack === activePack);
 }
 
 function loadProgress() {
@@ -217,6 +227,8 @@ function loadProgress() {
       onboarded: false,
       interests: [],
       trigger: '',
+      activePack: 'comeback',
+      reminderTime: '',
       xp: 0,
       streak: 0,
       freezes: 1,
@@ -243,6 +255,8 @@ function initialProgress() {
     onboarded: false,
     interests: [],
     trigger: '',
+    activePack: 'comeback',
+    reminderTime: '',
     xp: 0,
     streak: 0,
     freezes: 1,
@@ -263,6 +277,8 @@ function App() {
   const [selectedTrigger, setSelectedTrigger] = useState(progress.trigger || triggerOptions[0]);
   const [sessionIndex, setSessionIndex] = useState(0);
   const [activeMood, setActiveMood] = useState('Need focus');
+  const [activePack, setActivePack] = useState(progress.activePack || 'comeback');
+  const [reminderTime, setReminderTime] = useState(progress.reminderTime || '20:30');
   const [moveOpen, setMoveOpen] = useState(false);
   const [reviewIndex, setReviewIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
@@ -274,24 +290,27 @@ function App() {
 
   const nextSession = useMemo(() => {
     const activeMoodLabel = typeof activeMood === 'string' ? activeMood : activeMood.label;
-    const chosen = lessons.filter((lesson) => progress.interests.includes(lesson.area) || lesson.mood === activeMoodLabel);
+    const packPool = getPackPool(activePack);
+    const chosen = packPool.filter((lesson) => progress.interests.includes(lesson.area) || lesson.mood === activeMoodLabel);
     const unfinished = chosen.filter((lesson) => !progress.completed.includes(lesson.id));
-    const pool = unfinished.length >= sessionSize ? unfinished : [...unfinished, ...chosen, ...lessons];
+    const pool = unfinished.length >= sessionSize ? unfinished : [...unfinished, ...chosen, ...packPool, ...allLessons];
     const unique = [];
     pool.forEach((lesson) => {
       if (!unique.some((item) => item.id === lesson.id)) unique.push(lesson);
     });
     return unique.slice(0, sessionSize);
-  }, [activeMood, progress.completed, progress.interests]);
+  }, [activeMood, activePack, progress.completed, progress.interests]);
 
-  const savedLessons = lessons.filter((lesson) => progress.saved.includes(lesson.id));
-  const completedPercent = Math.round((progress.completed.length / lessons.length) * 100);
+  const savedLessons = allLessons.filter((lesson) => progress.saved.includes(lesson.id));
+  const completedPercent = Math.round((progress.completed.length / allLessons.length) * 100);
+  const currentPack = packOptions.find((pack) => pack.id === activePack) || packOptions[0];
   const today = todayKey();
   const todayDone = progress.lastActive === today;
   const missions = [
     { id: 'rescue', label: 'Complete one rescue', done: todayDone },
     { id: 'save', label: 'Save one useful card', done: progress.savedToday === today },
-    { id: 'review', label: 'Replay one saved idea', done: progress.reviewedToday === today || savedLessons.length === 0 }
+    { id: 'review', label: 'Replay one saved idea', done: progress.reviewedToday === today || savedLessons.length === 0 },
+    { id: 'reminder', label: 'Set a rescue reminder', done: Boolean(progress.reminderTime) }
   ];
   const missionDoneCount = missions.filter((mission) => mission.done).length;
 
@@ -301,10 +320,21 @@ function App() {
       onboarded: true,
       interests: selected.length ? selected : interests,
       trigger: selectedTrigger,
+      activePack,
+      reminderTime,
       freezes: progress.freezes || 1
     };
     commit(next);
     setScreen('home');
+  }
+
+  function choosePack(packId) {
+    setActivePack(packId);
+    commit({ ...progress, activePack: packId });
+  }
+
+  function saveReminder() {
+    commit({ ...progress, reminderTime });
   }
 
   function startSession(mood = activeMood) {
@@ -326,6 +356,7 @@ function App() {
     const completedSessions = nextProgress.sessions + 1;
     commit({
       ...nextProgress,
+      activePack,
       sessions: completedSessions,
       minutesReplaced: nextProgress.minutesReplaced + 3,
       freezes: nextProgress.sessions > 0 && completedSessions % 4 === 0 ? nextProgress.freezes + 1 : nextProgress.freezes
@@ -361,6 +392,7 @@ function App() {
     const next = {
       ...withDaily,
       xp: withDaily.xp + (already ? 5 : 15),
+      activePack,
       completed: already ? withDaily.completed : [...withDaily.completed, lesson.id]
     };
 
@@ -411,6 +443,17 @@ function App() {
             </div>
           </div>
           <div className="fieldGroup">
+            <h2>Pick your first pack</h2>
+            <div className="packGrid compactPackGrid">
+              {packOptions.slice(0, 6).map((pack) => (
+                <button key={pack.id} className={activePack === pack.id ? 'packCard active' : 'packCard'} onClick={() => setActivePack(pack.id)}>
+                  <strong>{pack.label}</strong>
+                  <span>{pack.detail}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="fieldGroup">
             <h2>Pick your useful lanes</h2>
             <div className="chips" aria-label="Choose learning interests">
               {interests.map((interest) => (
@@ -438,7 +481,7 @@ function App() {
       <main className="app sessionShell">
         <header className="topBar">
           <button className="ghost" onClick={() => setScreen('home')}>Close</button>
-          <div className="progressText">Swipe session</div>
+          <div className="progressText">{currentPack.label}</div>
         </header>
         <div className="cardDots" aria-label="Session progress">
           {nextSession.map((item, index) => (
@@ -573,6 +616,36 @@ function App() {
               <span>{mood.detail}</span>
             </button>
           ))}
+        </div>
+      </section>
+
+      <section className="packPanel">
+        <div className="sectionTitle">
+          <div>
+            <p className="eyebrow">Content pack</p>
+            <h2>{currentPack.label}</h2>
+          </div>
+          <button className="textButton" onClick={() => startSession(activeMood)}>Swipe</button>
+        </div>
+        <div className="packGrid">
+          {packOptions.map((pack) => (
+            <button key={pack.id} className={activePack === pack.id ? 'packCard active' : 'packCard'} onClick={() => choosePack(pack.id)}>
+              <strong>{pack.label}</strong>
+              <span>{pack.detail}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="reminderPanel">
+        <div>
+          <p className="eyebrow">Reminder</p>
+          <h2>Before the feed, do 3 cards</h2>
+          <p>This stores your preferred rescue time for now. Real phone push reminders come in the release build phase.</p>
+        </div>
+        <div className="reminderRow">
+          <input aria-label="Reminder time" type="time" value={reminderTime} onChange={(event) => setReminderTime(event.target.value)} />
+          <button className="secondary" onClick={saveReminder}>{progress.reminderTime ? 'Update' : 'Set'}</button>
         </div>
       </section>
 
