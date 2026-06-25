@@ -1,0 +1,9 @@
+{
+  "appId": "com.mindswipe.app",
+  "appName": "Mind Swipe",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

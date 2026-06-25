@@ -1,0 +1,20 @@
+{
+  "name": "Mind Swipe",
+  "short_name": "Mind Swipe",
+  "description": "Replace doomscrolling with short useful learning sessions.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f1115",
+  "theme_color": "#0f1115",
+  "orientation": "portrait",
+  "categories": ["education", "productivity", "health"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
