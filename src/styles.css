@@ -1,1 +1,376 @@
-:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f7f1e6;background:#0f1115;font-synthesis:none;text-rendering:optimizeLegibility}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#252017 0,#0f1115 42%,#0b0c0f 100%)}button{font:inherit}.app{width:min(100%,460px);min-height:100vh;margin:0 auto;padding:28px 18px 96px}.center{display:grid;place-items:center}.hero{width:100%;display:flex;flex-direction:column;gap:18px}.eyebrow{margin:0;color:#d4a84e;text-transform:uppercase;letter-spacing:.16em;font-size:12px;font-weight:800}.hero h1,.homeHeader h1,.lesson h1{margin:0;font-size:44px;line-height:.96;letter-spacing:0;font-weight:900}.hero p,.lesson p,.card p,.muted{color:#b9b1a4;line-height:1.55}.chips{display:flex;flex-wrap:wrap;gap:10px}.chip,.secondary,.ghost,.iconButton{border:1px solid #35302a;background:#17191f;color:#f7f1e6;border-radius:14px;padding:11px 13px}.chip.active{border-color:#d4a84e;background:#2a2418;color:#f4d28a}.primary,.doom{border:0;border-radius:16px;background:#d4a84e;color:#15120b;font-weight:900;padding:15px 18px}.primary:disabled{opacity:.45}.homeHeader,.top{display:flex;align-items:center;justify-content:space-between;gap:16px}.iconButton{font-weight:800;color:#d4a84e}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.stats div,.card,.lesson,.quiz{background:#17191f;border:1px solid #2f302f;border-radius:18px;padding:16px}.stats strong{display:block;font-size:24px;color:#f4d28a}.stats span{font-size:11px;color:#9d9589;text-transform:uppercase;font-weight:800;letter-spacing:.12em}.doom{width:100%;margin-bottom:26px;text-align:left;font-size:17px}.list{display:grid;gap:12px}.card h3{margin:8px 0 4px}.pill{display:inline-flex;width:max-content;border-radius:999px;padding:5px 9px;background:#2a2418;color:#f4d28a;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.lesson{margin-top:28px;display:flex;flex-direction:column;gap:16px}.hook{font-size:19px;color:#f4d28a!important}.quiz{display:grid;gap:8px}.quiz span{color:#d4a84e}.actions{display:grid;grid-template-columns:1fr 1.4fr;gap:10px}.saved{padding:12px 0;border-bottom:1px solid #2f302f;color:#d8d0c2}@media(max-width:380px){.hero h1,.homeHeader h1,.lesson h1{font-size:36px}.app{padding-left:14px;padding-right:14px}}
+:root {
+  color: #f7f1e6;
+  background: #101114;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: linear-gradient(180deg, #19171b 0%, #101114 44%, #0b0c0f 100%);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.app {
+  width: min(100%, 480px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: max(22px, env(safe-area-inset-top)) 18px max(92px, env(safe-area-inset-bottom));
+}
+
+.center {
+  display: grid;
+  place-items: center;
+}
+
+.heroPanel,
+.lessonCard,
+.rescuePanel,
+.emptyState {
+  width: 100%;
+  border: 1px solid #2e3135;
+  background: #181a1f;
+  border-radius: 8px;
+  padding: 22px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24);
+}
+
+.heroPanel,
+.lessonCard,
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #79c7b8;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+.heroPanel h1,
+.homeHeader h1,
+.lessonCard h1,
+.emptyState h1 {
+  margin-bottom: 0;
+  color: #fff7ea;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.02;
+}
+
+h2 {
+  margin-bottom: 8px;
+  color: #fff7ea;
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+h3 {
+  margin-bottom: 6px;
+  color: #fff7ea;
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.lead,
+.lessonCard p,
+.rescuePanel p,
+.miniCard p,
+.muted,
+.emptyState p {
+  color: #b9b6ad;
+  line-height: 1.55;
+}
+
+.chips,
+.moodGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip,
+.mood,
+.secondary,
+.ghost,
+.startButton {
+  border: 1px solid #383c42;
+  background: #111318;
+  color: #f7f1e6;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-weight: 800;
+}
+
+.chip.active,
+.mood.active {
+  border-color: #79c7b8;
+  background: #12302d;
+  color: #ccfff2;
+}
+
+.primary {
+  border: 0;
+  border-radius: 8px;
+  background: #f1c84b;
+  color: #16130b;
+  font-weight: 900;
+  padding: 15px 18px;
+}
+
+.primary:disabled {
+  opacity: 0.45;
+}
+
+.wide {
+  width: 100%;
+}
+
+.homeHeader,
+.topBar,
+.sectionTitle,
+.cardMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.homeHeader {
+  padding-top: 6px;
+}
+
+.startButton {
+  min-width: 74px;
+  color: #ccfff2;
+}
+
+.topBar {
+  margin-bottom: 14px;
+}
+
+.progressText,
+.cardMeta span:last-child {
+  color: #a5aaa7;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.meter {
+  height: 8px;
+  overflow: hidden;
+  border: 1px solid #2e3135;
+  border-radius: 999px;
+  background: #111318;
+  margin-bottom: 16px;
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  background: #79c7b8;
+  transition: width 180ms ease;
+}
+
+.scoreboard,
+.progressBand,
+.rewardGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 22px 0;
+}
+
+.scoreboard div,
+.progressBand div,
+.rewardGrid div,
+.miniCard {
+  border: 1px solid #2e3135;
+  background: #181a1f;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.scoreboard strong,
+.progressBand span,
+.rewardGrid strong {
+  display: block;
+  color: #f1c84b;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.scoreboard span,
+.rewardGrid span,
+.progressBand p {
+  margin: 7px 0 0;
+  color: #a5aaa7;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.progressBand {
+  grid-template-columns: 1fr 1fr;
+}
+
+.rescuePanel {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.moodGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.mood {
+  min-height: 48px;
+}
+
+.sectionBlock {
+  margin-top: 28px;
+}
+
+.sectionTitle h2 {
+  margin-bottom: 0;
+}
+
+.textButton {
+  border: 0;
+  background: transparent;
+  color: #79c7b8;
+  font-weight: 900;
+  padding: 8px 0;
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+}
+
+.pill {
+  display: inline-flex;
+  width: max-content;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: #24262b;
+  color: #79c7b8;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.sessionShell {
+  display: flex;
+  flex-direction: column;
+}
+
+.lessonCard {
+  flex: 1;
+  min-height: 0;
+}
+
+.lessonCard.compact {
+  margin-top: 18px;
+}
+
+.hook {
+  color: #f1c84b !important;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.quiz {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #34383f;
+  border-radius: 8px;
+  background: #111318;
+  padding: 15px;
+}
+
+.quiz strong {
+  line-height: 1.35;
+}
+
+.quiz span {
+  color: #f1c84b;
+  line-height: 1.45;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.actions.single {
+  grid-template-columns: 1fr;
+}
+
+.savedStrip {
+  display: grid;
+  gap: 10px;
+}
+
+.savedStrip span {
+  border-bottom: 1px solid #2e3135;
+  color: #d8d3c8;
+  padding-bottom: 10px;
+}
+
+@media (max-width: 380px) {
+  .app {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .heroPanel h1,
+  .homeHeader h1,
+  .lessonCard h1,
+  .emptyState h1 {
+    font-size: 31px;
+  }
+
+  .scoreboard {
+    gap: 7px;
+  }
+
+  .scoreboard div {
+    padding: 12px 10px;
+  }
+}

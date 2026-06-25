@@ -4,11 +4,13 @@ Mind Swipe replaces doomscrolling with short, useful learning sessions.
 
 This repo is intentionally kept lean so GitHub Actions can build the Android APK remotely without needing Replit, pnpm, or a slow local machine.
 
-## What it does
+## What it does now
 
 - Onboards users by interest area
-- Starts quick 3-card learning sessions
-- Tracks XP, streaks, completed cards, and saved cards in local storage
+- Offers Rescue Mode for boredom, stress, focus, and money ideas
+- Runs quick 3-card learning sessions with hidden quiz answers
+- Tracks XP, streaks, streak freezes, completed cards, saved cards, sessions, and rescued minutes in local storage
+- Includes a saved-card review mode
 - Includes PWA metadata, a privacy policy draft, and Capacitor Android config
 - Includes a GitHub Actions workflow that builds a debug APK
 
