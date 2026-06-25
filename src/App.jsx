@@ -166,7 +166,13 @@ const lessons = [
 ];
 
 const interests = ['Money', 'Mind', 'Habits', 'Strategy', 'Health', 'People'];
-const moods = ['Bored', 'Stressed', 'Need focus', 'Money ideas'];
+const triggerOptions = ['Bored in bed', 'Avoiding work', 'Stressed', 'Waiting around', 'After waking up'];
+const moods = [
+  { label: 'Bored', detail: 'fast curiosity' },
+  { label: 'Stressed', detail: 'calm reset' },
+  { label: 'Need focus', detail: 'get moving' },
+  { label: 'Money ideas', detail: 'build options' }
+];
 const sessionSize = 3;
 
 function todayKey() {
@@ -187,6 +193,7 @@ function loadProgress() {
     return {
       onboarded: false,
       interests: [],
+      trigger: '',
       xp: 0,
       streak: 0,
       freezes: 1,
@@ -195,6 +202,8 @@ function loadProgress() {
       sessions: 0,
       minutesReplaced: 0,
       lastActive: '',
+      savedToday: '',
+      reviewedToday: '',
       ...saved
     };
   } catch {
@@ -210,6 +219,7 @@ function initialProgress() {
   return loadProgress() || {
     onboarded: false,
     interests: [],
+    trigger: '',
     xp: 0,
     streak: 0,
     freezes: 1,
@@ -217,7 +227,9 @@ function initialProgress() {
     saved: [],
     sessions: 0,
     minutesReplaced: 0,
-    lastActive: ''
+    lastActive: '',
+    savedToday: '',
+    reviewedToday: ''
   };
 }
 
@@ -225,10 +237,12 @@ function App() {
   const [progress, setProgress] = useState(initialProgress);
   const [screen, setScreen] = useState(progress.onboarded ? 'home' : 'onboarding');
   const [selected, setSelected] = useState(progress.interests.length ? progress.interests : ['Money', 'Habits']);
+  const [selectedTrigger, setSelectedTrigger] = useState(progress.trigger || triggerOptions[0]);
   const [sessionIndex, setSessionIndex] = useState(0);
   const [activeMood, setActiveMood] = useState('Need focus');
   const [answerOpen, setAnswerOpen] = useState(false);
   const [reviewIndex, setReviewIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
 
   function commit(next) {
     setProgress(next);
@@ -236,7 +250,8 @@ function App() {
   }
 
   const nextSession = useMemo(() => {
-    const chosen = lessons.filter((lesson) => progress.interests.includes(lesson.area) || lesson.mood === activeMood);
+    const activeMoodLabel = typeof activeMood === 'string' ? activeMood : activeMood.label;
+    const chosen = lessons.filter((lesson) => progress.interests.includes(lesson.area) || lesson.mood === activeMoodLabel);
     const unfinished = chosen.filter((lesson) => !progress.completed.includes(lesson.id));
     const pool = unfinished.length >= sessionSize ? unfinished : [...unfinished, ...chosen, ...lessons];
     const unique = [];
@@ -248,13 +263,21 @@ function App() {
 
   const savedLessons = lessons.filter((lesson) => progress.saved.includes(lesson.id));
   const completedPercent = Math.round((progress.completed.length / lessons.length) * 100);
-  const todayDone = progress.lastActive === todayKey();
+  const today = todayKey();
+  const todayDone = progress.lastActive === today;
+  const missions = [
+    { id: 'rescue', label: 'Complete one rescue', done: todayDone },
+    { id: 'save', label: 'Save one useful card', done: progress.savedToday === today },
+    { id: 'review', label: 'Review saved cards', done: progress.reviewedToday === today || savedLessons.length === 0 }
+  ];
+  const missionDoneCount = missions.filter((mission) => mission.done).length;
 
   function finishOnboarding() {
     const next = {
       ...progress,
       onboarded: true,
       interests: selected.length ? selected : interests,
+      trigger: selectedTrigger,
       freezes: progress.freezes || 1
     };
     commit(next);
@@ -262,14 +285,13 @@ function App() {
   }
 
   function startSession(mood = activeMood) {
-    setActiveMood(mood);
+    setActiveMood(typeof mood === 'string' ? mood : mood.label);
     setSessionIndex(0);
     setAnswerOpen(false);
     setScreen('learn');
   }
 
   function updateDailyProgress(current) {
-    const today = todayKey();
     const gap = daysBetween(current.lastActive, today);
     if (gap === 0) return current;
     if (gap <= 1) return { ...current, streak: current.streak + 1, lastActive: today };
@@ -277,11 +299,43 @@ function App() {
     return { ...current, streak: 1, lastActive: today };
   }
 
+  function completeSession(nextProgress) {
+    const completedSessions = nextProgress.sessions + 1;
+    commit({
+      ...nextProgress,
+      sessions: completedSessions,
+      minutesReplaced: nextProgress.minutesReplaced + 3,
+      freezes: nextProgress.sessions > 0 && completedSessions % 4 === 0 ? nextProgress.freezes + 1 : nextProgress.freezes
+    });
+    setSessionIndex(0);
+    setAnswerOpen(false);
+    setScreen('complete');
+  }
+
+  function moveToNextCard(nextProgress = progress) {
+    if (sessionIndex >= nextSession.length - 1) {
+      completeSession(updateDailyProgress(nextProgress));
+      return;
+    }
+    commit(nextProgress);
+    setSessionIndex(sessionIndex + 1);
+    setAnswerOpen(false);
+  }
+
   function toggleSave(id) {
-    const nextSaved = progress.saved.includes(id)
-      ? progress.saved.filter((item) => item !== id)
-      : [...progress.saved, id];
-    commit({ ...progress, saved: nextSaved });
+    const isSaved = progress.saved.includes(id);
+    const nextSaved = isSaved ? progress.saved.filter((item) => item !== id) : [...progress.saved, id];
+    commit({ ...progress, saved: nextSaved, savedToday: isSaved ? progress.savedToday : today });
+  }
+
+  function saveAndContinue(lesson) {
+    const alreadySaved = progress.saved.includes(lesson.id);
+    const next = alreadySaved ? progress : { ...progress, saved: [...progress.saved, lesson.id], savedToday: today };
+    moveToNextCard(next);
+  }
+
+  function skipLesson() {
+    moveToNextCard(progress);
   }
 
   function completeLesson(lesson) {
@@ -294,15 +348,7 @@ function App() {
     };
 
     if (sessionIndex >= nextSession.length - 1) {
-      commit({
-        ...next,
-        sessions: next.sessions + 1,
-        minutesReplaced: next.minutesReplaced + 3,
-        freezes: next.sessions > 0 && (next.sessions + 1) % 4 === 0 ? next.freezes + 1 : next.freezes
-      });
-      setSessionIndex(0);
-      setAnswerOpen(false);
-      setScreen('complete');
+      completeSession(next);
       return;
     }
 
@@ -311,32 +357,58 @@ function App() {
     setAnswerOpen(false);
   }
 
-  function completeReview(lesson) {
-    commit({ ...progress, xp: progress.xp + 5 });
+  function completeReview() {
+    commit({ ...progress, xp: progress.xp + 5, reviewedToday: today });
     setAnswerOpen(false);
     setReviewIndex(savedLessons.length ? (reviewIndex + 1) % savedLessons.length : 0);
+  }
+
+  function handleTouchEnd(event, lesson) {
+    if (touchStart === null) return;
+    const touchEnd = event.changedTouches[0].clientX;
+    const delta = touchEnd - touchStart;
+    setTouchStart(null);
+    if (Math.abs(delta) < 64) return;
+    if (delta > 0) {
+      saveAndContinue(lesson);
+      return;
+    }
+    skipLesson();
   }
 
   if (screen === 'onboarding') {
     return (
       <main className="app center">
-        <section className="heroPanel">
+        <section className="heroPanel introPanel">
           <p className="eyebrow">Mind Swipe</p>
-          <h1>Turn the scroll urge into a useful win.</h1>
-          <p className="lead">Pick at least two lanes. Your home screen becomes a fast rescue button when boredom, stress, or procrastination hits.</p>
-          <div className="chips" aria-label="Choose learning interests">
-            {interests.map((interest) => (
-              <button
-                key={interest}
-                className={selected.includes(interest) ? 'chip active' : 'chip'}
-                onClick={() => setSelected(selected.includes(interest) ? selected.filter((item) => item !== interest) : [...selected, interest])}
-              >
-                {interest}
-              </button>
-            ))}
+          <h1>Open this when your thumb wants the feed.</h1>
+          <p className="lead">Build a tiny rescue feed around your real scroll trigger. Three useful cards, then you are out.</p>
+          <div className="fieldGroup">
+            <h2>What usually starts the scroll?</h2>
+            <div className="chips" aria-label="Choose scroll trigger">
+              {triggerOptions.map((trigger) => (
+                <button key={trigger} className={selectedTrigger === trigger ? 'chip active' : 'chip'} onClick={() => setSelectedTrigger(trigger)}>
+                  {trigger}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="fieldGroup">
+            <h2>Pick your useful lanes</h2>
+            <div className="chips" aria-label="Choose learning interests">
+              {interests.map((interest) => (
+                <button
+                  key={interest}
+                  className={selected.includes(interest) ? 'chip active' : 'chip'}
+                  onClick={() => setSelected(selected.includes(interest) ? selected.filter((item) => item !== interest) : [...selected, interest])}
+                >
+                  {interest}
+                </button>
+              ))}
+            </div>
           </div>
           <button className="primary wide" disabled={selected.length < 2} onClick={finishOnboarding}>
-            {selected.length < 2 ? 'Pick at least 2' : 'Build my rescue feed'}
+            {selected.length < 2 ? 'Pick at least 2 lanes' : 'Build my rescue feed'}
           </button>
         </section>
       </main>
@@ -352,7 +424,12 @@ function App() {
           <div className="progressText">Card {sessionIndex + 1} of {nextSession.length}</div>
         </header>
         <div className="meter"><span style={{ width: `${((sessionIndex + 1) / nextSession.length) * 100}%` }} /></div>
-        <section className="lessonCard">
+        <section
+          className="lessonCard swipeCard"
+          onTouchStart={(event) => setTouchStart(event.changedTouches[0].clientX)}
+          onTouchEnd={(event) => handleTouchEnd(event, lesson)}
+        >
+          <div className="swipeHint"><span>Save</span><span>Skip</span></div>
           <div className="cardMeta">
             <span className="pill">{lesson.area}</span>
             <span>{activeMood}</span>
@@ -364,9 +441,10 @@ function App() {
             <strong>{lesson.quiz}</strong>
             {answerOpen ? <span>{lesson.answer}</span> : <button className="textButton" onClick={() => setAnswerOpen(true)}>Show answer</button>}
           </div>
-          <div className="actions">
-            <button className="secondary" onClick={() => toggleSave(lesson.id)}>{progress.saved.includes(lesson.id) ? 'Saved' : 'Save'}</button>
-            <button className="primary" onClick={() => completeLesson(lesson)}>{answerOpen ? 'Got it' : 'Next'}</button>
+          <div className="sessionActions">
+            <button className="secondary" onClick={() => saveAndContinue(lesson)}>Save</button>
+            <button className="secondary" onClick={skipLesson}>Skip</button>
+            <button className="primary" onClick={() => completeLesson(lesson)}>Got it</button>
           </div>
         </section>
       </main>
@@ -390,7 +468,7 @@ function App() {
               {answerOpen ? <span>{lesson.answer}</span> : <button className="textButton" onClick={() => setAnswerOpen(true)}>Reveal answer</button>}
             </div>
             <div className="actions single">
-              <button className="primary" onClick={() => completeReview(lesson)}>Remembered it</button>
+              <button className="primary" onClick={completeReview}>Remembered it</button>
             </div>
           </section>
         ) : (
@@ -407,7 +485,7 @@ function App() {
   if (screen === 'complete') {
     return (
       <main className="app center">
-        <section className="heroPanel">
+        <section className="heroPanel completionPanel">
           <p className="eyebrow">Session complete</p>
           <h1>You beat the scroll for 3 minutes.</h1>
           <p className="lead">That is the loop: catch the impulse, learn three useful things, and leave before it becomes another feed.</p>
@@ -427,10 +505,28 @@ function App() {
       <header className="homeHeader">
         <div>
           <p className="eyebrow">Mind Swipe</p>
-          <h1>Ready to interrupt the scroll?</h1>
+          <h1>Rescue your next scroll.</h1>
         </div>
         <button className="startButton" onClick={() => startSession(activeMood)}>Start</button>
       </header>
+
+      <section className="missionPanel">
+        <div className="sectionTitle">
+          <div>
+            <p className="eyebrow">Today</p>
+            <h2>{missionDoneCount} of {missions.length} missions done</h2>
+          </div>
+          <span className="missionBadge">{todayDone ? 'Done' : 'Open'}</span>
+        </div>
+        <div className="missionList">
+          {missions.map((mission) => (
+            <div key={mission.id} className={mission.done ? 'mission done' : 'mission'}>
+              <span>{mission.done ? 'Done' : 'Todo'}</span>
+              <p>{mission.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="scoreboard" aria-label="Progress stats">
         <div><strong>{progress.xp}</strong><span>XP</span></div>
@@ -441,12 +537,15 @@ function App() {
       <section className="rescuePanel">
         <div>
           <p className="eyebrow">Rescue mode</p>
-          <h2>{todayDone ? 'Daily win is done.' : 'What are you feeling right now?'}</h2>
-          <p>Choose the urge. Mind Swipe gives you three cards instead of an endless feed.</p>
+          <h2>{progress.trigger ? `When: ${progress.trigger}` : 'What are you feeling right now?'}</h2>
+          <p>Pick the urge. You get three cards instead of an endless feed.</p>
         </div>
         <div className="moodGrid">
           {moods.map((mood) => (
-            <button key={mood} className={activeMood === mood ? 'mood active' : 'mood'} onClick={() => startSession(mood)}>{mood}</button>
+            <button key={mood.label} className={activeMood === mood.label ? 'mood active' : 'mood'} onClick={() => startSession(mood.label)}>
+              <strong>{mood.label}</strong>
+              <span>{mood.detail}</span>
+            </button>
           ))}
         </div>
       </section>

@@ -1,6 +1,6 @@
 :root {
-  color: #f7f1e6;
-  background: #101114;
+  color: #f7f1e8;
+  background: #121315;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,7 +13,7 @@
 body {
   min-height: 100vh;
   margin: 0;
-  background: linear-gradient(180deg, #19171b 0%, #101114 44%, #0b0c0f 100%);
+  background: linear-gradient(180deg, #17201f 0%, #121315 48%, #0e0f12 100%);
 }
 
 button {
@@ -41,10 +41,11 @@ button:disabled {
 .heroPanel,
 .lessonCard,
 .rescuePanel,
-.emptyState {
+.emptyState,
+.missionPanel {
   width: 100%;
-  border: 1px solid #2e3135;
-  background: #181a1f;
+  border: 1px solid #30363a;
+  background: #1a1d21;
   border-radius: 8px;
   padding: 22px;
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24);
@@ -58,9 +59,17 @@ button:disabled {
   gap: 16px;
 }
 
+.introPanel {
+  border-color: #31554f;
+}
+
+.completionPanel {
+  border-color: #7a5c2d;
+}
+
 .eyebrow {
   margin: 0;
-  color: #79c7b8;
+  color: #73d0c2;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0;
@@ -79,7 +88,7 @@ p {
 .lessonCard h1,
 .emptyState h1 {
   margin-bottom: 0;
-  color: #fff7ea;
+  color: #fff9ed;
   font-size: 36px;
   font-weight: 900;
   letter-spacing: 0;
@@ -88,14 +97,14 @@ p {
 
 h2 {
   margin-bottom: 8px;
-  color: #fff7ea;
+  color: #fff9ed;
   font-size: 20px;
   line-height: 1.15;
 }
 
 h3 {
   margin-bottom: 6px;
-  color: #fff7ea;
+  color: #fff9ed;
   font-size: 17px;
   line-height: 1.2;
 }
@@ -106,8 +115,18 @@ h3 {
 .miniCard p,
 .muted,
 .emptyState p {
-  color: #b9b6ad;
+  color: #c6c0b5;
   line-height: 1.55;
+}
+
+.fieldGroup {
+  display: grid;
+  gap: 10px;
+}
+
+.fieldGroup h2 {
+  margin: 0;
+  font-size: 17px;
 }
 
 .chips,
@@ -122,9 +141,9 @@ h3 {
 .secondary,
 .ghost,
 .startButton {
-  border: 1px solid #383c42;
-  background: #111318;
-  color: #f7f1e6;
+  border: 1px solid #3b4247;
+  background: #121418;
+  color: #f7f1e8;
   border-radius: 8px;
   padding: 12px 14px;
   font-weight: 800;
@@ -132,16 +151,16 @@ h3 {
 
 .chip.active,
 .mood.active {
-  border-color: #79c7b8;
-  background: #12302d;
-  color: #ccfff2;
+  border-color: #73d0c2;
+  background: #143330;
+  color: #d2fff7;
 }
 
 .primary {
   border: 0;
   border-radius: 8px;
-  background: #f1c84b;
-  color: #16130b;
+  background: #f2c14e;
+  color: #17130b;
   font-weight: 900;
   padding: 15px 18px;
 }
@@ -170,7 +189,7 @@ h3 {
 
 .startButton {
   min-width: 74px;
-  color: #ccfff2;
+  color: #d2fff7;
 }
 
 .topBar {
@@ -179,7 +198,7 @@ h3 {
 
 .progressText,
 .cardMeta span:last-child {
-  color: #a5aaa7;
+  color: #a8b0ad;
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
@@ -188,17 +207,64 @@ h3 {
 .meter {
   height: 8px;
   overflow: hidden;
-  border: 1px solid #2e3135;
+  border: 1px solid #30363a;
   border-radius: 999px;
-  background: #111318;
+  background: #121418;
   margin-bottom: 16px;
 }
 
 .meter span {
   display: block;
   height: 100%;
-  background: #79c7b8;
+  background: #73d0c2;
   transition: width 180ms ease;
+}
+
+.missionPanel {
+  display: grid;
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.missionBadge {
+  border: 1px solid #6e8f89;
+  border-radius: 999px;
+  color: #d2fff7;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.missionList {
+  display: grid;
+  gap: 8px;
+}
+
+.mission {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #30363a;
+  border-radius: 8px;
+  background: #121418;
+  padding: 10px;
+}
+
+.mission span {
+  color: #f09a78;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.mission.done span {
+  color: #73d0c2;
+}
+
+.mission p {
+  margin: 0;
+  color: #e4ded2;
 }
 
 .scoreboard,
@@ -214,8 +280,8 @@ h3 {
 .progressBand div,
 .rewardGrid div,
 .miniCard {
-  border: 1px solid #2e3135;
-  background: #181a1f;
+  border: 1px solid #30363a;
+  background: #1a1d21;
   border-radius: 8px;
   padding: 15px;
 }
@@ -224,7 +290,7 @@ h3 {
 .progressBand span,
 .rewardGrid strong {
   display: block;
-  color: #f1c84b;
+  color: #f2c14e;
   font-size: 24px;
   line-height: 1;
 }
@@ -233,7 +299,7 @@ h3 {
 .rewardGrid span,
 .progressBand p {
   margin: 7px 0 0;
-  color: #a5aaa7;
+  color: #a8b0ad;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0;
@@ -248,6 +314,7 @@ h3 {
   display: grid;
   gap: 16px;
   margin-bottom: 22px;
+  border-color: #2f4d49;
 }
 
 .moodGrid {
@@ -256,7 +323,15 @@ h3 {
 }
 
 .mood {
-  min-height: 48px;
+  display: grid;
+  min-height: 64px;
+  text-align: left;
+}
+
+.mood span {
+  color: #a8b0ad;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .sectionBlock {
@@ -270,7 +345,7 @@ h3 {
 .textButton {
   border: 0;
   background: transparent;
-  color: #79c7b8;
+  color: #73d0c2;
   font-weight: 900;
   padding: 8px 0;
 }
@@ -285,8 +360,8 @@ h3 {
   width: max-content;
   border-radius: 999px;
   padding: 5px 9px;
-  background: #24262b;
-  color: #79c7b8;
+  background: #252a30;
+  color: #73d0c2;
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0;
@@ -307,8 +382,21 @@ h3 {
   margin-top: 18px;
 }
 
+.swipeCard {
+  touch-action: pan-y;
+}
+
+.swipeHint {
+  display: flex;
+  justify-content: space-between;
+  color: #85908c;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .hook {
-  color: #f1c84b !important;
+  color: #f2c14e !important;
   font-size: 19px;
   font-weight: 800;
 }
@@ -316,9 +404,9 @@ h3 {
 .quiz {
   display: grid;
   gap: 10px;
-  border: 1px solid #34383f;
+  border: 1px solid #384046;
   border-radius: 8px;
-  background: #111318;
+  background: #121418;
   padding: 15px;
 }
 
@@ -327,15 +415,23 @@ h3 {
 }
 
 .quiz span {
-  color: #f1c84b;
+  color: #f2c14e;
   line-height: 1.45;
 }
 
-.actions {
+.actions,
+.sessionActions {
   display: grid;
-  grid-template-columns: 1fr 1.35fr;
   gap: 10px;
   margin-top: auto;
+}
+
+.actions {
+  grid-template-columns: 1fr 1.35fr;
+}
+
+.sessionActions {
+  grid-template-columns: 1fr 1fr 1.35fr;
 }
 
 .actions.single {
@@ -348,8 +444,8 @@ h3 {
 }
 
 .savedStrip span {
-  border-bottom: 1px solid #2e3135;
-  color: #d8d3c8;
+  border-bottom: 1px solid #30363a;
+  color: #e0d8cc;
   padding-bottom: 10px;
 }
 
@@ -366,11 +462,13 @@ h3 {
     font-size: 31px;
   }
 
-  .scoreboard {
+  .scoreboard,
+  .sessionActions {
     gap: 7px;
   }
 
-  .scoreboard div {
+  .scoreboard div,
+  .sessionActions button {
     padding: 12px 10px;
   }
 }
