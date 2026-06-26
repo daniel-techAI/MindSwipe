@@ -409,20 +409,6 @@
   line-height: 1.55;
 }
 
-.sessionActionsNew {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.2fr;
-  gap: 10px;
-  margin-top: auto;
-}
-
-.sessionActionsNew button {
-  min-height: 58px;
-  border-radius: 999px;
-  font-size: 16px;
-  font-weight: 950;
-}
-
 .todoText {
   color: #f09a78 !important;
   text-transform: none !important;
@@ -440,13 +426,286 @@
     grid-template-columns: 1fr;
   }
 
-  .sessionActionsNew {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .bigStart {
     animation: none;
+  }
+}
+
+.appShell {
+  position: relative;
+}
+
+.appShell::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 16% 8%, rgba(114, 220, 205, 0.14), transparent 34%),
+    radial-gradient(circle at 84% 16%, rgba(242, 193, 78, 0.12), transparent 30%),
+    linear-gradient(160deg, #0d1117 0%, #121820 48%, #090b10 100%);
+  content: "";
+}
+
+.brandLockup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.topLogo {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 8px 18px rgba(114, 220, 205, 0.18));
+}
+
+.tutorialShell {
+  padding-top: max(28px, env(safe-area-inset-top));
+}
+
+.tutorialPanel {
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.045));
+  padding: 22px;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(22px) saturate(1.24);
+}
+
+.tutorialLogoWrap {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.tutorialLogo {
+  width: 92px;
+  height: 92px;
+  filter: drop-shadow(0 18px 32px rgba(242, 193, 78, 0.16));
+}
+
+.brandKicker {
+  color: #d2fff7;
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.tutorialPanel h1 {
+  margin: 0 0 10px;
+  color: #fff9ed;
+  font-size: 34px;
+  line-height: 1.04;
+  text-align: center;
+}
+
+.tutorialPanel p {
+  margin: 0;
+  color: #d7d0c4;
+  font-size: 16px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.tutorialPanel .eyebrow {
+  margin-bottom: 8px;
+  color: #f2c14e;
+  text-align: center;
+}
+
+.tutorialSteps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.tutorialSteps div,
+.tutorialMini {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background: rgba(11, 15, 20, 0.44);
+  padding: 13px 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.tutorialSteps span,
+.tutorialMini span {
+  display: block;
+  color: #72dccd;
+  font-size: 12px;
+  font-weight: 950;
+  text-align: center;
+}
+
+.tutorialSteps strong {
+  display: block;
+  margin: 4px 0;
+  color: #fff9ed;
+  font-size: 15px;
+  text-align: center;
+}
+
+.tutorialSteps p,
+.tutorialMini p {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.tutorialCta {
+  min-height: 62px;
+  padding: 0 18px;
+}
+
+.iconButton,
+.pageRail button,
+.quickTimes button,
+.menuList button,
+.secondaryWide,
+.secondary,
+.interestButton,
+.packCard,
+.recentList span {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.035));
+  border-color: rgba(255, 255, 255, 0.13);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 12px 24px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(18px) saturate(1.15);
+}
+
+.iconButton,
+.quickTimes button,
+.menuList button,
+.secondaryWide,
+.secondary,
+.interestButton,
+.packCard {
+  border-radius: 18px;
+}
+
+.primaryWide,
+.bigStart {
+  background: linear-gradient(145deg, #fff1b8 0%, #f2c14e 42%, #d88736 100%);
+  box-shadow: 0 22px 54px rgba(242, 193, 78, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.38);
+}
+
+.pageRail button.active,
+.interestButton.active {
+  background: linear-gradient(145deg, rgba(114, 220, 205, 0.34), rgba(114, 220, 205, 0.12));
+  border-color: rgba(114, 220, 205, 0.68);
+}
+
+.todayQuotePreview,
+.recentPanel,
+.cleanPanel,
+.onboardingPanel,
+.sessionCard,
+.quoteCardLarge,
+.statGrid div,
+.badgeGrid div {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.035));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px) saturate(1.15);
+}
+
+.quoteCardLarge,
+.todayQuotePreview {
+  border-color: rgba(242, 193, 78, 0.34);
+}
+
+.sessionCard {
+  position: relative;
+  overflow: hidden;
+  min-height: min(68vh, 620px);
+  touch-action: none;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  user-select: none;
+}
+
+.sessionCard::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 28%, rgba(114, 220, 205, 0.08) 68%, transparent);
+  content: "";
+}
+
+.sessionCard > * {
+  position: relative;
+}
+
+.sessionCard.swipeSave {
+  transform: rotate(-1.5deg) translateX(-7px);
+  border-color: rgba(114, 220, 205, 0.72);
+}
+
+.sessionCard.swipeDone {
+  transform: rotate(1.5deg) translateX(7px);
+  border-color: rgba(242, 193, 78, 0.76);
+}
+
+.sessionCard.swipeSkip {
+  transform: translateY(8px) scale(0.99);
+  border-color: rgba(240, 154, 120, 0.72);
+}
+
+.swipeFeedback {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(10, 14, 19, 0.72);
+  color: #fff9ed;
+  padding: 9px 13px;
+  font-size: 13px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.gestureGuide {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: auto;
+}
+
+.gestureGuide span {
+  display: grid;
+  min-height: 44px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(12, 16, 22, 0.52);
+  color: #d7d0c4;
+  font-size: 12px;
+  font-weight: 950;
+  text-align: center;
+}
+
+.moveBox.open {
+  border-color: rgba(114, 220, 205, 0.24);
+  background: rgba(9, 18, 22, 0.48);
+}
+
+@media (max-width: 390px) {
+  .tutorialPanel h1 {
+    font-size: 29px;
+  }
+
+  .tutorialSteps {
+    grid-template-columns: 1fr;
+  }
+
+  .gestureGuide {
+    grid-template-columns: 1fr;
   }
 }
