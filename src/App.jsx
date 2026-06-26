@@ -1,8 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { createRoot } from 'react-dom/client';
 import { dailyQuotes, extraActionMoves, extraLessons, packOptions } from './content.js';
 import './styles.css';
 import './packs.css';
+
+const quoteNotificationBaseId = 43000;
+const quoteTestNotificationId = 43999;
+const quoteScheduleDays = 30;
+const quoteChannelId = 'mindswipe-daily-quote';
 
 const baseLessons = [
   {
@@ -113,7 +120,14 @@ const moods = [
 const sessionSize = 3;
 
 function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+  return dateKey(new Date());
+}
+
+function dateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function daysBetween(from, to) {
@@ -145,6 +159,97 @@ function getDailyQuote(day, mood, activePack, selectedInterests) {
   const seedText = `${day}-${mood}-${activePack}-${selectedInterests.join('-')}`;
   const seed = seedText.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
   return usable[seed % usable.length];
+}
+
+function getNextReminderDate(time, offsetDays = 0) {
+  const [hourValue, minuteValue] = time.split(':').map(Number);
+  const now = new Date();
+  const target = new Date(now);
+  target.setHours(Number.isFinite(hourValue) ? hourValue : 12, Number.isFinite(minuteValue) ? minuteValue : 0, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  target.setDate(target.getDate() + offsetDays);
+  return target;
+}
+
+function quoteNotificationIds() {
+  return Array.from({ length: quoteScheduleDays }, (_, index) => ({ id: quoteNotificationBaseId + index }));
+}
+
+async function ensureNativeNotificationPermission() {
+  const current = await LocalNotifications.checkPermissions();
+  if (current.display === 'granted') return true;
+  const requested = await LocalNotifications.requestPermissions();
+  return requested.display === 'granted';
+}
+
+async function prepareNativeQuoteChannel() {
+  try {
+    await LocalNotifications.createChannel({
+      id: quoteChannelId,
+      name: 'MindSwipe Daily Quote',
+      description: 'Daily quote reminders from MindSwipe',
+      importance: 4
+    });
+  } catch {
+    // Channel creation is Android-only; iOS and web do not need it.
+  }
+}
+
+async function cancelNativeQuoteReminders() {
+  if (!Capacitor.isNativePlatform()) return;
+  await LocalNotifications.cancel({ notifications: [...quoteNotificationIds(), { id: quoteTestNotificationId }] });
+}
+
+async function scheduleNativeQuoteReminders({ time, mood, activePack, selectedInterests }) {
+  if (!Capacitor.isNativePlatform()) return { scheduled: false, message: 'Native reminders only run inside the Android app.' };
+  const allowed = await ensureNativeNotificationPermission();
+  if (!allowed) return { scheduled: false, message: 'Android notification permission was not granted.' };
+
+  await prepareNativeQuoteChannel();
+  await cancelNativeQuoteReminders();
+
+  const notifications = Array.from({ length: quoteScheduleDays }, (_, index) => {
+    const at = getNextReminderDate(time, index);
+    const quote = getDailyQuote(dateKey(at), mood, activePack, selectedInterests);
+    return {
+      id: quoteNotificationBaseId + index,
+      title: 'MindSwipe daily quote',
+      body: quote.text,
+      largeBody: `${quote.text}\n\n${quote.action}`,
+      summaryText: 'Daily quote reminder',
+      channelId: quoteChannelId,
+      autoCancel: true,
+      schedule: { at, allowWhileIdle: true },
+      extra: { type: 'dailyQuote', quoteId: quote.id }
+    };
+  });
+
+  await LocalNotifications.schedule({ notifications });
+  return { scheduled: true, message: `Native quote reminders scheduled for the next ${quoteScheduleDays} days.` };
+}
+
+async function scheduleNativeTestQuote(quote) {
+  if (!Capacitor.isNativePlatform()) return false;
+  const allowed = await ensureNativeNotificationPermission();
+  if (!allowed) return false;
+  await prepareNativeQuoteChannel();
+  await LocalNotifications.cancel({ notifications: [{ id: quoteTestNotificationId }] });
+  await LocalNotifications.schedule({
+    notifications: [
+      {
+        id: quoteTestNotificationId,
+        title: 'MindSwipe test quote',
+        body: quote.text,
+        largeBody: `${quote.text}\n\n${quote.action}`,
+        summaryText: 'Test reminder',
+        channelId: quoteChannelId,
+        autoCancel: true,
+        schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true },
+        extra: { type: 'testQuote', quoteId: quote.id }
+      }
+    ]
+  });
+  return true;
 }
 
 function readProgress() {
@@ -203,27 +308,44 @@ function App() {
   }
 
   const today = todayKey();
+  const quoteInterests = progress.interests.length ? progress.interests : selected;
   const dailyQuote = useMemo(
-    () => getDailyQuote(today, activeMood, activePack, progress.interests.length ? progress.interests : selected),
-    [activeMood, activePack, progress.interests, selected, today]
+    () => getDailyQuote(today, activeMood, activePack, quoteInterests),
+    [activeMood, activePack, quoteInterests, today]
   );
 
   useEffect(() => {
-    if (!progress.quoteReminderEnabled || !progress.quoteReminderTime) return undefined;
-    const [hourValue, minuteValue] = progress.quoteReminderTime.split(':').map(Number);
-    if (!Number.isFinite(hourValue) || !Number.isFinite(minuteValue)) return undefined;
-
-    const now = new Date();
-    const target = new Date(now);
-    target.setHours(hourValue, minuteValue, 0, 0);
-    if (target <= now) target.setDate(target.getDate() + 1);
-
+    if (!progress.quoteReminderEnabled || !progress.quoteReminderTime || Capacitor.isNativePlatform()) return undefined;
+    const target = getNextReminderDate(progress.quoteReminderTime);
     const timeoutId = window.setTimeout(() => {
       showQuoteReminder(dailyQuote);
-    }, target.getTime() - now.getTime());
+    }, target.getTime() - Date.now());
 
     return () => window.clearTimeout(timeoutId);
   }, [dailyQuote, progress.quoteNotifiedToday, progress.quoteReminderEnabled, progress.quoteReminderTime]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || !progress.quoteReminderEnabled) return;
+    scheduleNativeQuoteReminders({
+      time: progress.quoteReminderTime,
+      mood: activeMood,
+      activePack,
+      selectedInterests: quoteInterests
+    }).catch(() => setQuoteMessage('Native quote reminder needs notification permission.'));
+  }, [activeMood, activePack, progress.quoteReminderEnabled, progress.quoteReminderTime, quoteInterests]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    let actionHandle;
+    LocalNotifications.addListener('localNotificationActionPerformed', () => {
+      setScreen('home');
+    }).then((handle) => {
+      actionHandle = handle;
+    });
+    return () => {
+      if (actionHandle) actionHandle.remove();
+    };
+  }, []);
 
   const nextSession = useMemo(() => {
     const packPool = getPackPool(activePack);
@@ -260,11 +382,23 @@ function App() {
   }
 
   async function enableQuoteReminder() {
+    if (Capacitor.isNativePlatform()) {
+      const result = await scheduleNativeQuoteReminders({
+        time: quoteReminderTime,
+        mood: activeMood,
+        activePack,
+        selectedInterests: quoteInterests
+      });
+      commit({ ...progress, quoteReminderTime, quoteReminderEnabled: result.scheduled });
+      setQuoteMessage(result.message);
+      return;
+    }
+
     let message = 'Quote reminder saved.';
     if ('Notification' in window) {
       const permission = Notification.permission === 'default' ? await Notification.requestPermission() : Notification.permission;
       message = permission === 'granted'
-        ? 'Quote notification ready. Keep MindSwipe opened recently for this lightweight version.'
+        ? 'Browser quote notification ready while MindSwipe is open.'
         : 'Reminder saved. This will use the in-app popup until notifications are allowed.';
     } else {
       message = 'Reminder saved. This device supports the in-app popup only for now.';
@@ -273,9 +407,19 @@ function App() {
     setQuoteMessage(message);
   }
 
-  function disableQuoteReminder() {
+  async function disableQuoteReminder() {
+    await cancelNativeQuoteReminders();
     commit({ ...progress, quoteReminderEnabled: false, quoteReminderTime });
     setQuoteMessage('Quote reminder turned off.');
+  }
+
+  async function testQuoteReminder() {
+    if (Capacitor.isNativePlatform()) {
+      const scheduled = await scheduleNativeTestQuote(dailyQuote);
+      setQuoteMessage(scheduled ? 'Native test notification scheduled for 5 seconds from now.' : 'Android notification permission was not granted.');
+      return;
+    }
+    showQuoteReminder(dailyQuote, true);
   }
 
   function finishOnboarding() {
@@ -571,7 +715,7 @@ function App() {
           <button className='secondary' onClick={enableQuoteReminder}>{progress.quoteReminderEnabled ? 'Update' : 'Set'}</button>
         </div>
         <div className='quoteButtons'>
-          <button className='textButton' onClick={() => showQuoteReminder(dailyQuote, true)}>Test popup</button>
+          <button className='textButton' onClick={testQuoteReminder}>Test notification</button>
           {progress.quoteReminderEnabled ? <button className='textButton dangerText' onClick={disableQuoteReminder}>Turn off</button> : null}
         </div>
         {quoteMessage ? <p className='statusLine'>{quoteMessage}</p> : null}
