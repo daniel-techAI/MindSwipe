@@ -3,13 +3,16 @@ import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { createRoot } from 'react-dom/client';
 import { dailyQuotes, extraActionMoves, extraLessons, packOptions } from './content.js';
+import { famousQuotes } from './quoteBank.js';
 import './styles.css';
 import './packs.css';
+import './app-shell.css';
 
 const quoteNotificationBaseId = 43000;
 const quoteTestNotificationId = 43999;
 const quoteScheduleDays = 30;
 const quoteChannelId = 'mindswipe-daily-quote';
+const sessionSize = 3;
 
 const baseLessons = [
   {
@@ -29,14 +32,6 @@ const baseLessons = [
     body: 'Track when money enters, when bills hit, and how long you can survive between both. Panic gets quieter when the numbers are on paper.'
   },
   {
-    id: 'money-3',
-    area: 'Money',
-    mood: 'Money ideas',
-    title: 'Demand first',
-    hook: 'Do not build first and pray people care.',
-    body: 'Find people already complaining, searching, asking, or paying for a weaker solution. If nobody wants the problem solved, your idea is still fantasy.'
-  },
-  {
     id: 'mind-1',
     area: 'Mind',
     mood: 'Stressed',
@@ -45,28 +40,12 @@ const baseLessons = [
     body: 'Most people are busy with themselves. That means you can ask, post, apply, message, and recover faster than your fear says.'
   },
   {
-    id: 'mind-2',
-    area: 'Mind',
-    mood: 'Stressed',
-    title: 'Name the state',
-    hook: 'You are stressed, not finished.',
-    body: 'Saying the real state gives you space. I am stressed. I am tired. I am avoiding. Then choose the next small move without making it your identity.'
-  },
-  {
     id: 'habit-1',
     area: 'Habits',
     mood: 'Need focus',
     title: 'Never miss twice',
     hook: 'One bad day is normal. Two becomes a pattern.',
     body: 'A habit survives one miss. The danger is letting shame turn one miss into quitting. Restart tiny and keep the identity alive.'
-  },
-  {
-    id: 'habit-2',
-    area: 'Habits',
-    mood: 'Need focus',
-    title: 'Lower the first step',
-    hook: 'Make starting too small to reject.',
-    body: 'One push-up, one paragraph, one cleaned plate, one job application. Starting is the win that unlocks more.'
   },
   {
     id: 'strategy-1',
@@ -95,29 +74,44 @@ const baseLessons = [
 ];
 
 const baseActionMoves = {
-  'money-1': 'Open notes. Write: money in minus all real costs. If the leftover is weak, pick one leak to cut today.',
-  'money-2': 'Write three lines: paid when, bills when, survive how long. No story. Just dates and numbers.',
-  'money-3': 'Search for people already complaining about the problem. If nobody is talking, do not build yet.',
-  'mind-1': 'Send one useful message you have been avoiding. Most people will forget the awkwardness faster than you think.',
-  'mind-2': 'Say it clean: I am stressed, not broken. Then do the next visible task for two minutes.',
+  'money-1': 'Write money in minus real costs. Pick one leak to cut today.',
+  'money-2': 'Write three dates: paid when, bills when, survive how long.',
+  'mind-1': 'Send one useful message you have been avoiding.',
   'habit-1': 'If you missed yesterday, make today stupid small. Two minutes counts.',
-  'habit-2': 'Cut the task until it feels almost too easy: one sentence, one rep, one tab closed.',
   'strategy-1': 'Put a hard limit on the next move: 20 minutes, no spending, one result.',
-  'health-1': 'Pick tonights sleep target now. Protect the first 30 minutes before bed from the feed.',
+  'health-1': 'Pick tonights sleep target now and protect the first 30 minutes before bed.',
   'people-1': 'Ask one specific question today instead of sending dead small talk.'
 };
 
+const broadInterests = [
+  { id: 'mindset', label: 'Mindset', detail: 'stress, confidence, emotions', areas: ['Mind'], moods: ['Stressed'], packs: ['starter', 'confidence', 'work'] },
+  { id: 'focus', label: 'Focus', detail: 'phone loops, attention, habits', areas: ['Habits', 'Strategy'], moods: ['Need focus', 'Bored'], packs: ['focus', 'discipline'] },
+  { id: 'money', label: 'Money & work', detail: 'cash, jobs, income basics', areas: ['Money', 'Strategy'], moods: ['Money ideas'], packs: ['comeback', 'income', 'work'] },
+  { id: 'health', label: 'Health', detail: 'sleep, energy, recovery', areas: ['Health'], moods: ['Stressed', 'Need focus'], packs: ['work', 'starter'] },
+  { id: 'people', label: 'People', detail: 'social confidence, talking', areas: ['People'], moods: ['Bored', 'Stressed'], packs: ['confidence', 'starter'] },
+  { id: 'learning', label: 'Learning', detail: 'skills, discipline, growth', areas: ['Learning', 'Habits'], moods: ['Need focus'], packs: ['discipline', 'income'] },
+  { id: 'life', label: 'Life skills', detail: 'decisions, routines, resets', areas: ['Life', 'Strategy', 'Mind'], moods: ['Need focus', 'Stressed'], packs: ['starter', 'comeback'] },
+  { id: 'relationships', label: 'Relationships', detail: 'communication, boundaries', areas: ['People', 'Mind'], moods: ['Stressed', 'Bored'], packs: ['confidence', 'starter'] }
+];
+
+const moodOptions = [
+  { label: 'Bored', detail: 'break the scroll' },
+  { label: 'Stressed', detail: 'calm then act' },
+  { label: 'Need focus', detail: 'one useful rep' },
+  { label: 'Money ideas', detail: 'find options' }
+];
+
+const reminderPresets = [
+  { label: 'Morning', time: '08:30' },
+  { label: 'Midday', time: '12:00' },
+  { label: 'Evening', time: '18:30' },
+  { label: 'Night', time: '21:30' }
+];
+
+const pages = ['Home', 'Quote', 'History', 'Profile', 'Settings'];
 const allLessons = [...baseLessons, ...extraLessons];
 const allActionMoves = { ...baseActionMoves, ...extraActionMoves };
-const interests = ['Money', 'Mind', 'Habits', 'Strategy', 'Health', 'People'];
-const triggerOptions = ['Bored in bed', 'Avoiding work', 'Stressed', 'Waiting around', 'After waking up'];
-const moods = [
-  { label: 'Bored', detail: 'kill the scroll' },
-  { label: 'Stressed', detail: 'calm then move' },
-  { label: 'Need focus', detail: 'get one win' },
-  { label: 'Money ideas', detail: 'fix options' }
-];
-const sessionSize = 3;
+const allQuotes = [...dailyQuotes, ...famousQuotes];
 
 function todayKey() {
   return dateKey(new Date());
@@ -130,33 +124,51 @@ function dateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
-function daysBetween(from, to) {
-  if (!from) return 999;
-  const start = new Date(`${from}T00:00:00`);
-  const end = new Date(`${to}T00:00:00`);
-  return Math.round((end - start) / 86400000);
+function addDays(date, days) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
 }
 
 function getMove(lesson) {
-  return allActionMoves[lesson.id] || 'Steal the idea, use it once today, then keep moving.';
+  return allActionMoves[lesson.id] || 'Use the idea once today, then keep moving.';
 }
 
-function getPackPool(activePack) {
-  if (activePack === 'all') return allLessons;
-  if (activePack === 'starter') return allLessons.filter((lesson) => !lesson.pack || lesson.pack === 'starter');
-  const packPool = allLessons.filter((lesson) => lesson.pack === activePack);
-  return packPool.length ? packPool : allLessons;
+function normalizeInterestIds(value = []) {
+  const map = {
+    Money: 'money',
+    Strategy: 'life',
+    Mind: 'mindset',
+    Habits: 'focus',
+    Health: 'health',
+    People: 'people'
+  };
+  return value
+    .map((item) => (broadInterests.some((interest) => interest.id === item) ? item : map[item]))
+    .filter(Boolean)
+    .filter((item, index, list) => list.indexOf(item) === index);
 }
 
-function getDailyQuote(day, mood, activePack, selectedInterests) {
-  const pool = dailyQuotes.filter((quote) => {
-    const moodMatch = quote.moods.includes(mood);
-    const packMatch = quote.pack === activePack;
-    const areaMatch = quote.areas.some((area) => selectedInterests.includes(area));
+function getInterestProfile(ids) {
+  const chosen = broadInterests.filter((interest) => ids.includes(interest.id));
+  const source = chosen.length ? chosen : broadInterests;
+  return {
+    areas: source.flatMap((interest) => interest.areas),
+    moods: source.flatMap((interest) => interest.moods),
+    packs: source.flatMap((interest) => interest.packs)
+  };
+}
+
+function getDailyQuote(day, mood, activePack, interestIds) {
+  const profile = getInterestProfile(interestIds);
+  const pool = allQuotes.filter((quote) => {
+    const moodMatch = quote.moods.includes(mood) || profile.moods.some((item) => quote.moods.includes(item));
+    const packMatch = quote.pack === activePack || profile.packs.includes(quote.pack);
+    const areaMatch = quote.areas.some((area) => profile.areas.includes(area));
     return moodMatch || packMatch || areaMatch;
   });
-  const usable = pool.length ? pool : dailyQuotes;
-  const seedText = `${day}-${mood}-${activePack}-${selectedInterests.join('-')}`;
+  const usable = pool.length ? pool : allQuotes;
+  const seedText = `${day}-${mood}-${activePack}-${interestIds.join('-')}`;
   const seed = seedText.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
   return usable[seed % usable.length];
 }
@@ -191,7 +203,7 @@ async function prepareNativeQuoteChannel() {
       importance: 4
     });
   } catch {
-    // Channel creation is Android-only; iOS and web do not need it.
+    // Android-only channel setup.
   }
 }
 
@@ -200,22 +212,23 @@ async function cancelNativeQuoteReminders() {
   await LocalNotifications.cancel({ notifications: [...quoteNotificationIds(), { id: quoteTestNotificationId }] });
 }
 
-async function scheduleNativeQuoteReminders({ time, mood, activePack, selectedInterests }) {
-  if (!Capacitor.isNativePlatform()) return { scheduled: false, message: 'Native reminders only run inside the Android app.' };
+async function scheduleNativeQuoteReminders({ time, mood, activePack, interestIds }) {
+  if (!Capacitor.isNativePlatform()) return { scheduled: false, message: 'Browser reminders only work while the app is open.' };
   const allowed = await ensureNativeNotificationPermission();
-  if (!allowed) return { scheduled: false, message: 'Android notification permission was not granted.' };
+  if (!allowed) return { scheduled: false, message: 'Notification permission was not granted.' };
 
   await prepareNativeQuoteChannel();
   await cancelNativeQuoteReminders();
 
   const notifications = Array.from({ length: quoteScheduleDays }, (_, index) => {
     const at = getNextReminderDate(time, index);
-    const quote = getDailyQuote(dateKey(at), mood, activePack, selectedInterests);
+    const quote = getDailyQuote(dateKey(at), mood, activePack, interestIds);
+    const body = quote.source ? `${quote.text} - ${quote.source}` : quote.text;
     return {
       id: quoteNotificationBaseId + index,
       title: 'MindSwipe daily quote',
-      body: quote.text,
-      largeBody: `${quote.text}\n\n${quote.action}`,
+      body,
+      largeBody: `${body}\n\n${quote.action}`,
       summaryText: 'Daily quote reminder',
       channelId: quoteChannelId,
       autoCancel: true,
@@ -225,7 +238,7 @@ async function scheduleNativeQuoteReminders({ time, mood, activePack, selectedIn
   });
 
   await LocalNotifications.schedule({ notifications });
-  return { scheduled: true, message: `Native quote reminders scheduled for the next ${quoteScheduleDays} days.` };
+  return { scheduled: true, message: `Daily reminders active at ${time}.` };
 }
 
 async function scheduleNativeTestQuote(quote) {
@@ -234,13 +247,14 @@ async function scheduleNativeTestQuote(quote) {
   if (!allowed) return false;
   await prepareNativeQuoteChannel();
   await LocalNotifications.cancel({ notifications: [{ id: quoteTestNotificationId }] });
+  const body = quote.source ? `${quote.text} - ${quote.source}` : quote.text;
   await LocalNotifications.schedule({
     notifications: [
       {
         id: quoteTestNotificationId,
         title: 'MindSwipe test quote',
-        body: quote.text,
-        largeBody: `${quote.text}\n\n${quote.action}`,
+        body,
+        largeBody: `${body}\n\n${quote.action}`,
         summaryText: 'Test reminder',
         channelId: quoteChannelId,
         autoCancel: true,
@@ -256,9 +270,8 @@ function readProgress() {
   const fallback = {
     onboarded: false,
     interests: [],
-    trigger: '',
-    activePack: 'comeback',
-    reminderTime: '',
+    activePack: 'all',
+    reminderTime: '20:30',
     quoteReminderTime: '12:00',
     quoteReminderEnabled: false,
     quoteNotifiedToday: '',
@@ -267,6 +280,7 @@ function readProgress() {
     freezes: 1,
     completed: [],
     saved: [],
+    recent: [],
     sessions: 0,
     minutesReplaced: 0,
     lastActive: '',
@@ -276,7 +290,8 @@ function readProgress() {
 
   try {
     const saved = JSON.parse(localStorage.getItem('mindSwipeProgress'));
-    return saved ? { ...fallback, ...saved } : fallback;
+    if (!saved) return fallback;
+    return { ...fallback, ...saved, interests: normalizeInterestIds(saved.interests || []) };
   } catch {
     return fallback;
   }
@@ -289,18 +304,15 @@ function saveProgress(progress) {
 function App() {
   const [progress, setProgress] = useState(readProgress);
   const [screen, setScreen] = useState(progress.onboarded ? 'home' : 'onboarding');
-  const [selected, setSelected] = useState(progress.interests.length ? progress.interests : ['Money', 'Habits']);
-  const [selectedTrigger, setSelectedTrigger] = useState(progress.trigger || triggerOptions[0]);
-  const [sessionIndex, setSessionIndex] = useState(0);
+  const [activePage, setActivePage] = useState('Home');
+  const [selectedInterests, setSelectedInterests] = useState(progress.onboarded ? normalizeInterestIds(progress.interests) : []);
   const [activeMood, setActiveMood] = useState('Need focus');
-  const [activePack, setActivePack] = useState(progress.activePack || 'comeback');
-  const [reminderTime, setReminderTime] = useState(progress.reminderTime || '20:30');
+  const [activePack, setActivePack] = useState(progress.activePack || 'all');
   const [quoteReminderTime, setQuoteReminderTime] = useState(progress.quoteReminderTime || '12:00');
   const [quoteMessage, setQuoteMessage] = useState('');
   const [quoteToast, setQuoteToast] = useState(null);
-  const [moveOpen, setMoveOpen] = useState(false);
-  const [reviewIndex, setReviewIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(null);
+  const [sessionIndex, setSessionIndex] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   function commit(next) {
     setProgress(next);
@@ -308,37 +320,52 @@ function App() {
   }
 
   const today = todayKey();
-  const quoteInterests = progress.interests.length ? progress.interests : selected;
-  const dailyQuote = useMemo(
-    () => getDailyQuote(today, activeMood, activePack, quoteInterests),
-    [activeMood, activePack, quoteInterests, today]
-  );
+  const interestKey = selectedInterests.join('|');
+  const dailyQuote = useMemo(() => getDailyQuote(today, activeMood, activePack, selectedInterests), [today, activeMood, activePack, interestKey]);
+  const yesterdayQuote = useMemo(() => getDailyQuote(dateKey(addDays(new Date(), -1)), activeMood, activePack, selectedInterests), [activeMood, activePack, interestKey]);
+
+  const nextSession = useMemo(() => {
+    const profile = getInterestProfile(selectedInterests);
+    const scored = allLessons
+      .map((lesson) => {
+        let score = 0;
+        if (profile.areas.includes(lesson.area)) score += 3;
+        if (profile.moods.includes(lesson.mood)) score += 2;
+        if (profile.packs.includes(lesson.pack)) score += 2;
+        if (lesson.mood === activeMood) score += 3;
+        if (lesson.pack === activePack) score += 2;
+        if (progress.completed.includes(lesson.id)) score -= 2;
+        return { lesson, score };
+      })
+      .sort((a, b) => b.score - a.score)
+      .map((item) => item.lesson);
+    const offset = progress.sessions % Math.max(1, scored.length);
+    return [...scored.slice(offset), ...scored.slice(0, offset)].slice(0, sessionSize);
+  }, [activeMood, activePack, interestKey, progress.completed, progress.sessions]);
+
+  const savedLessons = allLessons.filter((lesson) => progress.saved.includes(lesson.id));
+  const recentLessons = allLessons.filter((lesson) => progress.recent.includes(lesson.id)).slice(0, 6);
+  const currentLesson = nextSession[sessionIndex] || nextSession[0];
 
   useEffect(() => {
     if (!progress.quoteReminderEnabled || !progress.quoteReminderTime || Capacitor.isNativePlatform()) return undefined;
     const target = getNextReminderDate(progress.quoteReminderTime);
-    const timeoutId = window.setTimeout(() => {
-      showQuoteReminder(dailyQuote);
-    }, target.getTime() - Date.now());
-
+    const timeoutId = window.setTimeout(() => showQuoteReminder(dailyQuote), target.getTime() - Date.now());
     return () => window.clearTimeout(timeoutId);
   }, [dailyQuote, progress.quoteNotifiedToday, progress.quoteReminderEnabled, progress.quoteReminderTime]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform() || !progress.quoteReminderEnabled) return;
-    scheduleNativeQuoteReminders({
-      time: progress.quoteReminderTime,
-      mood: activeMood,
-      activePack,
-      selectedInterests: quoteInterests
-    }).catch(() => setQuoteMessage('Native quote reminder needs notification permission.'));
-  }, [activeMood, activePack, progress.quoteReminderEnabled, progress.quoteReminderTime, quoteInterests]);
+    scheduleNativeQuoteReminders({ time: progress.quoteReminderTime, mood: activeMood, activePack, interestIds: selectedInterests })
+      .catch(() => setQuoteMessage('Native quote reminder needs notification permission.'));
+  }, [activeMood, activePack, progress.quoteReminderEnabled, progress.quoteReminderTime, interestKey]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined;
     let actionHandle;
     LocalNotifications.addListener('localNotificationActionPerformed', () => {
       setScreen('home');
+      setActivePage('Quote');
     }).then((handle) => {
       actionHandle = handle;
     });
@@ -347,35 +374,21 @@ function App() {
     };
   }, []);
 
-  const nextSession = useMemo(() => {
-    const packPool = getPackPool(activePack);
-    const chosen = packPool.filter((lesson) => progress.interests.includes(lesson.area) || lesson.mood === activeMood);
-    const unfinished = chosen.filter((lesson) => !progress.completed.includes(lesson.id));
-    const pool = unfinished.length >= sessionSize ? unfinished : [...unfinished, ...chosen, ...packPool, ...allLessons];
-    const unique = [];
-    pool.forEach((lesson) => {
-      if (!unique.some((item) => item.id === lesson.id)) unique.push(lesson);
-    });
-    return unique.slice(0, sessionSize);
-  }, [activeMood, activePack, progress.completed, progress.interests]);
+  function toggleInterest(id) {
+    setSelectedInterests((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  }
 
-  const savedLessons = allLessons.filter((lesson) => progress.saved.includes(lesson.id));
-  const completedPercent = Math.round((progress.completed.length / allLessons.length) * 100);
-  const currentPack = packOptions.find((pack) => pack.id === activePack) || packOptions[0];
-  const todayDone = progress.lastActive === today;
-  const missions = [
-    { id: 'rescue', label: 'Do one 3-card rescue', done: todayDone },
-    { id: 'quote', label: 'Set quote-of-the-day reminder', done: progress.quoteReminderEnabled },
-    { id: 'save', label: 'Save one move worth stealing', done: progress.savedToday === today },
-    { id: 'review', label: 'Replay one saved move', done: progress.reviewedToday === today || savedLessons.length === 0 },
-    { id: 'reminder', label: 'Set your feed blocker time', done: Boolean(progress.reminderTime) }
-  ];
-  const missionDoneCount = missions.filter((mission) => mission.done).length;
+  function finishOnboarding() {
+    const next = { ...progress, onboarded: true, interests: selectedInterests, activePack };
+    commit(next);
+    setScreen('home');
+  }
 
   function showQuoteReminder(quote, force = false) {
     if (!force && progress.quoteNotifiedToday === today) return;
+    const body = quote.source ? `${quote.text} - ${quote.source}` : quote.text;
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('MindSwipe daily quote', { body: `${quote.text} ${quote.action}` });
+      new Notification('MindSwipe daily quote', { body: `${body} ${quote.action}` });
     }
     setQuoteToast(quote);
     commit({ ...progress, quoteNotifiedToday: today });
@@ -383,25 +396,16 @@ function App() {
 
   async function enableQuoteReminder() {
     if (Capacitor.isNativePlatform()) {
-      const result = await scheduleNativeQuoteReminders({
-        time: quoteReminderTime,
-        mood: activeMood,
-        activePack,
-        selectedInterests: quoteInterests
-      });
+      const result = await scheduleNativeQuoteReminders({ time: quoteReminderTime, mood: activeMood, activePack, interestIds: selectedInterests });
       commit({ ...progress, quoteReminderTime, quoteReminderEnabled: result.scheduled });
       setQuoteMessage(result.message);
       return;
     }
 
-    let message = 'Quote reminder saved.';
+    let message = 'Browser reminder saved while MindSwipe is open.';
     if ('Notification' in window) {
       const permission = Notification.permission === 'default' ? await Notification.requestPermission() : Notification.permission;
-      message = permission === 'granted'
-        ? 'Browser quote notification ready while MindSwipe is open.'
-        : 'Reminder saved. This will use the in-app popup until notifications are allowed.';
-    } else {
-      message = 'Reminder saved. This device supports the in-app popup only for now.';
+      message = permission === 'granted' ? 'Browser reminder ready while MindSwipe is open.' : 'Reminder saved. In-app popup will show when possible.';
     }
     commit({ ...progress, quoteReminderTime, quoteReminderEnabled: true });
     setQuoteMessage(message);
@@ -410,408 +414,247 @@ function App() {
   async function disableQuoteReminder() {
     await cancelNativeQuoteReminders();
     commit({ ...progress, quoteReminderEnabled: false, quoteReminderTime });
-    setQuoteMessage('Quote reminder turned off.');
+    setQuoteMessage('Daily reminder turned off.');
   }
 
   async function testQuoteReminder() {
     if (Capacitor.isNativePlatform()) {
       const scheduled = await scheduleNativeTestQuote(dailyQuote);
-      setQuoteMessage(scheduled ? 'Native test notification scheduled for 5 seconds from now.' : 'Android notification permission was not granted.');
+      setQuoteMessage(scheduled ? 'Test notification scheduled for 5 seconds from now.' : 'Notification permission was not granted.');
       return;
     }
     showQuoteReminder(dailyQuote, true);
   }
 
-  function finishOnboarding() {
-    const next = {
-      ...progress,
-      onboarded: true,
-      interests: selected.length ? selected : interests,
-      trigger: selectedTrigger,
-      activePack,
-      reminderTime,
-      quoteReminderTime,
-      freezes: progress.freezes || 1
-    };
-    commit(next);
-    setScreen('home');
-  }
-
-  function choosePack(packId) {
-    setActivePack(packId);
-    commit({ ...progress, activePack: packId });
-  }
-
-  function saveReminder() {
-    commit({ ...progress, reminderTime });
-  }
-
   function startSession(mood = activeMood) {
-    setActiveMood(typeof mood === 'string' ? mood : mood.label);
+    setActiveMood(mood);
     setSessionIndex(0);
-    setMoveOpen(false);
-    setScreen('learn');
+    setScreen('session');
   }
 
-  function updateDailyProgress(current) {
-    const gap = daysBetween(current.lastActive, today);
-    if (gap === 0) return current;
-    if (gap <= 1) return { ...current, streak: current.streak + 1, lastActive: today };
-    if (current.freezes > 0) return { ...current, freezes: current.freezes - 1, lastActive: today };
-    return { ...current, streak: 1, lastActive: today };
-  }
+  function finishCard(lesson, mode) {
+    const completed = progress.completed.includes(lesson.id) ? progress.completed : [...progress.completed, lesson.id];
+    const saved = mode === 'save' && !progress.saved.includes(lesson.id) ? [...progress.saved, lesson.id] : progress.saved;
+    const recent = [lesson.id, ...progress.recent.filter((id) => id !== lesson.id)].slice(0, 8);
+    const nextProgress = {
+      ...progress,
+      completed: mode === 'skip' ? progress.completed : completed,
+      saved,
+      recent,
+      savedToday: mode === 'save' ? today : progress.savedToday,
+      xp: progress.xp + (mode === 'skip' ? 0 : mode === 'save' ? 10 : 15)
+    };
 
-  function completeSession(nextProgress) {
-    const completedSessions = nextProgress.sessions + 1;
-    commit({
-      ...nextProgress,
-      activePack,
-      sessions: completedSessions,
-      minutesReplaced: nextProgress.minutesReplaced + 3,
-      freezes: nextProgress.sessions > 0 && completedSessions % 4 === 0 ? nextProgress.freezes + 1 : nextProgress.freezes
-    });
-    setSessionIndex(0);
-    setMoveOpen(false);
-    setScreen('complete');
-  }
-
-  function moveToNextCard(nextProgress = progress) {
     if (sessionIndex >= nextSession.length - 1) {
-      completeSession(updateDailyProgress(nextProgress));
+      const wasActiveToday = nextProgress.lastActive === today;
+      commit({
+        ...nextProgress,
+        lastActive: today,
+        streak: wasActiveToday ? nextProgress.streak : nextProgress.streak + 1,
+        sessions: nextProgress.sessions + 1,
+        minutesReplaced: nextProgress.minutesReplaced + 3
+      });
+      setScreen('home');
+      setActivePage('Home');
       return;
     }
+
     commit(nextProgress);
     setSessionIndex(sessionIndex + 1);
-    setMoveOpen(false);
   }
 
-  function saveAndContinue(lesson) {
-    const alreadySaved = progress.saved.includes(lesson.id);
-    const next = alreadySaved ? progress : { ...progress, saved: [...progress.saved, lesson.id], savedToday: today };
-    moveToNextCard(next);
-  }
-
-  function skipLesson() {
-    moveToNextCard(progress);
-  }
-
-  function completeLesson(lesson) {
-    const already = progress.completed.includes(lesson.id);
-    const withDaily = updateDailyProgress(progress);
-    const next = {
-      ...withDaily,
-      xp: withDaily.xp + (already ? 5 : 15),
-      activePack,
-      completed: already ? withDaily.completed : [...withDaily.completed, lesson.id]
-    };
-    moveToNextCard(next);
-  }
-
-  function completeReview() {
-    commit({ ...progress, xp: progress.xp + 5, reviewedToday: today });
-    setMoveOpen(false);
-    setReviewIndex(savedLessons.length ? (reviewIndex + 1) % savedLessons.length : 0);
-  }
-
-  function handleTouchEnd(event, lesson) {
-    if (touchStart === null) return;
-    const touchEnd = event.changedTouches[0].clientX;
-    const delta = touchEnd - touchStart;
-    setTouchStart(null);
-    if (Math.abs(delta) < 64) return;
-    if (delta > 0) saveAndContinue(lesson);
-    else skipLesson();
+  function resetProgress() {
+    localStorage.removeItem('mindSwipeProgress');
+    const fresh = readProgress();
+    setProgress(fresh);
+    setSelectedInterests([]);
+    setScreen('onboarding');
+    setActivePage('Home');
   }
 
   if (screen === 'onboarding') {
     return (
-      <main className='app center'>
-        <section className='heroPanel introPanel'>
-          <p className='eyebrow'>MindSwipe</p>
-          <h1>Broke, stressed, scrolling? Swipe 3 cards and move.</h1>
-          <p className='lead'>No lectures. No fake guru energy. Pick your trap, get three direct cards, steal one tiny move, then get back to real life.</p>
-          <div className='fieldGroup'>
-            <h2>What usually starts the scroll?</h2>
-            <div className='chips' aria-label='Choose scroll trigger'>
-              {triggerOptions.map((trigger) => (
-                <button key={trigger} className={selectedTrigger === trigger ? 'chip active' : 'chip'} onClick={() => setSelectedTrigger(trigger)}>
-                  {trigger}
-                </button>
-              ))}
-            </div>
+      <main className='appShell center'>
+        <section className='onboardingPanel'>
+          <h1>Pick what you want MindSwipe to help with.</h1>
+          <p>No preselected answers. Choose at least two broad lanes and the app will shape the cards and quote reminders around them.</p>
+          <div className='interestGrid'>
+            {broadInterests.map((interest) => (
+              <button key={interest.id} className={selectedInterests.includes(interest.id) ? 'interestButton active' : 'interestButton'} onClick={() => toggleInterest(interest.id)}>
+                <strong>{interest.label}</strong>
+                <span>{interest.detail}</span>
+              </button>
+            ))}
           </div>
-          <div className='fieldGroup'>
-            <h2>Pick your first comeback pack</h2>
-            <div className='packGrid compactPackGrid'>
-              {packOptions.slice(0, 6).map((pack) => (
-                <button key={pack.id} className={activePack === pack.id ? 'packCard active' : 'packCard'} onClick={() => setActivePack(pack.id)}>
-                  <strong>{pack.label}</strong>
-                  <span>{pack.detail}</span>
-                </button>
-              ))}
-            </div>
+          <div className='packGrid'>
+            {packOptions.slice(0, 4).map((pack) => (
+              <button key={pack.id} className={activePack === pack.id ? 'packCard active' : 'packCard'} onClick={() => setActivePack(pack.id)}>
+                <strong>{pack.label}</strong>
+                <span>{pack.detail}</span>
+              </button>
+            ))}
           </div>
-          <div className='fieldGroup'>
-            <h2>Pick what you need most</h2>
-            <div className='chips' aria-label='Choose learning interests'>
-              {interests.map((interest) => (
-                <button
-                  key={interest}
-                  className={selected.includes(interest) ? 'chip active' : 'chip'}
-                  onClick={() => setSelected(selected.includes(interest) ? selected.filter((item) => item !== interest) : [...selected, interest])}
-                >
-                  {interest}
-                </button>
-              ))}
-            </div>
-          </div>
-          <button className='primary wide' disabled={selected.length < 2} onClick={finishOnboarding}>
-            {selected.length < 2 ? 'Pick at least 2 lanes' : 'Build my comeback feed'}
+          <button className='primaryWide' disabled={selectedInterests.length < 2} onClick={finishOnboarding}>
+            {selectedInterests.length < 2 ? 'Pick at least 2' : 'Start MindSwipe'}
           </button>
         </section>
       </main>
     );
   }
 
-  if (screen === 'learn') {
-    const lesson = nextSession[sessionIndex];
+  if (screen === 'session') {
     return (
-      <main className='app sessionShell'>
-        <header className='topBar'>
-          <button className='ghost' onClick={() => setScreen('home')}>Close</button>
-          <div className='progressText'>{currentPack.label}</div>
+      <main className='appShell'>
+        <header className='appTop'>
+          <button className='iconButton' aria-label='Close session' onClick={() => setScreen('home')}><span className='closeMark' /></button>
+          <h1 className='brandTitle'>{sessionIndex + 1} / {nextSession.length}</h1>
+          <span />
         </header>
-        <div className='cardDots' aria-label='Session progress'>
-          {nextSession.map((item, index) => (
-            <span key={item.id} className={index === sessionIndex ? 'active' : index < sessionIndex ? 'done' : ''} />
-          ))}
-        </div>
-        <div className='cardDeck'>
-          <section
-            className='lessonCard swipeCard'
-            onTouchStart={(event) => setTouchStart(event.changedTouches[0].clientX)}
-            onTouchEnd={(event) => handleTouchEnd(event, lesson)}
-          >
-            <div className='swipeHint'><span>Save</span><span>Skip</span></div>
-            <div className='cardMeta'>
-              <span className='pill'>{lesson.area}</span>
-              <span>{sessionIndex + 1} / {nextSession.length}</span>
-            </div>
-            <h1>{lesson.title}</h1>
-            <p className='hook'>{lesson.hook}</p>
-            <p className='ideaText'>{lesson.body}</p>
-            <div className={moveOpen ? 'moveBox open' : 'moveBox'}>
-              <span className='miniLabel'>Tiny move</span>
-              {moveOpen ? <strong>{getMove(lesson)}</strong> : <strong>Need the part you can actually use?</strong>}
-              {moveOpen ? <p>No test. Use it, save it, or keep swiping.</p> : <button className='textButton' onClick={() => setMoveOpen(true)}>Show me the move</button>}
-            </div>
-          </section>
-        </div>
-        <div className='swipeControls'>
-          <button className='roundAction skipAction' onClick={skipLesson}><span>Skip</span></button>
-          <button className='roundAction saveAction' onClick={() => saveAndContinue(lesson)}><span>Save</span></button>
-          <button className='roundAction doneAction' onClick={() => completeLesson(lesson)}><span>Done</span></button>
-        </div>
-      </main>
-    );
-  }
-
-  if (screen === 'review') {
-    const lesson = savedLessons[reviewIndex];
-    return (
-      <main className='app'>
-        <header className='topBar'>
-          <button className='ghost' onClick={() => setScreen('home')}>Back</button>
-          <div className='progressText'>Saved moves</div>
-        </header>
-        {lesson ? (
-          <section className='lessonCard compact'>
-            <span className='pill'>{lesson.area}</span>
-            <h1>{lesson.title}</h1>
-            <p className='hook'>{lesson.hook}</p>
-            <p className='ideaText'>{lesson.body}</p>
-            <div className='moveBox open'>
-              <span className='miniLabel'>Saved move</span>
-              <strong>{getMove(lesson)}</strong>
-            </div>
-            <div className='actions single'>
-              <button className='primary' onClick={completeReview}>Next saved move</button>
-            </div>
-          </section>
-        ) : (
-          <section className='emptyState'>
-            <h1>No saved moves yet.</h1>
-            <p>Save a card during a session. This becomes your small private playbook, not homework.</p>
-            <button className='primary wide' onClick={() => startSession('Need focus')}>Start a session</button>
-          </section>
-        )}
-      </main>
-    );
-  }
-
-  if (screen === 'complete') {
-    return (
-      <main className='app center'>
-        <section className='heroPanel completionPanel'>
-          <p className='eyebrow'>Session complete</p>
-          <h1>You beat the feed for 3 minutes.</h1>
-          <p className='lead'>Small win. Real rep. Take the move into the day before the scroll tries again.</p>
-          <div className='rewardGrid'>
-            <div><strong>+45</strong><span>possible XP</span></div>
-            <div><strong>{progress.minutesReplaced}</strong><span>minutes rescued</span></div>
+        <section className='sessionCard'>
+          <span className='pill'>{currentLesson.area}</span>
+          <h1>{currentLesson.title}</h1>
+          <p className='sessionHook'>{currentLesson.hook}</p>
+          <p className='sessionBody'>{currentLesson.body}</p>
+          <div className='moveBox open'>
+            <span className='miniLabel'>Tiny move</span>
+            <strong>{getMove(currentLesson)}</strong>
           </div>
-          <button className='primary wide' onClick={() => setScreen('home')}>Back home</button>
-          <button className='secondary wide' onClick={() => startSession(activeMood)}>Give me 3 more</button>
+          <div className='sessionActionsNew'>
+            <button className='secondaryWide' onClick={() => finishCard(currentLesson, 'skip')}>Skip</button>
+            <button className='secondaryWide' onClick={() => finishCard(currentLesson, 'save')}>Save</button>
+            <button className='primaryWide' onClick={() => finishCard(currentLesson, 'done')}>Done</button>
+          </div>
         </section>
       </main>
     );
   }
 
   return (
-    <main className='app'>
-      <header className='homeHeader'>
-        <div>
-          <p className='eyebrow'>MindSwipe</p>
-          <h1>Broke comeback, one swipe at a time.</h1>
-        </div>
-        <button className='startButton' onClick={() => startSession(activeMood)}>Start</button>
+    <main className='appShell'>
+      <header className='appTop'>
+        <button className='iconButton' aria-label='Open menu' onClick={() => setMenuOpen(!menuOpen)}><span className='hamburgerMark'><span /></span></button>
+        <h1 className='brandTitle'>MindSwipe</h1>
+        <button className='iconButton' aria-label='Profile' onClick={() => setActivePage('Profile')}><span className='smallLabel'>{progress.streak}</span></button>
       </header>
 
-      <section className='missionPanel'>
-        <div className='sectionTitle'>
+      <nav className='pageRail' aria-label='MindSwipe sections'>
+        {pages.map((page) => (
+          <button key={page} className={activePage === page ? 'active' : ''} onClick={() => { setActivePage(page); setMenuOpen(false); }}>
+            {page}
+          </button>
+        ))}
+      </nav>
+
+      {menuOpen ? (
+        <section className='cleanPanel menuList'>
+          {pages.map((page) => <button key={page} onClick={() => { setActivePage(page); setMenuOpen(false); }}>{page}<span>Open</span></button>)}
+        </section>
+      ) : null}
+
+      {activePage === 'Home' ? (
+        <section className='homeHero'>
           <div>
-            <p className='eyebrow'>Right now</p>
-            <h2>Stop the leak. Get one option. Take one tiny win.</h2>
+            <span className='streakChip'>{progress.streak} day streak</span>
+            <button className='bigStart' onClick={() => startSession(activeMood)}>Start</button>
+            <section className='todayQuotePreview'>
+              <p>{progress.quoteReminderEnabled ? 'Todays reminder' : 'Yesterday / preview quote'}</p>
+              <strong>{progress.quoteReminderEnabled ? dailyQuote.text : yesterdayQuote.text}</strong>
+            </section>
+            <section className='recentPanel'>
+              <strong>Recent themes</strong>
+              <div className='recentList'>
+                {(recentLessons.length ? recentLessons : nextSession).map((lesson) => <span key={lesson.id}>{lesson.area}</span>)}
+              </div>
+            </section>
           </div>
-          <span className='missionBadge'>{currentPack.label}</span>
-        </div>
-        <div className='missionList'>
-          {missions.map((mission) => (
-            <div key={mission.id} className={mission.done ? 'mission done' : 'mission'}>
-              <span>{mission.done ? 'Done' : 'Todo'}</span>
-              <p>{mission.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+        </section>
+      ) : null}
 
-      <section className='scoreboard' aria-label='Progress stats'>
-        <div><strong>{progress.xp}</strong><span>XP</span></div>
-        <div><strong>{progress.streak}</strong><span>streak</span></div>
-        <div><strong>{progress.freezes}</strong><span>freezes</span></div>
-      </section>
-
-      <section className='quotePanel'>
-        <div className='sectionTitle'>
-          <div>
-            <p className='eyebrow'>Quote of the day</p>
+      {activePage === 'Quote' ? (
+        <section className='dashboardPage'>
+          <article className='quoteCardLarge'>
+            <span className='quoteSource'>{dailyQuote.source || 'MindSwipe'}</span>
             <h2>{dailyQuote.text}</h2>
+            <p className='quoteActionText'>{dailyQuote.action}</p>
+          </article>
+          <div className='quickTimes'>
+            {reminderPresets.map((preset) => (
+              <button key={preset.time} className={quoteReminderTime === preset.time ? 'active' : ''} onClick={() => setQuoteReminderTime(preset.time)}>
+                {preset.label} {preset.time}
+              </button>
+            ))}
           </div>
-          <span className='missionBadge'>{activeMood}</span>
-        </div>
-        <p className='quoteAction'>{dailyQuote.action}</p>
-        <div className='reminderRow'>
-          <input aria-label='Quote reminder time' type='time' value={quoteReminderTime} onChange={(event) => setQuoteReminderTime(event.target.value)} />
-          <button className='secondary' onClick={enableQuoteReminder}>{progress.quoteReminderEnabled ? 'Update' : 'Set'}</button>
-        </div>
-        <div className='quoteButtons'>
-          <button className='textButton' onClick={testQuoteReminder}>Test notification</button>
-          {progress.quoteReminderEnabled ? <button className='textButton dangerText' onClick={disableQuoteReminder}>Turn off</button> : null}
-        </div>
-        {quoteMessage ? <p className='statusLine'>{quoteMessage}</p> : null}
-      </section>
-
-      <section className='rescuePanel'>
-        <div>
-          <p className='eyebrow'>Swipe mode</p>
-          <h2>{progress.trigger ? `When: ${progress.trigger}` : 'What are you fighting right now?'}</h2>
-          <p>Pick the urge. Three cards. One usable move. Then out.</p>
-        </div>
-        <div className='moodGrid'>
-          {moods.map((mood) => (
-            <button key={mood.label} className={activeMood === mood.label ? 'mood active' : 'mood'} onClick={() => startSession(mood.label)}>
-              <strong>{mood.label}</strong>
-              <span>{mood.detail}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className='packPanel'>
-        <div className='sectionTitle'>
-          <div>
-            <p className='eyebrow'>Content pack</p>
-            <h2>{currentPack.label}</h2>
+          <div className='reminderRow'>
+            <input aria-label='Quote reminder time' type='time' value={quoteReminderTime} onChange={(event) => setQuoteReminderTime(event.target.value)} />
+            <button className='secondary' onClick={enableQuoteReminder}>{progress.quoteReminderEnabled ? 'Update' : 'Turn on'}</button>
           </div>
-          <button className='textButton' onClick={() => startSession(activeMood)}>Swipe</button>
-        </div>
-        <div className='packGrid'>
-          {packOptions.map((pack) => (
-            <button key={pack.id} className={activePack === pack.id ? 'packCard active' : 'packCard'} onClick={() => choosePack(pack.id)}>
-              <strong>{pack.label}</strong>
-              <span>{pack.detail}</span>
-            </button>
-          ))}
-        </div>
-      </section>
+          <button className='secondaryWide' onClick={testQuoteReminder}>Test notification</button>
+          {progress.quoteReminderEnabled ? <button className='secondaryWide dangerText' onClick={disableQuoteReminder}>Turn off reminder</button> : null}
+          {quoteMessage ? <p className='statusLine'>{quoteMessage}</p> : null}
+        </section>
+      ) : null}
 
-      <section className='reminderPanel'>
-        <div>
-          <p className='eyebrow'>Reminder</p>
-          <h2>Before TikTok, do 3 cards</h2>
-          <p>This stores your preferred rescue time for now. Real phone push reminders come in the release build phase.</p>
-        </div>
-        <div className='reminderRow'>
-          <input aria-label='Reminder time' type='time' value={reminderTime} onChange={(event) => setReminderTime(event.target.value)} />
-          <button className='secondary' onClick={saveReminder}>{progress.reminderTime ? 'Update' : 'Set'}</button>
-        </div>
-      </section>
+      {activePage === 'History' ? (
+        <section className='dashboardPage'>
+          <section className='cleanPanel'>
+            <strong>Recently seen</strong>
+            <div className='list'>
+              {(recentLessons.length ? recentLessons : nextSession).map((lesson) => (
+                <article className='miniCard' key={lesson.id}>
+                  <span className='pill'>{lesson.area}</span>
+                  <h3>{lesson.title}</h3>
+                  <p>{lesson.hook}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+          <section className='cleanPanel'>
+            <strong>Saved moves</strong>
+            <div className='list'>
+              {savedLessons.length ? savedLessons.map((lesson) => <p key={lesson.id}>{lesson.title}: {getMove(lesson)}</p>) : <p>No saved moves yet.</p>}
+            </div>
+          </section>
+        </section>
+      ) : null}
 
-      <section className='progressBand'>
-        <div>
-          <span>{completedPercent}%</span>
-          <p>of cards completed</p>
-        </div>
-        <div>
-          <span>{progress.minutesReplaced}</span>
-          <p>minutes of scrolling replaced</p>
-        </div>
-      </section>
-
-      <section className='sectionBlock'>
-        <div className='sectionTitle'>
-          <h2>Next 3 cards</h2>
-          <button className='textButton' onClick={() => startSession(activeMood)}>Run</button>
-        </div>
-        <div className='list'>
-          {nextSession.map((lesson) => (
-            <article className='miniCard' key={lesson.id}>
-              <span className='pill'>{lesson.area}</span>
-              <h3>{lesson.title}</h3>
-              <p>{lesson.hook}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className='sectionBlock'>
-        <div className='sectionTitle'>
-          <h2>Saved moves</h2>
-          <button className='textButton' onClick={() => setScreen('review')}>Open</button>
-        </div>
-        {savedLessons.length ? (
-          <div className='savedStrip'>
-            {savedLessons.slice(0, 3).map((lesson) => <span key={lesson.id}>{lesson.title}</span>)}
+      {activePage === 'Profile' ? (
+        <section className='dashboardPage'>
+          <div className='statGrid'>
+            <div><strong>{progress.xp}</strong><span>XP</span></div>
+            <div><strong>{progress.streak}</strong><span>streak</span></div>
+            <div><strong>{progress.minutesReplaced}</strong><span>minutes</span></div>
           </div>
-        ) : (
-          <p className='muted'>Save cards that hit. They become your quick comeback list.</p>
-        )}
-      </section>
+          <section className='cleanPanel'>
+            <strong>Badges</strong>
+            <div className='badgeGrid'>
+              <div><strong>First swipe</strong><span>{progress.sessions > 0 ? 'Unlocked' : 'Locked'}</span></div>
+              <div><strong>Saved one</strong><span>{savedLessons.length ? 'Unlocked' : 'Locked'}</span></div>
+              <div><strong>Reminder set</strong><span>{progress.quoteReminderEnabled ? 'Unlocked' : 'Locked'}</span></div>
+              <div><strong>Comeback week</strong><span>{progress.streak >= 7 ? 'Unlocked' : 'Locked'}</span></div>
+            </div>
+          </section>
+        </section>
+      ) : null}
+
+      {activePage === 'Settings' ? (
+        <section className='dashboardPage'>
+          <section className='cleanPanel menuList'>
+            <strong>Preferences</strong>
+            <button onClick={() => setScreen('onboarding')}>Edit interests<span>Open</span></button>
+            <button onClick={() => setActivePage('Quote')}>Notifications<span>Open</span></button>
+            <button>Appearance<span>Soon</span></button>
+            <button>Contact support<span>Soon</span></button>
+            <button>Privacy policy<span>Soon</span></button>
+            <button className='dangerText' onClick={resetProgress}>Reset local progress<span>Reset</span></button>
+          </section>
+        </section>
+      ) : null}
 
       {quoteToast ? (
         <div className='quoteToast' role='status'>
           <p className='eyebrow'>MindSwipe reminder</p>
           <strong>{quoteToast.text}</strong>
+          {quoteToast.source ? <span>{quoteToast.source}</span> : null}
           <span>{quoteToast.action}</span>
           <button className='textButton' onClick={() => setQuoteToast(null)}>Close</button>
         </div>
