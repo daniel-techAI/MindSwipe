@@ -209,7 +209,7 @@ export const extraActionMoves = {
   'comeback-5': 'Send one application or message before you start researching more. Movement beats planning loops.',
   'comeback-6': 'Win the next hour: clean one thing, apply once, walk ten minutes, cook cheap, or send the message.',
   'discipline-1': 'Do one ugly rep right now: one push-up, one cleaned item, one message, one paragraph.',
-  'discipline-2': 'Choose tomorrow\'s first move tonight. Make it so clear you cannot debate it.',
+  'discipline-2': 'Choose tomorrow first move tonight. Make it so clear you cannot debate it.',
   'discipline-3': 'Set a two-minute timer and start before your mood approves.',
   'confidence-1': 'Send one low-risk message today. Build proof, not fantasy.',
   'confidence-2': 'Say one simple honest sentence instead of trying to sound impressive.',
@@ -224,3 +224,86 @@ export const extraActionMoves = {
   'income-2': 'List three simple services you could offer with skills you already have or can learn in two weeks.',
   'income-3': 'Pick one place your target person already hangs out. Distribution starts there.'
 };
+
+export const dailyQuotes = [
+  {
+    id: 'quote-comeback-1',
+    pack: 'comeback',
+    moods: ['Money ideas', 'Need focus', 'Stressed'],
+    areas: ['Money', 'Strategy'],
+    text: 'Being broke is not proof you are done. It is proof the next move has to be practical.',
+    action: 'Kill one leak or create one option before you scroll.'
+  },
+  {
+    id: 'quote-comeback-2',
+    pack: 'comeback',
+    moods: ['Need focus', 'Stressed'],
+    areas: ['Money', 'Habits'],
+    text: 'A comeback is not built in a mood. It is built in small moves repeated on rough days.',
+    action: 'Win the next hour, not your whole life.'
+  },
+  {
+    id: 'quote-focus-1',
+    pack: 'focus',
+    moods: ['Bored', 'Need focus'],
+    areas: ['Habits', 'Mind'],
+    text: 'The first scroll is where the hour gets stolen.',
+    action: 'Pause before opening the feed and do one useful thing first.'
+  },
+  {
+    id: 'quote-discipline-1',
+    pack: 'discipline',
+    moods: ['Need focus', 'Bored'],
+    areas: ['Habits'],
+    text: 'Discipline does not need you to feel ready. It needs you to start small enough.',
+    action: 'Do the two-minute version now.'
+  },
+  {
+    id: 'quote-stress-1',
+    pack: 'work',
+    moods: ['Stressed'],
+    areas: ['Mind', 'Health'],
+    text: 'Stress lies by making everything feel urgent and permanent.',
+    action: 'Write the real problem, the real number, and the next step.'
+  },
+  {
+    id: 'quote-money-1',
+    pack: 'income',
+    moods: ['Money ideas'],
+    areas: ['Money', 'Strategy'],
+    text: 'Money follows value, not panic.',
+    action: 'Name one person you can help and one result they care about.'
+  },
+  {
+    id: 'quote-confidence-1',
+    pack: 'confidence',
+    moods: ['Stressed', 'Bored'],
+    areas: ['People'],
+    text: 'Confidence is proof collected, not a feeling you wait for.',
+    action: 'Send one low-risk message and count it as a rep.'
+  },
+  {
+    id: 'quote-health-1',
+    pack: 'work',
+    moods: ['Stressed', 'Need focus'],
+    areas: ['Health'],
+    text: 'Your body is part of the plan. If it breaks, the plan slows down.',
+    action: 'Drink water, eat something basic, and protect sleep tonight.'
+  },
+  {
+    id: 'quote-mind-1',
+    pack: 'starter',
+    moods: ['Stressed'],
+    areas: ['Mind'],
+    text: 'A bad moment is not a full identity.',
+    action: 'Name the feeling, then do one normal action.'
+  },
+  {
+    id: 'quote-work-1',
+    pack: 'work',
+    moods: ['Need focus', 'Stressed'],
+    areas: ['Strategy', 'Health'],
+    text: 'When life is heavy, do not make ten promises. Keep one.',
+    action: 'Choose one upgrade for today and protect it.'
+  }
+];

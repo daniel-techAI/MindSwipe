@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { extraActionMoves, extraLessons, packOptions } from './content.js';
+import { dailyQuotes, extraActionMoves, extraLessons, packOptions } from './content.js';
 import './styles.css';
 import './packs.css';
 
@@ -134,6 +134,19 @@ function getPackPool(activePack) {
   return packPool.length ? packPool : allLessons;
 }
 
+function getDailyQuote(day, mood, activePack, selectedInterests) {
+  const pool = dailyQuotes.filter((quote) => {
+    const moodMatch = quote.moods.includes(mood);
+    const packMatch = quote.pack === activePack;
+    const areaMatch = quote.areas.some((area) => selectedInterests.includes(area));
+    return moodMatch || packMatch || areaMatch;
+  });
+  const usable = pool.length ? pool : dailyQuotes;
+  const seedText = `${day}-${mood}-${activePack}-${selectedInterests.join('-')}`;
+  const seed = seedText.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return usable[seed % usable.length];
+}
+
 function readProgress() {
   const fallback = {
     onboarded: false,
@@ -141,6 +154,9 @@ function readProgress() {
     trigger: '',
     activePack: 'comeback',
     reminderTime: '',
+    quoteReminderTime: '12:00',
+    quoteReminderEnabled: false,
+    quoteNotifiedToday: '',
     xp: 0,
     streak: 0,
     freezes: 1,
@@ -174,6 +190,9 @@ function App() {
   const [activeMood, setActiveMood] = useState('Need focus');
   const [activePack, setActivePack] = useState(progress.activePack || 'comeback');
   const [reminderTime, setReminderTime] = useState(progress.reminderTime || '20:30');
+  const [quoteReminderTime, setQuoteReminderTime] = useState(progress.quoteReminderTime || '12:00');
+  const [quoteMessage, setQuoteMessage] = useState('');
+  const [quoteToast, setQuoteToast] = useState(null);
   const [moveOpen, setMoveOpen] = useState(false);
   const [reviewIndex, setReviewIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
@@ -182,6 +201,29 @@ function App() {
     setProgress(next);
     saveProgress(next);
   }
+
+  const today = todayKey();
+  const dailyQuote = useMemo(
+    () => getDailyQuote(today, activeMood, activePack, progress.interests.length ? progress.interests : selected),
+    [activeMood, activePack, progress.interests, selected, today]
+  );
+
+  useEffect(() => {
+    if (!progress.quoteReminderEnabled || !progress.quoteReminderTime) return undefined;
+    const [hourValue, minuteValue] = progress.quoteReminderTime.split(':').map(Number);
+    if (!Number.isFinite(hourValue) || !Number.isFinite(minuteValue)) return undefined;
+
+    const now = new Date();
+    const target = new Date(now);
+    target.setHours(hourValue, minuteValue, 0, 0);
+    if (target <= now) target.setDate(target.getDate() + 1);
+
+    const timeoutId = window.setTimeout(() => {
+      showQuoteReminder(dailyQuote);
+    }, target.getTime() - now.getTime());
+
+    return () => window.clearTimeout(timeoutId);
+  }, [dailyQuote, progress.quoteNotifiedToday, progress.quoteReminderEnabled, progress.quoteReminderTime]);
 
   const nextSession = useMemo(() => {
     const packPool = getPackPool(activePack);
@@ -198,15 +240,43 @@ function App() {
   const savedLessons = allLessons.filter((lesson) => progress.saved.includes(lesson.id));
   const completedPercent = Math.round((progress.completed.length / allLessons.length) * 100);
   const currentPack = packOptions.find((pack) => pack.id === activePack) || packOptions[0];
-  const today = todayKey();
   const todayDone = progress.lastActive === today;
   const missions = [
     { id: 'rescue', label: 'Do one 3-card rescue', done: todayDone },
+    { id: 'quote', label: 'Set quote-of-the-day reminder', done: progress.quoteReminderEnabled },
     { id: 'save', label: 'Save one move worth stealing', done: progress.savedToday === today },
     { id: 'review', label: 'Replay one saved move', done: progress.reviewedToday === today || savedLessons.length === 0 },
     { id: 'reminder', label: 'Set your feed blocker time', done: Boolean(progress.reminderTime) }
   ];
   const missionDoneCount = missions.filter((mission) => mission.done).length;
+
+  function showQuoteReminder(quote, force = false) {
+    if (!force && progress.quoteNotifiedToday === today) return;
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('MindSwipe daily quote', { body: `${quote.text} ${quote.action}` });
+    }
+    setQuoteToast(quote);
+    commit({ ...progress, quoteNotifiedToday: today });
+  }
+
+  async function enableQuoteReminder() {
+    let message = 'Quote reminder saved.';
+    if ('Notification' in window) {
+      const permission = Notification.permission === 'default' ? await Notification.requestPermission() : Notification.permission;
+      message = permission === 'granted'
+        ? 'Quote notification ready. Keep MindSwipe opened recently for this lightweight version.'
+        : 'Reminder saved. This will use the in-app popup until notifications are allowed.';
+    } else {
+      message = 'Reminder saved. This device supports the in-app popup only for now.';
+    }
+    commit({ ...progress, quoteReminderTime, quoteReminderEnabled: true });
+    setQuoteMessage(message);
+  }
+
+  function disableQuoteReminder() {
+    commit({ ...progress, quoteReminderEnabled: false, quoteReminderTime });
+    setQuoteMessage('Quote reminder turned off.');
+  }
 
   function finishOnboarding() {
     const next = {
@@ -216,6 +286,7 @@ function App() {
       trigger: selectedTrigger,
       activePack,
       reminderTime,
+      quoteReminderTime,
       freezes: progress.freezes || 1
     };
     commit(next);
@@ -486,6 +557,26 @@ function App() {
         <div><strong>{progress.freezes}</strong><span>freezes</span></div>
       </section>
 
+      <section className='quotePanel'>
+        <div className='sectionTitle'>
+          <div>
+            <p className='eyebrow'>Quote of the day</p>
+            <h2>{dailyQuote.text}</h2>
+          </div>
+          <span className='missionBadge'>{activeMood}</span>
+        </div>
+        <p className='quoteAction'>{dailyQuote.action}</p>
+        <div className='reminderRow'>
+          <input aria-label='Quote reminder time' type='time' value={quoteReminderTime} onChange={(event) => setQuoteReminderTime(event.target.value)} />
+          <button className='secondary' onClick={enableQuoteReminder}>{progress.quoteReminderEnabled ? 'Update' : 'Set'}</button>
+        </div>
+        <div className='quoteButtons'>
+          <button className='textButton' onClick={() => showQuoteReminder(dailyQuote, true)}>Test popup</button>
+          {progress.quoteReminderEnabled ? <button className='textButton dangerText' onClick={disableQuoteReminder}>Turn off</button> : null}
+        </div>
+        {quoteMessage ? <p className='statusLine'>{quoteMessage}</p> : null}
+      </section>
+
       <section className='rescuePanel'>
         <div>
           <p className='eyebrow'>Swipe mode</p>
@@ -572,6 +663,15 @@ function App() {
           <p className='muted'>Save cards that hit. They become your quick comeback list.</p>
         )}
       </section>
+
+      {quoteToast ? (
+        <div className='quoteToast' role='status'>
+          <p className='eyebrow'>MindSwipe reminder</p>
+          <strong>{quoteToast.text}</strong>
+          <span>{quoteToast.action}</span>
+          <button className='textButton' onClick={() => setQuoteToast(null)}>Close</button>
+        </div>
+      ) : null}
     </main>
   );
 }
