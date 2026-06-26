@@ -1,114 +1,114 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Capacitor } from '@capacitor/core';
-import { LocalNotifications } from '@capacitor/local-notifications';
-import { createRoot } from 'react-dom/client';
-import { dailyQuotes, extraActionMoves, extraLessons, packOptions } from './content.js';
-import { famousQuotes } from './quoteBank.js';
-import './styles.css';
-import './packs.css';
-import './app-shell.css';
+import React, { useEffect, useMemo, useRef, useState } from react;
+import { Capacitor } from @capacitor/core;
+import { LocalNotifications } from @capacitor/local-notifications;
+import { createRoot } from react-dom/client;
+import { dailyQuotes, extraActionMoves, extraLessons, packOptions } from ./content.js;
+import { famousQuotes } from ./quoteBank.js;
+import MindSwipeLogo from ./MindSwipeLogo.jsx;
+import ./styles.css;
+import ./packs.css;
+import ./app-shell.css;
 
 const quoteNotificationBaseId = 43000;
-const quoteTestNotificationId = 43999;
 const quoteScheduleDays = 30;
-const quoteChannelId = 'mindswipe-daily-quote';
+const quoteChannelId = mindswipe-daily-quote;
 const sessionSize = 3;
 
 const baseLessons = [
   {
-    id: 'money-1',
-    area: 'Money',
-    mood: 'Money ideas',
-    title: 'Revenue is not profit',
-    hook: 'Money coming in means nothing if it leaves faster.',
-    body: 'Profit is what stays after costs, fees, refunds, food, travel, and mistakes. If the math is ugly, fix the leak before chasing bigger dreams.'
+    id: money-1,
+    area: Money,
+    mood: Money ideas,
+    title: Revenue is not profit,
+    hook: Money coming in means nothing if it leaves faster.,
+    body: Profit is what stays after costs, fees, refunds, food, travel, and mistakes. If the math is ugly, fix the leak before chasing bigger dreams.
   },
   {
-    id: 'money-2',
-    area: 'Money',
-    mood: 'Money ideas',
-    title: 'Cash flow beats vibes',
-    hook: 'A plan is only real when the dates work.',
-    body: 'Track when money enters, when bills hit, and how long you can survive between both. Panic gets quieter when the numbers are on paper.'
+    id: money-2,
+    area: Money,
+    mood: Money ideas,
+    title: Cash flow beats vibes,
+    hook: A plan is only real when the dates work.,
+    body: Track when money enters, when bills hit, and how long you can survive between both. Panic gets quieter when the numbers are on paper.
   },
   {
-    id: 'mind-1',
-    area: 'Mind',
-    mood: 'Stressed',
-    title: 'Nobody is watching that hard',
-    hook: 'You think people notice everything. They do not.',
-    body: 'Most people are busy with themselves. That means you can ask, post, apply, message, and recover faster than your fear says.'
+    id: mind-1,
+    area: Mind,
+    mood: Stressed,
+    title: Nobody is watching that hard,
+    hook: You think people notice everything. They do not.,
+    body: Most people are busy with themselves. That means you can ask, post, apply, message, and recover faster than your fear says.
   },
   {
-    id: 'habit-1',
-    area: 'Habits',
-    mood: 'Need focus',
-    title: 'Never miss twice',
-    hook: 'One bad day is normal. Two becomes a pattern.',
-    body: 'A habit survives one miss. The danger is letting shame turn one miss into quitting. Restart tiny and keep the identity alive.'
+    id: habit-1,
+    area: Habits,
+    mood: Need focus,
+    title: Never miss twice,
+    hook: One bad day is normal. Two becomes a pattern.,
+    body: A habit survives one miss. The danger is letting shame turn one miss into quitting. Restart tiny and keep the identity alive.
   },
   {
-    id: 'strategy-1',
-    area: 'Strategy',
-    mood: 'Need focus',
-    title: 'One constraint clarifies',
-    hook: 'Limits make decisions cleaner.',
-    body: 'A tiny budget, one feature, or a 20-minute timer turns vague ambition into a real choice. Give the next move a limit.'
+    id: strategy-1,
+    area: Strategy,
+    mood: Need focus,
+    title: One constraint clarifies,
+    hook: Limits make decisions cleaner.,
+    body: A tiny budget, one feature, or a 20-minute timer turns vague ambition into a real choice. Give the next move a limit.
   },
   {
-    id: 'health-1',
-    area: 'Health',
-    mood: 'Stressed',
-    title: 'Sleep debt is expensive',
-    hook: 'Bad sleep taxes every decision tomorrow.',
-    body: 'Low sleep hits focus, mood, impulse control, and learning. If life is heavy, recovery is not soft. It is maintenance.'
+    id: health-1,
+    area: Health,
+    mood: Stressed,
+    title: Sleep debt is expensive,
+    hook: Bad sleep taxes every decision tomorrow.,
+    body: Low sleep hits focus, mood, impulse control, and learning. If life is heavy, recovery is not soft. It is maintenance.
   },
   {
-    id: 'people-1',
-    area: 'People',
-    mood: 'Bored',
-    title: 'Ask one better question',
-    hook: 'Better questions save dead conversations.',
-    body: 'Replace how are you with what are you trying to fix this week? Specific curiosity gives people something real to answer.'
+    id: people-1,
+    area: People,
+    mood: Bored,
+    title: Ask one better question,
+    hook: Better questions save dead conversations.,
+    body: Replace how are you with what are you trying to fix this week? Specific curiosity gives people something real to answer.
   }
 ];
 
 const baseActionMoves = {
-  'money-1': 'Write money in minus real costs. Pick one leak to cut today.',
-  'money-2': 'Write three dates: paid when, bills when, survive how long.',
-  'mind-1': 'Send one useful message you have been avoiding.',
-  'habit-1': 'If you missed yesterday, make today stupid small. Two minutes counts.',
-  'strategy-1': 'Put a hard limit on the next move: 20 minutes, no spending, one result.',
-  'health-1': 'Pick tonights sleep target now and protect the first 30 minutes before bed.',
-  'people-1': 'Ask one specific question today instead of sending dead small talk.'
+  money-1: Write money in minus real costs. Pick one leak to cut today.,
+  money-2: Write three dates: paid when, bills when, survive how long.,
+  mind-1: Send one useful message you have been avoiding.,
+  habit-1: If you missed yesterday, make today stupid small. Two minutes counts.,
+  strategy-1: Put a hard limit on the next move: 20 minutes, no spending, one result.,
+  health-1: Pick tonights sleep target now and protect the first 30 minutes before bed.,
+  people-1: Ask one specific question today instead of sending dead small talk.
 };
 
 const broadInterests = [
-  { id: 'mindset', label: 'Mindset', detail: 'stress, confidence, emotions', areas: ['Mind'], moods: ['Stressed'], packs: ['starter', 'confidence', 'work'] },
-  { id: 'focus', label: 'Focus', detail: 'phone loops, attention, habits', areas: ['Habits', 'Strategy'], moods: ['Need focus', 'Bored'], packs: ['focus', 'discipline'] },
-  { id: 'money', label: 'Money & work', detail: 'cash, jobs, income basics', areas: ['Money', 'Strategy'], moods: ['Money ideas'], packs: ['comeback', 'income', 'work'] },
-  { id: 'health', label: 'Health', detail: 'sleep, energy, recovery', areas: ['Health'], moods: ['Stressed', 'Need focus'], packs: ['work', 'starter'] },
-  { id: 'people', label: 'People', detail: 'social confidence, talking', areas: ['People'], moods: ['Bored', 'Stressed'], packs: ['confidence', 'starter'] },
-  { id: 'learning', label: 'Learning', detail: 'skills, discipline, growth', areas: ['Learning', 'Habits'], moods: ['Need focus'], packs: ['discipline', 'income'] },
-  { id: 'life', label: 'Life skills', detail: 'decisions, routines, resets', areas: ['Life', 'Strategy', 'Mind'], moods: ['Need focus', 'Stressed'], packs: ['starter', 'comeback'] },
-  { id: 'relationships', label: 'Relationships', detail: 'communication, boundaries', areas: ['People', 'Mind'], moods: ['Stressed', 'Bored'], packs: ['confidence', 'starter'] }
+  { id: mindset, label: Mindset, detail: stress, confidence, emotions, areas: [Mind], moods: [Stressed], packs: [starter, confidence, work] },
+  { id: focus, label: Focus, detail: phone loops, attention, habits, areas: [Habits, Strategy], moods: [Need focus, Bored], packs: [focus, discipline] },
+  { id: money, label: Money & work, detail: cash, jobs, income basics, areas: [Money, Strategy], moods: [Money ideas], packs: [comeback, income, work] },
+  { id: health, label: Health, detail: sleep, energy, recovery, areas: [Health], moods: [Stressed, Need focus], packs: [work, starter] },
+  { id: people, label: People, detail: social confidence, talking, areas: [People], moods: [Bored, Stressed], packs: [confidence, starter] },
+  { id: learning, label: Learning, detail: skills, discipline, growth, areas: [Learning, Habits], moods: [Need focus], packs: [discipline, income] },
+  { id: life, label: Life skills, detail: decisions, routines, resets, areas: [Life, Strategy, Mind], moods: [Need focus, Stressed], packs: [starter, comeback] },
+  { id: relationships, label: Relationships, detail: communication, boundaries, areas: [People, Mind], moods: [Stressed, Bored], packs: [confidence, starter] }
 ];
 
 const moodOptions = [
-  { label: 'Bored', detail: 'break the scroll' },
-  { label: 'Stressed', detail: 'calm then act' },
-  { label: 'Need focus', detail: 'one useful rep' },
-  { label: 'Money ideas', detail: 'find options' }
+  { label: Bored, detail: break the scroll },
+  { label: Stressed, detail: calm then act },
+  { label: Need focus, detail: one useful rep },
+  { label: Money ideas, detail: find options }
 ];
 
 const reminderPresets = [
-  { label: 'Morning', time: '08:30' },
-  { label: 'Midday', time: '12:00' },
-  { label: 'Evening', time: '18:30' },
-  { label: 'Night', time: '21:30' }
+  { label: Morning, time: 08:30 },
+  { label: Midday, time: 12:00 },
+  { label: Evening, time: 18:30 },
+  { label: Night, time: 21:30 }
 ];
 
-const pages = ['Home', 'Quote', 'History', 'Profile', 'Settings'];
+const pages = [Home, Quote, History, Profile, Settings];
 const allLessons = [...baseLessons, ...extraLessons];
 const allActionMoves = { ...baseActionMoves, ...extraActionMoves };
 const allQuotes = [...dailyQuotes, ...famousQuotes];
@@ -119,8 +119,8 @@ function todayKey() {
 
 function dateKey(date) {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, 0);
+  const day = String(date.getDate()).padStart(2, 0);
   return `${year}-${month}-${day}`;
 }
 
@@ -131,17 +131,17 @@ function addDays(date, days) {
 }
 
 function getMove(lesson) {
-  return allActionMoves[lesson.id] || 'Use the idea once today, then keep moving.';
+  return allActionMoves[lesson.id] || Use the idea once today, then keep moving.;
 }
 
 function normalizeInterestIds(value = []) {
   const map = {
-    Money: 'money',
-    Strategy: 'life',
-    Mind: 'mindset',
-    Habits: 'focus',
-    Health: 'health',
-    People: 'people'
+    Money: money,
+    Strategy: life,
+    Mind: mindset,
+    Habits: focus,
+    Health: health,
+    People: people
   };
   return value
     .map((item) => (broadInterests.some((interest) => interest.id === item) ? item : map[item]))
@@ -168,13 +168,13 @@ function getDailyQuote(day, mood, activePack, interestIds) {
     return moodMatch || packMatch || areaMatch;
   });
   const usable = pool.length ? pool : allQuotes;
-  const seedText = `${day}-${mood}-${activePack}-${interestIds.join('-')}`;
-  const seed = seedText.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const seedText = `${day}-${mood}-${activePack}-${interestIds.join(-)}`;
+  const seed = seedText.split().reduce((sum, char) => sum + char.charCodeAt(0), 0);
   return usable[seed % usable.length];
 }
 
 function getNextReminderDate(time, offsetDays = 0) {
-  const [hourValue, minuteValue] = time.split(':').map(Number);
+  const [hourValue, minuteValue] = time.split(:).map(Number);
   const now = new Date();
   const target = new Date(now);
   target.setHours(Number.isFinite(hourValue) ? hourValue : 12, Number.isFinite(minuteValue) ? minuteValue : 0, 0, 0);
@@ -189,17 +189,17 @@ function quoteNotificationIds() {
 
 async function ensureNativeNotificationPermission() {
   const current = await LocalNotifications.checkPermissions();
-  if (current.display === 'granted') return true;
+  if (current.display === granted) return true;
   const requested = await LocalNotifications.requestPermissions();
-  return requested.display === 'granted';
+  return requested.display === granted;
 }
 
 async function prepareNativeQuoteChannel() {
   try {
     await LocalNotifications.createChannel({
       id: quoteChannelId,
-      name: 'MindSwipe Daily Quote',
-      description: 'Daily quote reminders from MindSwipe',
+      name: MindSwipe Daily Quote,
+      description: Daily quote reminders from MindSwipe,
       importance: 4
     });
   } catch {
@@ -209,13 +209,13 @@ async function prepareNativeQuoteChannel() {
 
 async function cancelNativeQuoteReminders() {
   if (!Capacitor.isNativePlatform()) return;
-  await LocalNotifications.cancel({ notifications: [...quoteNotificationIds(), { id: quoteTestNotificationId }] });
+  await LocalNotifications.cancel({ notifications: quoteNotificationIds() });
 }
 
 async function scheduleNativeQuoteReminders({ time, mood, activePack, interestIds }) {
-  if (!Capacitor.isNativePlatform()) return { scheduled: false, message: 'Browser reminders only work while the app is open.' };
+  if (!Capacitor.isNativePlatform()) return { scheduled: false, message: Browser reminders only work while the app is open. };
   const allowed = await ensureNativeNotificationPermission();
-  if (!allowed) return { scheduled: false, message: 'Notification permission was not granted.' };
+  if (!allowed) return { scheduled: false, message: Notification permission was not granted. };
 
   await prepareNativeQuoteChannel();
   await cancelNativeQuoteReminders();
@@ -226,14 +226,14 @@ async function scheduleNativeQuoteReminders({ time, mood, activePack, interestId
     const body = quote.source ? `${quote.text} - ${quote.source}` : quote.text;
     return {
       id: quoteNotificationBaseId + index,
-      title: 'MindSwipe daily quote',
+      title: MindSwipe daily quote,
       body,
       largeBody: `${body}\n\n${quote.action}`,
-      summaryText: 'Daily quote reminder',
+      summaryText: Daily quote reminder,
       channelId: quoteChannelId,
       autoCancel: true,
       schedule: { at, allowWhileIdle: true },
-      extra: { type: 'dailyQuote', quoteId: quote.id }
+      extra: { type: dailyQuote, quoteId: quote.id }
     };
   });
 
@@ -241,40 +241,16 @@ async function scheduleNativeQuoteReminders({ time, mood, activePack, interestId
   return { scheduled: true, message: `Daily reminders active at ${time}.` };
 }
 
-async function scheduleNativeTestQuote(quote) {
-  if (!Capacitor.isNativePlatform()) return false;
-  const allowed = await ensureNativeNotificationPermission();
-  if (!allowed) return false;
-  await prepareNativeQuoteChannel();
-  await LocalNotifications.cancel({ notifications: [{ id: quoteTestNotificationId }] });
-  const body = quote.source ? `${quote.text} - ${quote.source}` : quote.text;
-  await LocalNotifications.schedule({
-    notifications: [
-      {
-        id: quoteTestNotificationId,
-        title: 'MindSwipe test quote',
-        body,
-        largeBody: `${body}\n\n${quote.action}`,
-        summaryText: 'Test reminder',
-        channelId: quoteChannelId,
-        autoCancel: true,
-        schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true },
-        extra: { type: 'testQuote', quoteId: quote.id }
-      }
-    ]
-  });
-  return true;
-}
-
 function readProgress() {
   const fallback = {
+    tutorialSeen: false,
     onboarded: false,
     interests: [],
-    activePack: 'all',
-    reminderTime: '20:30',
-    quoteReminderTime: '12:00',
+    activePack: all,
+    reminderTime: 20:30,
+    quoteReminderTime: 12:00,
     quoteReminderEnabled: false,
-    quoteNotifiedToday: '',
+    quoteNotifiedToday: ,
     xp: 0,
     streak: 0,
     freezes: 1,
@@ -283,13 +259,13 @@ function readProgress() {
     recent: [],
     sessions: 0,
     minutesReplaced: 0,
-    lastActive: '',
-    savedToday: '',
-    reviewedToday: ''
+    lastActive: ,
+    savedToday: ,
+    reviewedToday: 
   };
 
   try {
-    const saved = JSON.parse(localStorage.getItem('mindSwipeProgress'));
+    const saved = JSON.parse(localStorage.getItem(mindSwipeProgress));
     if (!saved) return fallback;
     return { ...fallback, ...saved, interests: normalizeInterestIds(saved.interests || []) };
   } catch {
@@ -298,21 +274,23 @@ function readProgress() {
 }
 
 function saveProgress(progress) {
-  localStorage.setItem('mindSwipeProgress', JSON.stringify(progress));
+  localStorage.setItem(mindSwipeProgress, JSON.stringify(progress));
 }
 
 function App() {
   const [progress, setProgress] = useState(readProgress);
-  const [screen, setScreen] = useState(progress.onboarded ? 'home' : 'onboarding');
-  const [activePage, setActivePage] = useState('Home');
+  const [screen, setScreen] = useState(progress.tutorialSeen ? (progress.onboarded ? home : onboarding) : tutorial);
+  const [activePage, setActivePage] = useState(Home);
   const [selectedInterests, setSelectedInterests] = useState(progress.onboarded ? normalizeInterestIds(progress.interests) : []);
-  const [activeMood, setActiveMood] = useState('Need focus');
-  const [activePack, setActivePack] = useState(progress.activePack || 'all');
-  const [quoteReminderTime, setQuoteReminderTime] = useState(progress.quoteReminderTime || '12:00');
-  const [quoteMessage, setQuoteMessage] = useState('');
+  const [activeMood, setActiveMood] = useState(Need focus);
+  const [activePack, setActivePack] = useState(progress.activePack || all);
+  const [quoteReminderTime, setQuoteReminderTime] = useState(progress.quoteReminderTime || 12:00);
+  const [quoteMessage, setQuoteMessage] = useState();
   const [quoteToast, setQuoteToast] = useState(null);
   const [sessionIndex, setSessionIndex] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const touchStartRef = useRef(null);
+  const [swipeFeedback, setSwipeFeedback] = useState();
 
   function commit(next) {
     setProgress(next);
@@ -320,7 +298,7 @@ function App() {
   }
 
   const today = todayKey();
-  const interestKey = selectedInterests.join('|');
+  const interestKey = selectedInterests.join(|);
   const dailyQuote = useMemo(() => getDailyQuote(today, activeMood, activePack, selectedInterests), [today, activeMood, activePack, interestKey]);
   const yesterdayQuote = useMemo(() => getDailyQuote(dateKey(addDays(new Date(), -1)), activeMood, activePack, selectedInterests), [activeMood, activePack, interestKey]);
 
@@ -357,15 +335,15 @@ function App() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform() || !progress.quoteReminderEnabled) return;
     scheduleNativeQuoteReminders({ time: progress.quoteReminderTime, mood: activeMood, activePack, interestIds: selectedInterests })
-      .catch(() => setQuoteMessage('Native quote reminder needs notification permission.'));
+      .catch(() => setQuoteMessage(Native quote reminder needs notification permission.));
   }, [activeMood, activePack, progress.quoteReminderEnabled, progress.quoteReminderTime, interestKey]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined;
     let actionHandle;
-    LocalNotifications.addListener('localNotificationActionPerformed', () => {
-      setScreen('home');
-      setActivePage('Quote');
+    LocalNotifications.addListener(localNotificationActionPerformed, () => {
+      setScreen(home);
+      setActivePage(Quote);
     }).then((handle) => {
       actionHandle = handle;
     });
@@ -381,14 +359,20 @@ function App() {
   function finishOnboarding() {
     const next = { ...progress, onboarded: true, interests: selectedInterests, activePack };
     commit(next);
-    setScreen('home');
+    setScreen(home);
+  }
+
+  function finishTutorial() {
+    const next = { ...progress, tutorialSeen: true };
+    commit(next);
+    setScreen(progress.onboarded ? home : onboarding);
   }
 
   function showQuoteReminder(quote, force = false) {
     if (!force && progress.quoteNotifiedToday === today) return;
     const body = quote.source ? `${quote.text} - ${quote.source}` : quote.text;
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('MindSwipe daily quote', { body: `${body} ${quote.action}` });
+    if (Notification in window && Notification.permission === granted) {
+      new Notification(MindSwipe daily quote, { body: `${body} ${quote.action}` });
     }
     setQuoteToast(quote);
     commit({ ...progress, quoteNotifiedToday: today });
@@ -402,10 +386,10 @@ function App() {
       return;
     }
 
-    let message = 'Browser reminder saved while MindSwipe is open.';
-    if ('Notification' in window) {
-      const permission = Notification.permission === 'default' ? await Notification.requestPermission() : Notification.permission;
-      message = permission === 'granted' ? 'Browser reminder ready while MindSwipe is open.' : 'Reminder saved. In-app popup will show when possible.';
+    let message = Browser reminder saved while MindSwipe is open.;
+    if (Notification in window) {
+      const permission = Notification.permission === default ? await Notification.requestPermission() : Notification.permission;
+      message = permission === granted ? Browser reminder ready while MindSwipe is open. : Reminder saved. In-app popup will show when possible.;
     }
     commit({ ...progress, quoteReminderTime, quoteReminderEnabled: true });
     setQuoteMessage(message);
@@ -414,35 +398,28 @@ function App() {
   async function disableQuoteReminder() {
     await cancelNativeQuoteReminders();
     commit({ ...progress, quoteReminderEnabled: false, quoteReminderTime });
-    setQuoteMessage('Daily reminder turned off.');
-  }
-
-  async function testQuoteReminder() {
-    if (Capacitor.isNativePlatform()) {
-      const scheduled = await scheduleNativeTestQuote(dailyQuote);
-      setQuoteMessage(scheduled ? 'Test notification scheduled for 5 seconds from now.' : 'Notification permission was not granted.');
-      return;
-    }
-    showQuoteReminder(dailyQuote, true);
+    setQuoteMessage(Daily reminder turned off.);
   }
 
   function startSession(mood = activeMood) {
     setActiveMood(mood);
     setSessionIndex(0);
-    setScreen('session');
+    setSwipeFeedback();
+    setScreen(session);
   }
 
   function finishCard(lesson, mode) {
+    if (!lesson) return;
     const completed = progress.completed.includes(lesson.id) ? progress.completed : [...progress.completed, lesson.id];
-    const saved = mode === 'save' && !progress.saved.includes(lesson.id) ? [...progress.saved, lesson.id] : progress.saved;
+    const saved = mode === save && !progress.saved.includes(lesson.id) ? [...progress.saved, lesson.id] : progress.saved;
     const recent = [lesson.id, ...progress.recent.filter((id) => id !== lesson.id)].slice(0, 8);
     const nextProgress = {
       ...progress,
-      completed: mode === 'skip' ? progress.completed : completed,
+      completed: mode === skip ? progress.completed : completed,
       saved,
       recent,
-      savedToday: mode === 'save' ? today : progress.savedToday,
-      xp: progress.xp + (mode === 'skip' ? 0 : mode === 'save' ? 10 : 15)
+      savedToday: mode === save ? today : progress.savedToday,
+      xp: progress.xp + (mode === skip ? 0 : mode === save ? 10 : 15)
     };
 
     if (sessionIndex >= nextSession.length - 1) {
@@ -454,75 +431,162 @@ function App() {
         sessions: nextProgress.sessions + 1,
         minutesReplaced: nextProgress.minutesReplaced + 3
       });
-      setScreen('home');
-      setActivePage('Home');
+      setSwipeFeedback();
+      setScreen(home);
+      setActivePage(Home);
       return;
     }
 
     commit(nextProgress);
     setSessionIndex(sessionIndex + 1);
+    setSwipeFeedback();
+  }
+
+  function handleCardTouchStart(event) {
+    const touch = event.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    setSwipeFeedback();
+  }
+
+  function handleCardTouchMove(event) {
+    const touchStart = touchStartRef.current;
+    if (!touchStart) return;
+    const touch = event.touches[0];
+    const dx = touch.clientX - touchStart.x;
+    const dy = touch.clientY - touchStart.y;
+    if (Math.abs(dx) < 28 && Math.abs(dy) < 28) {
+      setSwipeFeedback();
+      return;
+    }
+    if (Math.abs(dx) > Math.abs(dy)) {
+      setSwipeFeedback(dx < 0 ? Save : Done);
+    } else if (dy > 0) {
+      setSwipeFeedback(Skip);
+    } else {
+      setSwipeFeedback();
+    }
+  }
+
+  function handleCardTouchEnd(event) {
+    const touchStart = touchStartRef.current;
+    if (!touchStart) return;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - touchStart.x;
+    const dy = touch.clientY - touchStart.y;
+    const horizontal = Math.abs(dx) > Math.abs(dy);
+    touchStartRef.current = null;
+    setSwipeFeedback();
+
+    if (horizontal && dx <= -76) {
+      finishCard(currentLesson, save);
+      return;
+    }
+    if (horizontal && dx >= 76) {
+      finishCard(currentLesson, done);
+      return;
+    }
+    if (!horizontal && dy >= 76) {
+      finishCard(currentLesson, skip);
+    }
   }
 
   function resetProgress() {
-    localStorage.removeItem('mindSwipeProgress');
+    localStorage.removeItem(mindSwipeProgress);
     const fresh = readProgress();
     setProgress(fresh);
     setSelectedInterests([]);
-    setScreen('onboarding');
-    setActivePage('Home');
+    setSwipeFeedback();
+    setScreen(tutorial);
+    setActivePage(Home);
   }
 
-  if (screen === 'onboarding') {
+  if (screen === tutorial) {
     return (
-      <main className='appShell center'>
-        <section className='onboardingPanel'>
-          <h1>Pick what you want MindSwipe to help with.</h1>
-          <p>No preselected answers. Choose at least two broad lanes and the app will shape the cards and quote reminders around them.</p>
-          <div className='interestGrid'>
-            {broadInterests.map((interest) => (
-              <button key={interest.id} className={selectedInterests.includes(interest.id) ? 'interestButton active' : 'interestButton'} onClick={() => toggleInterest(interest.id)}>
-                <strong>{interest.label}</strong>
-                <span>{interest.detail}</span>
-              </button>
-            ))}
+      <main className=appShell center tutorialShell>
+        <section className=tutorialPanel>
+          <div className=tutorialLogoWrap>
+            <MindSwipeLogo className=tutorialLogo />
+            <span className=brandKicker>MindSwipe</span>
           </div>
-          <div className='packGrid'>
-            {packOptions.slice(0, 4).map((pack) => (
-              <button key={pack.id} className={activePack === pack.id ? 'packCard active' : 'packCard'} onClick={() => setActivePack(pack.id)}>
-                <strong>{pack.label}</strong>
-                <span>{pack.detail}</span>
-              </button>
-            ))}
+          <div>
+            <p className=eyebrow>Quick tutorial</p>
+            <h1>Three swipes. One better move.</h1>
+            <p>Cards are made to be acted on fast. Read the hook, steal the tiny move, and keep your day moving.</p>
           </div>
-          <button className='primaryWide' disabled={selectedInterests.length < 2} onClick={finishOnboarding}>
-            {selectedInterests.length < 2 ? 'Pick at least 2' : 'Start MindSwipe'}
+          <div className=tutorialSteps>
+            <div><span>Left</span><strong>Save it</strong><p>Keep the move for later.</p></div>
+            <div><span>Down</span><strong>Skip it</strong><p>Not useful right now.</p></div>
+            <div><span>Right</span><strong>Done</strong><p>You used it or commit to it.</p></div>
+          </div>
+          <div className=tutorialMini>
+            <span>Quote reminders</span>
+            <p>Pick a time and MindSwipe sends one quote matched to your mood and interests.</p>
+          </div>
+          <button className=primaryWide tutorialCta onClick={finishTutorial}>
+            I understood and want to better myself
           </button>
         </section>
       </main>
     );
   }
 
-  if (screen === 'session') {
+  if (screen === onboarding) {
     return (
-      <main className='appShell'>
-        <header className='appTop'>
-          <button className='iconButton' aria-label='Close session' onClick={() => setScreen('home')}><span className='closeMark' /></button>
-          <h1 className='brandTitle'>{sessionIndex + 1} / {nextSession.length}</h1>
+      <main className=appShell center>
+        <section className=onboardingPanel>
+          <h1>Pick what you want MindSwipe to help with.</h1>
+          <p>No preselected answers. Choose at least two broad lanes and the app will shape the cards and quote reminders around them.</p>
+          <div className=interestGrid>
+            {broadInterests.map((interest) => (
+              <button key={interest.id} className={selectedInterests.includes(interest.id) ? interestButton active : interestButton} onClick={() => toggleInterest(interest.id)}>
+                <strong>{interest.label}</strong>
+                <span>{interest.detail}</span>
+              </button>
+            ))}
+          </div>
+          <div className=packGrid>
+            {packOptions.slice(0, 4).map((pack) => (
+              <button key={pack.id} className={activePack === pack.id ? packCard active : packCard} onClick={() => setActivePack(pack.id)}>
+                <strong>{pack.label}</strong>
+                <span>{pack.detail}</span>
+              </button>
+            ))}
+          </div>
+          <button className=primaryWide disabled={selectedInterests.length < 2} onClick={finishOnboarding}>
+            {selectedInterests.length < 2 ? Pick at least 2 : Start MindSwipe}
+          </button>
+        </section>
+      </main>
+    );
+  }
+
+  if (screen === session) {
+    return (
+      <main className=appShell>
+        <header className=appTop>
+          <button className=iconButton aria-label=Close session onClick={() => setScreen(home)}><span className=closeMark /></button>
+          <h1 className=brandTitle>{sessionIndex + 1} / {nextSession.length}</h1>
           <span />
         </header>
-        <section className='sessionCard'>
-          <span className='pill'>{currentLesson.area}</span>
+        <section
+          className={swipeFeedback ? `sessionCard swipe${swipeFeedback}` : sessionCard}
+          onTouchStart={handleCardTouchStart}
+          onTouchMove={handleCardTouchMove}
+          onTouchEnd={handleCardTouchEnd}
+        >
+          {swipeFeedback ? <div className=swipeFeedback>{swipeFeedback}</div> : null}
+          <span className=pill>{currentLesson.area}</span>
           <h1>{currentLesson.title}</h1>
-          <p className='sessionHook'>{currentLesson.hook}</p>
-          <p className='sessionBody'>{currentLesson.body}</p>
-          <div className='moveBox open'>
-            <span className='miniLabel'>Tiny move</span>
+          <p className=sessionHook>{currentLesson.hook}</p>
+          <p className=sessionBody>{currentLesson.body}</p>
+          <div className=moveBox open>
+            <span className=miniLabel>Tiny move</span>
             <strong>{getMove(currentLesson)}</strong>
           </div>
-          <div className='sessionActionsNew'>
-            <button className='secondaryWide' onClick={() => finishCard(currentLesson, 'skip')}>Skip</button>
-            <button className='secondaryWide' onClick={() => finishCard(currentLesson, 'save')}>Save</button>
-            <button className='primaryWide' onClick={() => finishCard(currentLesson, 'done')}>Done</button>
+          <div className=gestureGuide aria-label=Swipe actions>
+            <span>Left Save</span>
+            <span>Down Skip</span>
+            <span>Right Done</span>
           </div>
         </section>
       </main>
@@ -530,39 +594,42 @@ function App() {
   }
 
   return (
-    <main className='appShell'>
-      <header className='appTop'>
-        <button className='iconButton' aria-label='Open menu' onClick={() => setMenuOpen(!menuOpen)}><span className='hamburgerMark'><span /></span></button>
-        <h1 className='brandTitle'>MindSwipe</h1>
-        <button className='iconButton' aria-label='Profile' onClick={() => setActivePage('Profile')}><span className='smallLabel'>{progress.streak}</span></button>
+    <main className=appShell>
+      <header className=appTop>
+        <button className=iconButton aria-label=Open menu onClick={() => setMenuOpen(!menuOpen)}><span className=hamburgerMark><span /></span></button>
+        <div className=brandLockup>
+          <MindSwipeLogo className=topLogo />
+          <h1 className=brandTitle>MindSwipe</h1>
+        </div>
+        <button className=iconButton aria-label=Profile onClick={() => setActivePage(Profile)}><span className=smallLabel>{progress.streak}</span></button>
       </header>
 
-      <nav className='pageRail' aria-label='MindSwipe sections'>
+      <nav className=pageRail aria-label=MindSwipe sections>
         {pages.map((page) => (
-          <button key={page} className={activePage === page ? 'active' : ''} onClick={() => { setActivePage(page); setMenuOpen(false); }}>
+          <button key={page} className={activePage === page ? active : } onClick={() => { setActivePage(page); setMenuOpen(false); }}>
             {page}
           </button>
         ))}
       </nav>
 
       {menuOpen ? (
-        <section className='cleanPanel menuList'>
+        <section className=cleanPanel menuList>
           {pages.map((page) => <button key={page} onClick={() => { setActivePage(page); setMenuOpen(false); }}>{page}<span>Open</span></button>)}
         </section>
       ) : null}
 
-      {activePage === 'Home' ? (
-        <section className='homeHero'>
+      {activePage === Home ? (
+        <section className=homeHero>
           <div>
-            <span className='streakChip'>{progress.streak} day streak</span>
-            <button className='bigStart' onClick={() => startSession(activeMood)}>Start</button>
-            <section className='todayQuotePreview'>
-              <p>{progress.quoteReminderEnabled ? 'Todays reminder' : 'Yesterday / preview quote'}</p>
+            <span className=streakChip>{progress.streak} day streak</span>
+            <button className=bigStart onClick={() => startSession(activeMood)}>Start</button>
+            <section className=todayQuotePreview>
+              <p>{progress.quoteReminderEnabled ? Todays reminder : Yesterday / preview quote}</p>
               <strong>{progress.quoteReminderEnabled ? dailyQuote.text : yesterdayQuote.text}</strong>
             </section>
-            <section className='recentPanel'>
+            <section className=recentPanel>
               <strong>Recent themes</strong>
-              <div className='recentList'>
+              <div className=recentList>
                 {(recentLessons.length ? recentLessons : nextSession).map((lesson) => <span key={lesson.id}>{lesson.area}</span>)}
               </div>
             </section>
@@ -570,97 +637,96 @@ function App() {
         </section>
       ) : null}
 
-      {activePage === 'Quote' ? (
-        <section className='dashboardPage'>
-          <article className='quoteCardLarge'>
-            <span className='quoteSource'>{dailyQuote.source || 'MindSwipe'}</span>
+      {activePage === Quote ? (
+        <section className=dashboardPage>
+          <article className=quoteCardLarge>
+            <span className=quoteSource>{dailyQuote.source || MindSwipe}</span>
             <h2>{dailyQuote.text}</h2>
-            <p className='quoteActionText'>{dailyQuote.action}</p>
+            <p className=quoteActionText>{dailyQuote.action}</p>
           </article>
-          <div className='quickTimes'>
+          <div className=quickTimes>
             {reminderPresets.map((preset) => (
-              <button key={preset.time} className={quoteReminderTime === preset.time ? 'active' : ''} onClick={() => setQuoteReminderTime(preset.time)}>
+              <button key={preset.time} className={quoteReminderTime === preset.time ? active : } onClick={() => setQuoteReminderTime(preset.time)}>
                 {preset.label} {preset.time}
               </button>
             ))}
           </div>
-          <div className='reminderRow'>
-            <input aria-label='Quote reminder time' type='time' value={quoteReminderTime} onChange={(event) => setQuoteReminderTime(event.target.value)} />
-            <button className='secondary' onClick={enableQuoteReminder}>{progress.quoteReminderEnabled ? 'Update' : 'Turn on'}</button>
+          <div className=reminderRow>
+            <input aria-label=Quote reminder time type=time value={quoteReminderTime} onChange={(event) => setQuoteReminderTime(event.target.value)} />
+            <button className=secondary onClick={enableQuoteReminder}>{progress.quoteReminderEnabled ? Update : Turn on}</button>
           </div>
-          <button className='secondaryWide' onClick={testQuoteReminder}>Test notification</button>
-          {progress.quoteReminderEnabled ? <button className='secondaryWide dangerText' onClick={disableQuoteReminder}>Turn off reminder</button> : null}
-          {quoteMessage ? <p className='statusLine'>{quoteMessage}</p> : null}
+          {progress.quoteReminderEnabled ? <button className=secondaryWide dangerText onClick={disableQuoteReminder}>Turn off reminder</button> : null}
+          {quoteMessage ? <p className=statusLine>{quoteMessage}</p> : null}
         </section>
       ) : null}
 
-      {activePage === 'History' ? (
-        <section className='dashboardPage'>
-          <section className='cleanPanel'>
+      {activePage === History ? (
+        <section className=dashboardPage>
+          <section className=cleanPanel>
             <strong>Recently seen</strong>
-            <div className='list'>
+            <div className=list>
               {(recentLessons.length ? recentLessons : nextSession).map((lesson) => (
-                <article className='miniCard' key={lesson.id}>
-                  <span className='pill'>{lesson.area}</span>
+                <article className=miniCard key={lesson.id}>
+                  <span className=pill>{lesson.area}</span>
                   <h3>{lesson.title}</h3>
                   <p>{lesson.hook}</p>
                 </article>
               ))}
             </div>
           </section>
-          <section className='cleanPanel'>
+          <section className=cleanPanel>
             <strong>Saved moves</strong>
-            <div className='list'>
+            <div className=list>
               {savedLessons.length ? savedLessons.map((lesson) => <p key={lesson.id}>{lesson.title}: {getMove(lesson)}</p>) : <p>No saved moves yet.</p>}
             </div>
           </section>
         </section>
       ) : null}
 
-      {activePage === 'Profile' ? (
-        <section className='dashboardPage'>
-          <div className='statGrid'>
+      {activePage === Profile ? (
+        <section className=dashboardPage>
+          <div className=statGrid>
             <div><strong>{progress.xp}</strong><span>XP</span></div>
             <div><strong>{progress.streak}</strong><span>streak</span></div>
             <div><strong>{progress.minutesReplaced}</strong><span>minutes</span></div>
           </div>
-          <section className='cleanPanel'>
+          <section className=cleanPanel>
             <strong>Badges</strong>
-            <div className='badgeGrid'>
-              <div><strong>First swipe</strong><span>{progress.sessions > 0 ? 'Unlocked' : 'Locked'}</span></div>
-              <div><strong>Saved one</strong><span>{savedLessons.length ? 'Unlocked' : 'Locked'}</span></div>
-              <div><strong>Reminder set</strong><span>{progress.quoteReminderEnabled ? 'Unlocked' : 'Locked'}</span></div>
-              <div><strong>Comeback week</strong><span>{progress.streak >= 7 ? 'Unlocked' : 'Locked'}</span></div>
+            <div className=badgeGrid>
+              <div><strong>First swipe</strong><span>{progress.sessions > 0 ? Unlocked : Locked}</span></div>
+              <div><strong>Saved one</strong><span>{savedLessons.length ? Unlocked : Locked}</span></div>
+              <div><strong>Reminder set</strong><span>{progress.quoteReminderEnabled ? Unlocked : Locked}</span></div>
+              <div><strong>Comeback week</strong><span>{progress.streak >= 7 ? Unlocked : Locked}</span></div>
             </div>
           </section>
         </section>
       ) : null}
 
-      {activePage === 'Settings' ? (
-        <section className='dashboardPage'>
-          <section className='cleanPanel menuList'>
+      {activePage === Settings ? (
+        <section className=dashboardPage>
+          <section className=cleanPanel menuList>
             <strong>Preferences</strong>
-            <button onClick={() => setScreen('onboarding')}>Edit interests<span>Open</span></button>
-            <button onClick={() => setActivePage('Quote')}>Notifications<span>Open</span></button>
+            <button onClick={() => setScreen(onboarding)}>Edit interests<span>Open</span></button>
+            <button onClick={() => setActivePage(Quote)}>Notifications<span>Open</span></button>
             <button>Appearance<span>Soon</span></button>
             <button>Contact support<span>Soon</span></button>
             <button>Privacy policy<span>Soon</span></button>
-            <button className='dangerText' onClick={resetProgress}>Reset local progress<span>Reset</span></button>
+            <button className=dangerText onClick={resetProgress}>Reset local progress<span>Reset</span></button>
           </section>
         </section>
       ) : null}
 
       {quoteToast ? (
-        <div className='quoteToast' role='status'>
-          <p className='eyebrow'>MindSwipe reminder</p>
+        <div className=quoteToast role=status>
+          <p className=eyebrow>MindSwipe reminder</p>
           <strong>{quoteToast.text}</strong>
           {quoteToast.source ? <span>{quoteToast.source}</span> : null}
           <span>{quoteToast.action}</span>
-          <button className='textButton' onClick={() => setQuoteToast(null)}>Close</button>
+          <button className=textButton onClick={() => setQuoteToast(null)}>Close</button>
         </div>
       ) : null}
     </main>
   );
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById(root)).render(<App />);
