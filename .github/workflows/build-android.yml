@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-android:
-    name: Build Mind Swipe debug APK
+    name: Build Mind Swipe debug APK and AAB
     runs-on: ubuntu-latest
 
     steps:
@@ -63,14 +63,20 @@ jobs:
               path.write_text(text)
           PY
 
-      - name: Build debug APK
+      - name: Build debug APK and AAB
         working-directory: android
         run: |
           chmod +x ./gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug bundleDebug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: MindSwipe-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MindSwipe-debug-aab
+          path: android/app/build/outputs/bundle/debug/app-debug.aab
