@@ -615,6 +615,8 @@ function App() {
   const [quiz, setQuiz] = useState(null);
   const [quizSelected, setQuizSelected] = useState([]);
   const [pendingProgress, setPendingProgress] = useState(null);
+  const [tutorialStep, setTutorialStep] = useState(0);
+  const [exitSwipe, setExitSwipe] = useState('');
   const touchStartRef = useRef(null);
   const [swipeFeedback, setSwipeFeedback] = useState('');
 
@@ -650,6 +652,13 @@ function App() {
   const savedLessons = allLessons.filter((lesson) => progress.saved.includes(lesson.id));
   const recentLessons = allLessons.filter((lesson) => progress.recent.includes(lesson.id)).slice(0, 6);
   const currentLesson = nextSession[sessionIndex] || nextSession[0];
+  const tutorialItems = [
+    { label: 'Start', title: 'Start from the water button.', body: 'That opens the daily 3-card run. The app is built around fast action, not reading forever.', target: 'start' },
+    { label: 'Swipe', title: 'Move the card, then let it fly.', body: 'Left saves it, down skips it, right marks it done. A real swipe throws the card off screen.', target: 'card' },
+    { label: 'Check', title: 'Pass the streak check.', body: 'After 3 cards, one short quiz proves you understood the idea before the streak counts.', target: 'quiz' },
+    { label: 'Quote', title: 'Use the quote reminder.', body: 'Pick a time and MindSwipe reminds you with a quote based on your mood and interests.', target: 'quote' }
+  ];
+  const activeTutorial = tutorialItems[tutorialStep] || tutorialItems[0];
 
   useEffect(() => {
     if (!progress.quoteReminderEnabled || !progress.quoteReminderTime || Capacitor.isNativePlatform()) return undefined;
@@ -731,6 +740,7 @@ function App() {
     setActiveMood(mood);
     setSessionIndex(0);
     setSwipeFeedback('');
+    setExitSwipe('');
     setQuiz(null);
     setQuizSelected([]);
     setPendingProgress(null);
@@ -757,6 +767,7 @@ function App() {
       setQuiz(getQuizForSession(today, nextSession, quizAttempt));
       setQuizSelected([]);
       setSwipeFeedback('');
+      setExitSwipe('');
       setScreen('quiz');
       return;
     }
@@ -764,15 +775,18 @@ function App() {
     commit(nextProgress);
     setSessionIndex(sessionIndex + 1);
     setSwipeFeedback('');
+    setExitSwipe('');
   }
 
   function handleCardTouchStart(event) {
+    if (exitSwipe) return;
     const touch = event.touches[0];
     touchStartRef.current = { x: touch.clientX, y: touch.clientY };
     setSwipeFeedback('');
   }
 
   function handleCardTouchMove(event) {
+    if (exitSwipe) return;
     const touchStart = touchStartRef.current;
     if (!touchStart) return;
     const touch = event.touches[0];
@@ -792,6 +806,7 @@ function App() {
   }
 
   function handleCardTouchEnd(event) {
+    if (exitSwipe) return;
     const touchStart = touchStartRef.current;
     if (!touchStart) return;
     const touch = event.changedTouches[0];
@@ -801,17 +816,27 @@ function App() {
     touchStartRef.current = null;
     setSwipeFeedback('');
 
-    if (horizontal && dx <= -76) {
-      finishCard(currentLesson, 'save');
+    if (horizontal && dx <= -64) {
+      setSwipeFeedback('Save');
+      setExitSwipe('Save');
+      window.setTimeout(() => finishCard(currentLesson, 'save'), 230);
       return;
     }
-    if (horizontal && dx >= 76) {
-      finishCard(currentLesson, 'done');
+    if (horizontal && dx >= 64) {
+      setSwipeFeedback('Done');
+      setExitSwipe('Done');
+      window.setTimeout(() => finishCard(currentLesson, 'done'), 230);
       return;
     }
-    if (!horizontal && dy >= 76) {
-      finishCard(currentLesson, 'skip');
+    if (!horizontal && dy >= 64) {
+      setSwipeFeedback('Skip');
+      setExitSwipe('Skip');
+      window.setTimeout(() => finishCard(currentLesson, 'skip'), 230);
     }
+  }
+
+  function scrollToInterestCategory(id) {
+    document.getElementById(`interest-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function toggleQuizAnswer(index) {
@@ -853,6 +878,7 @@ function App() {
     setQuizSelected([]);
     setPendingProgress(null);
     setSessionIndex(0);
+    setExitSwipe('');
     setSwipeFeedback('');
     setScreen('session');
   }
@@ -866,6 +892,8 @@ function App() {
     setQuiz(null);
     setQuizSelected([]);
     setPendingProgress(null);
+    setTutorialStep(0);
+    setExitSwipe('');
     setSwipeFeedback('');
     setScreen('tutorial');
     setActivePage('Home');
@@ -875,23 +903,39 @@ function App() {
     return (
       <main className='appShell center tutorialShell'>
         <section className='tutorialPanel'>
-          <div className='tutorialLogoWrap'>
-            <MindSwipeLogo className='tutorialLogo' />
-            <span className='brandKicker'>MindSwipe</span>
-          </div>
           <div>
-            <p className='eyebrow'>Quick tutorial</p>
-            <h1>Three swipes. One better move.</h1>
-            <p>Cards are made to be acted on fast. Read the hook, steal the tiny move, and keep your day moving.</p>
+            <h1>Learn the app by touching the flow.</h1>
+            <p>MindSwipe is three cards, one check, and one reminder. Tap each step and watch the part it uses.</p>
           </div>
-          <div className='tutorialSteps'>
-            <div><span>Left</span><strong>Save it</strong><p>Keep the move for later.</p></div>
-            <div><span>Down</span><strong>Skip it</strong><p>Not useful right now.</p></div>
-            <div><span>Right</span><strong>Done</strong><p>You used it or commit to it.</p></div>
+          <div className='tutorialStage' data-focus={activeTutorial.target}>
+            <div className='tutorialPhoneTop'>
+              <MindSwipeLogo className='tutorialMiniLogo' />
+              <span>MindSwipe</span>
+              <strong>3</strong>
+            </div>
+            <button className='tutorialStartOrb' onClick={() => setTutorialStep(1)}>Start</button>
+            <div className='tutorialCardPreview'>
+              <span className='tutorialTopic'>Focus</span>
+              <strong>Protect one deep block</strong>
+              <p>Left Save - Down Skip - Right Done</p>
+            </div>
+            <div className='tutorialQuizPreview'>
+              <span>A</span>
+              <span>B</span>
+              <span>C</span>
+            </div>
+            <div className='tutorialQuotePreview'>Quote 12:00</div>
           </div>
-          <div className='tutorialMini'>
-            <span>Quote reminders</span>
-            <p>Pick a time and MindSwipe sends one quote matched to your mood and interests.</p>
+          <div className='tutorialStepper'>
+            {tutorialItems.map((item, index) => (
+              <button key={item.label} className={tutorialStep === index ? 'active' : ''} onClick={() => setTutorialStep(index)}>
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div className='tutorialExplain'>
+            <strong>{activeTutorial.title}</strong>
+            <p>{activeTutorial.body}</p>
           </div>
           <button className='primaryWide tutorialCta' onClick={finishTutorial}>
             I understood and want to better myself
@@ -907,11 +951,18 @@ function App() {
         <section className='onboardingPanel'>
           <h1>Pick what you want MindSwipe to help with.</h1>
           <p>Choose lanes that would genuinely make your next month better. Pick useful pressure points, not random boxes.</p>
+          <div className='interestCategoryRail' aria-label='Interest categories'>
+            {interestCategories.map((category) => (
+              <button key={category.id} onClick={() => scrollToInterestCategory(category.id)}>
+                {category.label}
+              </button>
+            ))}
+          </div>
           <div className='interestSections'>
             {interestCategories.map((category) => (
-              <section className='interestCategory' key={category.id}>
+              <section className='interestCategory' id={`interest-${category.id}`} key={category.id}>
                 <div className='interestCategoryTitle'>
-                  <strong>{category.label}</strong>
+                  <strong>{category.label}<span>{broadInterests.filter((interest) => interest.category === category.id).length}</span></strong>
                   <span>{category.detail}</span>
                 </div>
                 <div className='interestGrid'>
@@ -942,6 +993,7 @@ function App() {
   }
 
   if (screen === 'session') {
+    const sessionCardClass = ['sessionCard', swipeFeedback ? `swipe${swipeFeedback}` : '', exitSwipe ? `exit${exitSwipe}` : ''].filter(Boolean).join(' ');
     return (
       <main className='appShell'>
         <header className='appTop'>
@@ -950,13 +1002,13 @@ function App() {
           <span />
         </header>
         <section
-          className={swipeFeedback ? `sessionCard swipe${swipeFeedback}` : 'sessionCard'}
+          className={sessionCardClass}
           onTouchStart={handleCardTouchStart}
           onTouchMove={handleCardTouchMove}
           onTouchEnd={handleCardTouchEnd}
         >
           {swipeFeedback ? <div className='swipeFeedback'>{swipeFeedback}</div> : null}
-          <span className='pill'>{currentLesson.area}</span>
+          <div className='sessionMeta'><span className='pill'>{currentLesson.area}</span></div>
           <h1>{currentLesson.title}</h1>
           <p className='sessionHook'>{currentLesson.hook}</p>
           <p className='sessionBody'>{currentLesson.body}</p>
