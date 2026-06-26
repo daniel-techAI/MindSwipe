@@ -83,15 +83,233 @@ const baseActionMoves = {
   'people-1': 'Ask one specific question today instead of sending dead small talk.'
 };
 
+const bookLessons = [
+  {
+    id: 'book-stoic-control',
+    area: 'Philosophy',
+    mood: 'Stressed',
+    pack: 'discipline',
+    title: 'Control the controllable',
+    hook: 'Peace starts when you stop negotiating with things you cannot move.',
+    body: 'Separate what you can act on from what you only complain about. Your job is the next honest move, not controlling every reaction around you.'
+  },
+  {
+    id: 'book-meaning-hardship',
+    area: 'Philosophy',
+    mood: 'Stressed',
+    pack: 'comeback',
+    title: 'Give the hard thing a job',
+    hook: 'Pain gets heavier when it has no meaning.',
+    body: 'Pick what this rough season is supposed to build in you: patience, skill, courage, discipline, or self-respect. Then act like that is the training.'
+  },
+  {
+    id: 'book-habit-cue',
+    area: 'Habits',
+    mood: 'Need focus',
+    pack: 'discipline',
+    title: 'Design the cue',
+    hook: 'Discipline is easier when the room helps you.',
+    body: 'Do not rely only on mood. Put the useful action where your hand already goes and put the bad loop one step farther away.'
+  },
+  {
+    id: 'book-deep-work',
+    area: 'Focus',
+    mood: 'Need focus',
+    pack: 'focus',
+    title: 'Protect one deep block',
+    hook: 'Your best work needs a wall around it.',
+    body: 'One focused block without tabs, messages, or checking gives more progress than a whole day of half-attention.'
+  },
+  {
+    id: 'book-attention-cost',
+    area: 'Focus',
+    mood: 'Bored',
+    pack: 'focus',
+    title: 'Scrolling has a receipt',
+    hook: 'Free apps still charge you attention.',
+    body: 'Every random feed trains your brain to leave when work gets boring. Notice the cost before you open the loop.'
+  },
+  {
+    id: 'book-influence-reciprocity',
+    area: 'Influence',
+    mood: 'Bored',
+    pack: 'confidence',
+    title: 'Give first, but stay awake',
+    hook: 'Generosity builds trust. Forced favors build traps.',
+    body: 'Use helpfulness to create real value, but notice when someone uses guilt to push you into a decision you did not choose.'
+  },
+  {
+    id: 'book-manipulation-defense',
+    area: 'Manipulation',
+    mood: 'Stressed',
+    pack: 'confidence',
+    title: 'Slow pressure down',
+    hook: 'Manipulation hates a pause.',
+    body: 'When someone rushes you, flatters you, threatens loss, or makes the deal feel secret, slow the situation down before answering.'
+  },
+  {
+    id: 'book-strategy-second-order',
+    area: 'Strategy',
+    mood: 'Need focus',
+    pack: 'work',
+    title: 'Think one move later',
+    hook: 'Smart choices survive the second consequence.',
+    body: 'Before acting, ask what this creates tomorrow: more options, fewer options, debt, trust, skill, or drama.'
+  },
+  {
+    id: 'book-money-pay-yourself',
+    area: 'Money',
+    mood: 'Money ideas',
+    pack: 'income',
+    title: 'Keep a piece first',
+    hook: 'If every euro leaves, you are only passing money through your hands.',
+    body: 'Before spending expands, decide the small percentage that stays with you. Wealth starts as a habit before it becomes a number.'
+  },
+  {
+    id: 'book-money-assets',
+    area: 'Money',
+    mood: 'Money ideas',
+    pack: 'income',
+    title: 'Buy less future stress',
+    hook: 'An asset is anything that makes tomorrow lighter.',
+    body: 'Skills, savings, tools, useful relationships, and simple systems can all reduce future pressure. Pick one that fits your current level.'
+  },
+  {
+    id: 'book-thinking-bias',
+    area: 'Mind',
+    mood: 'Stressed',
+    pack: 'starter',
+    title: 'Your first thought is not always yours',
+    hook: 'Fast reactions are useful, but they are not always accurate.',
+    body: 'Before believing the panic story, ask what evidence supports it, what evidence weakens it, and what a calmer person would do next.'
+  },
+  {
+    id: 'book-ego-check',
+    area: 'Mind',
+    mood: 'Need focus',
+    pack: 'comeback',
+    title: 'Ego wants applause, growth wants receipts',
+    hook: 'Feeling talented is weaker than proving progress.',
+    body: 'Choose the boring proof: reps done, money tracked, message sent, page studied, workout finished. Let evidence replace image.'
+  },
+  {
+    id: 'book-listen-better',
+    area: 'People',
+    mood: 'Bored',
+    pack: 'confidence',
+    title: 'Make people feel heard',
+    hook: 'Most people are starving for real attention.',
+    body: 'Repeat the core point back, ask one specific follow-up, and do not rush to turn the story into yours.'
+  },
+  {
+    id: 'book-boundaries',
+    area: 'Relationships',
+    mood: 'Stressed',
+    pack: 'confidence',
+    title: 'A boundary needs a behavior',
+    hook: 'A boundary is not a speech. It is what you will do next.',
+    body: 'Decide the action: leave, pause, stop replying, say no, or change the plan. Clear behavior beats emotional arguing.'
+  },
+  {
+    id: 'book-economics-incentives',
+    area: 'Economics',
+    mood: 'Money ideas',
+    pack: 'income',
+    title: 'Follow the incentive',
+    hook: 'People often move toward what gets rewarded.',
+    body: 'Before judging a situation, ask who gains, who pays, who avoids risk, and what behavior the system quietly encourages.'
+  },
+  {
+    id: 'book-eco-systems',
+    area: 'Environment',
+    mood: 'Need focus',
+    pack: 'starter',
+    title: 'Small waste repeats',
+    hook: 'The environment problem also lives in daily habits.',
+    body: 'Look for one repeating waste pattern: food, power, clothes, transport, plastic, or impulse buying. Fix the repeat, not just one moment.'
+  },
+  {
+    id: 'book-motivation-action',
+    area: 'Motivation',
+    mood: 'Bored',
+    pack: 'discipline',
+    title: 'Action creates motivation',
+    hook: 'Waiting to feel ready is a beautiful way to stay stuck.',
+    body: 'Start badly for two minutes. Momentum usually arrives after movement, not before it.'
+  },
+  {
+    id: 'book-targeting-one-person',
+    area: 'Targeting',
+    mood: 'Money ideas',
+    pack: 'work',
+    title: 'Aim at one real person',
+    hook: 'Everyone is too blurry to build for.',
+    body: 'Pick one person with one painful problem and one situation where they feel it. Clear targeting makes ideas easier to sell or improve.'
+  }
+];
+
+const bookActionMoves = {
+  'book-stoic-control': 'Write two columns: mine to act on, not mine to control. Do one from the first column.',
+  'book-meaning-hardship': 'Name what this season is training, then do one rep that matches it.',
+  'book-habit-cue': 'Move one useful cue closer and one bad cue farther away.',
+  'book-deep-work': 'Set a 25-minute block with one task and no switching.',
+  'book-attention-cost': 'Before opening a feed, say the task you are avoiding out loud.',
+  'book-influence-reciprocity': 'Do one useful favor without pressure, and notice one favor that feels like a hook.',
+  'book-manipulation-defense': 'Use this sentence once: I need time to think before I answer.',
+  'book-strategy-second-order': 'Ask what this choice creates tomorrow before you do it.',
+  'book-money-pay-yourself': 'Pick a tiny percentage or amount that stays untouched next time money arrives.',
+  'book-money-assets': 'Choose one future-stress reducer: skill, savings, tool, contact, or system.',
+  'book-thinking-bias': 'Write the panic story, then write the boring evidence.',
+  'book-ego-check': 'Replace one image goal with one proof goal today.',
+  'book-listen-better': 'In your next conversation, ask a follow-up before giving your own story.',
+  'book-boundaries': 'Choose the behavior behind one boundary before you need it.',
+  'book-economics-incentives': 'For one situation, write who gains, who pays, and what gets rewarded.',
+  'book-eco-systems': 'Find one repeating waste pattern and make it harder to repeat.',
+  'book-motivation-action': 'Start the avoided thing for two minutes with permission to do it badly.',
+  'book-targeting-one-person': 'Write one person, one painful problem, one moment they feel it.'
+};
+
+const interestCategories = [
+  { id: 'mind', label: 'Mind & emotions', detail: 'stress, confidence, identity, mental reset' },
+  { id: 'focus', label: 'Focus & discipline', detail: 'attention, habits, motivation, phone loops' },
+  { id: 'money', label: 'Money & career', detail: 'income, work, economics, selling, options' },
+  { id: 'people', label: 'People & influence', detail: 'relationships, communication, manipulation defense' },
+  { id: 'meaning', label: 'Philosophy & meaning', detail: 'stoicism, purpose, ethics, self-respect' },
+  { id: 'body', label: 'Body & lifestyle', detail: 'sleep, energy, environment, routine' },
+  { id: 'learning', label: 'Learning & strategy', detail: 'skills, decisions, systems, creativity' }
+];
+
 const broadInterests = [
-  { id: 'mindset', label: 'Mindset', detail: 'stress, confidence, emotions', areas: ['Mind'], moods: ['Stressed'], packs: ['starter', 'confidence', 'work'] },
-  { id: 'focus', label: 'Focus', detail: 'phone loops, attention, habits', areas: ['Habits', 'Strategy'], moods: ['Need focus', 'Bored'], packs: ['focus', 'discipline'] },
-  { id: 'money', label: 'Money & work', detail: 'cash, jobs, income basics', areas: ['Money', 'Strategy'], moods: ['Money ideas'], packs: ['comeback', 'income', 'work'] },
-  { id: 'health', label: 'Health', detail: 'sleep, energy, recovery', areas: ['Health'], moods: ['Stressed', 'Need focus'], packs: ['work', 'starter'] },
-  { id: 'people', label: 'People', detail: 'social confidence, talking', areas: ['People'], moods: ['Bored', 'Stressed'], packs: ['confidence', 'starter'] },
-  { id: 'learning', label: 'Learning', detail: 'skills, discipline, growth', areas: ['Learning', 'Habits'], moods: ['Need focus'], packs: ['discipline', 'income'] },
-  { id: 'life', label: 'Life skills', detail: 'decisions, routines, resets', areas: ['Life', 'Strategy', 'Mind'], moods: ['Need focus', 'Stressed'], packs: ['starter', 'comeback'] },
-  { id: 'relationships', label: 'Relationships', detail: 'communication, boundaries', areas: ['People', 'Mind'], moods: ['Stressed', 'Bored'], packs: ['confidence', 'starter'] }
+  { id: 'mindset', category: 'mind', label: 'Mindset', detail: 'confidence, emotions, self-talk', areas: ['Mind'], moods: ['Stressed'], packs: ['starter', 'confidence', 'work'] },
+  { id: 'stress', category: 'mind', label: 'Stress control', detail: 'calm, pressure, overthinking', areas: ['Mind', 'Health'], moods: ['Stressed'], packs: ['starter', 'comeback'] },
+  { id: 'mental-reset', category: 'mind', label: 'Mental reset', detail: 'spirals, bad days, recovery', areas: ['Mind', 'Philosophy'], moods: ['Stressed'], packs: ['comeback', 'starter'] },
+  { id: 'confidence', category: 'mind', label: 'Confidence', detail: 'fear, action, self-respect', areas: ['Mind', 'People'], moods: ['Stressed', 'Bored'], packs: ['confidence'] },
+  { id: 'focus', category: 'focus', label: 'Focus', detail: 'attention, phone loops, deep work', areas: ['Focus', 'Habits', 'Strategy'], moods: ['Need focus', 'Bored'], packs: ['focus', 'discipline'] },
+  { id: 'discipline', category: 'focus', label: 'Discipline', detail: 'consistency, boring reps, standards', areas: ['Habits', 'Motivation'], moods: ['Need focus'], packs: ['discipline', 'comeback'] },
+  { id: 'motivation', category: 'focus', label: 'Motivation', detail: 'starting, momentum, resistance', areas: ['Motivation', 'Habits'], moods: ['Bored', 'Need focus'], packs: ['discipline', 'starter'] },
+  { id: 'procrastination', category: 'focus', label: 'Procrastination', detail: 'avoidance, tiny starts, friction', areas: ['Habits', 'Focus'], moods: ['Need focus', 'Bored'], packs: ['focus'] },
+  { id: 'money', category: 'money', label: 'Money & work', detail: 'cash, jobs, income basics', areas: ['Money', 'Strategy'], moods: ['Money ideas'], packs: ['comeback', 'income', 'work'] },
+  { id: 'finance', category: 'money', label: 'Personal finance', detail: 'saving, leaks, cash flow', areas: ['Money'], moods: ['Money ideas'], packs: ['income', 'comeback'] },
+  { id: 'career', category: 'money', label: 'Career', detail: 'skills, jobs, leverage', areas: ['Learning', 'Strategy'], moods: ['Need focus', 'Money ideas'], packs: ['work', 'income'] },
+  { id: 'economics', category: 'money', label: 'Economics', detail: 'incentives, tradeoffs, systems', areas: ['Economics', 'Money'], moods: ['Money ideas'], packs: ['income', 'work'] },
+  { id: 'business', category: 'money', label: 'Business basics', detail: 'offers, profit, customers', areas: ['Money', 'Targeting'], moods: ['Money ideas'], packs: ['income', 'work'] },
+  { id: 'people', category: 'people', label: 'People', detail: 'social confidence, talking', areas: ['People'], moods: ['Bored', 'Stressed'], packs: ['confidence', 'starter'] },
+  { id: 'relationships', category: 'people', label: 'Relationships', detail: 'communication, boundaries', areas: ['Relationships', 'People', 'Mind'], moods: ['Stressed', 'Bored'], packs: ['confidence', 'starter'] },
+  { id: 'influence', category: 'people', label: 'Influence', detail: 'trust, persuasion, social signals', areas: ['Influence', 'People'], moods: ['Bored', 'Money ideas'], packs: ['confidence', 'work'] },
+  { id: 'manipulation', category: 'people', label: 'Manipulation defense', detail: 'pressure, guilt, rush tactics', areas: ['Manipulation', 'Mind'], moods: ['Stressed'], packs: ['confidence'] },
+  { id: 'targeting', category: 'people', label: 'Targeting', detail: 'audience, offers, one clear person', areas: ['Targeting', 'Strategy'], moods: ['Money ideas', 'Need focus'], packs: ['work', 'income'] },
+  { id: 'philosophy', category: 'meaning', label: 'Philosophy', detail: 'meaning, values, clear thinking', areas: ['Philosophy', 'Mind'], moods: ['Stressed', 'Need focus'], packs: ['starter', 'comeback'] },
+  { id: 'stoicism', category: 'meaning', label: 'Stoicism', detail: 'control, patience, strong reactions', areas: ['Philosophy', 'Mind'], moods: ['Stressed'], packs: ['discipline', 'comeback'] },
+  { id: 'purpose', category: 'meaning', label: 'Purpose', detail: 'direction, identity, hard seasons', areas: ['Philosophy', 'Motivation'], moods: ['Stressed', 'Need focus'], packs: ['comeback'] },
+  { id: 'ethics', category: 'meaning', label: 'Ethics', detail: 'choices, character, consequences', areas: ['Philosophy', 'Strategy'], moods: ['Need focus'], packs: ['starter', 'work'] },
+  { id: 'health', category: 'body', label: 'Health', detail: 'sleep, energy, recovery', areas: ['Health'], moods: ['Stressed', 'Need focus'], packs: ['work', 'starter'] },
+  { id: 'sleep', category: 'body', label: 'Sleep', detail: 'recovery, mood, decisions', areas: ['Health', 'Focus'], moods: ['Stressed', 'Need focus'], packs: ['starter'] },
+  { id: 'energy', category: 'body', label: 'Energy', detail: 'movement, food, daily rhythm', areas: ['Health', 'Habits'], moods: ['Need focus'], packs: ['discipline', 'starter'] },
+  { id: 'environment', category: 'body', label: 'Environment & eco', detail: 'waste, surroundings, daily systems', areas: ['Environment', 'Habits'], moods: ['Need focus'], packs: ['starter', 'work'] },
+  { id: 'learning', category: 'learning', label: 'Learning', detail: 'skills, discipline, growth', areas: ['Learning', 'Habits'], moods: ['Need focus'], packs: ['discipline', 'income'] },
+  { id: 'strategy', category: 'learning', label: 'Strategy', detail: 'tradeoffs, priorities, second order', areas: ['Strategy'], moods: ['Need focus', 'Money ideas'], packs: ['work', 'income'] },
+  { id: 'decision-making', category: 'learning', label: 'Decision making', detail: 'bias, options, consequences', areas: ['Mind', 'Strategy'], moods: ['Need focus', 'Stressed'], packs: ['work', 'starter'] },
+  { id: 'life', category: 'learning', label: 'Life skills', detail: 'decisions, routines, resets', areas: ['Life', 'Strategy', 'Mind'], moods: ['Need focus', 'Stressed'], packs: ['starter', 'comeback'] }
 ];
 
 const moodOptions = [
@@ -109,9 +327,96 @@ const reminderPresets = [
 ];
 
 const pages = ['Home', 'Quote', 'History', 'Profile', 'Settings'];
-const allLessons = [...baseLessons, ...extraLessons];
-const allActionMoves = { ...baseActionMoves, ...extraActionMoves };
+const allLessons = [...baseLessons, ...bookLessons, ...extraLessons];
+const allActionMoves = { ...baseActionMoves, ...bookActionMoves, ...extraActionMoves };
 const allQuotes = [...dailyQuotes, ...famousQuotes];
+
+const quizBank = [
+  {
+    id: 'control',
+    areas: ['Philosophy', 'Mind', 'Stress'],
+    prompt: 'Which answers are inside your control today?',
+    options: [
+      { text: 'The next useful action', correct: true },
+      { text: 'How someone reacts', correct: false },
+      { text: 'Whether you pause before replying', correct: true },
+      { text: 'The past mistake changing itself', correct: false },
+      { text: 'What you practice for 10 minutes', correct: true }
+    ]
+  },
+  {
+    id: 'money-leaks',
+    areas: ['Money', 'Economics'],
+    prompt: 'Which choices help you understand your money better?',
+    options: [
+      { text: 'Writing income and real costs', correct: true },
+      { text: 'Ignoring small repeat payments', correct: false },
+      { text: 'Checking bill dates before spending', correct: true },
+      { text: 'Counting revenue as profit', correct: false },
+      { text: 'Keeping a small amount before lifestyle expands', correct: true }
+    ]
+  },
+  {
+    id: 'focus',
+    areas: ['Focus', 'Habits', 'Motivation'],
+    prompt: 'Which moves protect focus?',
+    options: [
+      { text: 'One task for a timed block', correct: true },
+      { text: 'Checking messages between every step', correct: false },
+      { text: 'Moving the phone one room away', correct: true },
+      { text: 'Waiting until motivation arrives first', correct: false },
+      { text: 'Starting badly for two minutes', correct: true }
+    ]
+  },
+  {
+    id: 'influence-defense',
+    areas: ['Influence', 'Manipulation', 'People', 'Relationships'],
+    prompt: 'Which signs mean you should slow a decision down?',
+    options: [
+      { text: 'They rush you with a fake deadline', correct: true },
+      { text: 'They give clear facts and time to think', correct: false },
+      { text: 'They use guilt to force yes', correct: true },
+      { text: 'They let you compare options', correct: false },
+      { text: 'They make the deal feel secret', correct: true }
+    ]
+  },
+  {
+    id: 'strategy',
+    areas: ['Strategy', 'Learning', 'Targeting'],
+    prompt: 'Which are second-order questions?',
+    options: [
+      { text: 'What does this create tomorrow?', correct: true },
+      { text: 'Will this only feel good right now?', correct: true },
+      { text: 'Who is the exact person this helps?', correct: true },
+      { text: 'Can I avoid all discomfort forever?', correct: false },
+      { text: 'Does this reduce or increase future options?', correct: true }
+    ]
+  },
+  {
+    id: 'eco-systems',
+    areas: ['Environment', 'Health', 'Life'],
+    prompt: 'Which are system fixes instead of one-time guilt fixes?',
+    options: [
+      { text: 'Making the wasteful choice harder to repeat', correct: true },
+      { text: 'Feeling bad once and changing nothing', correct: false },
+      { text: 'Planning food before buying random snacks', correct: true },
+      { text: 'Leaving lights on because it is only one day', correct: false },
+      { text: 'Changing the default route, basket, or setup', correct: true }
+    ]
+  },
+  {
+    id: 'boundaries',
+    areas: ['Relationships', 'People', 'Mind'],
+    prompt: 'Which are real boundaries?',
+    options: [
+      { text: 'Deciding what you will do if the line is crossed', correct: true },
+      { text: 'Arguing until the other person becomes different', correct: false },
+      { text: 'Leaving a conversation that keeps turning disrespectful', correct: true },
+      { text: 'Saying yes while building resentment', correct: false },
+      { text: 'Pausing replies when pressure gets unhealthy', correct: true }
+    ]
+  }
+];
 
 function todayKey() {
   return dateKey(new Date());
@@ -157,6 +462,24 @@ function getInterestProfile(ids) {
     moods: source.flatMap((interest) => interest.moods),
     packs: source.flatMap((interest) => interest.packs)
   };
+}
+
+function getQuizForSession(day, session, attempt = 0) {
+  const areas = session.map((lesson) => lesson.area);
+  const pool = quizBank.filter((quiz) => quiz.areas.some((area) => areas.includes(area)));
+  const usable = pool.length ? pool : quizBank;
+  const seedText = `${day}-${attempt}-${session.map((lesson) => lesson.id).join('-')}`;
+  const seed = seedText.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return usable[seed % usable.length];
+}
+
+function isCorrectQuizSelection(quiz, selected) {
+  const selectedSet = new Set(selected);
+  const correctIndexes = quiz.options
+    .map((option, index) => option.correct ? index : null)
+    .filter((index) => index !== null);
+  if (selectedSet.size !== correctIndexes.length) return false;
+  return correctIndexes.every((index) => selectedSet.has(index));
 }
 
 function getDailyQuote(day, mood, activePack, interestIds) {
@@ -288,7 +611,10 @@ function App() {
   const [quoteMessage, setQuoteMessage] = useState('');
   const [quoteToast, setQuoteToast] = useState(null);
   const [sessionIndex, setSessionIndex] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [quizAttempt, setQuizAttempt] = useState(0);
+  const [quiz, setQuiz] = useState(null);
+  const [quizSelected, setQuizSelected] = useState([]);
+  const [pendingProgress, setPendingProgress] = useState(null);
   const touchStartRef = useRef(null);
   const [swipeFeedback, setSwipeFeedback] = useState('');
 
@@ -317,9 +643,9 @@ function App() {
       })
       .sort((a, b) => b.score - a.score)
       .map((item) => item.lesson);
-    const offset = progress.sessions % Math.max(1, scored.length);
+    const offset = (progress.sessions + quizAttempt * sessionSize) % Math.max(1, scored.length);
     return [...scored.slice(offset), ...scored.slice(0, offset)].slice(0, sessionSize);
-  }, [activeMood, activePack, interestKey, progress.completed, progress.sessions]);
+  }, [activeMood, activePack, interestKey, progress.completed, progress.sessions, quizAttempt]);
 
   const savedLessons = allLessons.filter((lesson) => progress.saved.includes(lesson.id));
   const recentLessons = allLessons.filter((lesson) => progress.recent.includes(lesson.id)).slice(0, 6);
@@ -405,6 +731,9 @@ function App() {
     setActiveMood(mood);
     setSessionIndex(0);
     setSwipeFeedback('');
+    setQuiz(null);
+    setQuizSelected([]);
+    setPendingProgress(null);
     setScreen('session');
   }
 
@@ -423,17 +752,12 @@ function App() {
     };
 
     if (sessionIndex >= nextSession.length - 1) {
-      const wasActiveToday = nextProgress.lastActive === today;
-      commit({
-        ...nextProgress,
-        lastActive: today,
-        streak: wasActiveToday ? nextProgress.streak : nextProgress.streak + 1,
-        sessions: nextProgress.sessions + 1,
-        minutesReplaced: nextProgress.minutesReplaced + 3
-      });
+      commit(nextProgress);
+      setPendingProgress(nextProgress);
+      setQuiz(getQuizForSession(today, nextSession, quizAttempt));
+      setQuizSelected([]);
       setSwipeFeedback('');
-      setScreen('home');
-      setActivePage('Home');
+      setScreen('quiz');
       return;
     }
 
@@ -490,11 +814,58 @@ function App() {
     }
   }
 
+  function toggleQuizAnswer(index) {
+    setQuizSelected((current) => current.includes(index) ? current.filter((item) => item !== index) : [...current, index]);
+  }
+
+  function submitQuiz() {
+    if (!quiz) return;
+    if (!isCorrectQuizSelection(quiz, quizSelected)) {
+      setPendingProgress(null);
+      setQuizSelected([]);
+      setQuizAttempt((current) => current + 1);
+      setSessionIndex(0);
+      setSwipeFeedback('');
+      setScreen('quizRetry');
+      return;
+    }
+
+    const base = pendingProgress || progress;
+    const wasActiveToday = base.lastActive === today;
+    commit({
+      ...base,
+      lastActive: today,
+      streak: wasActiveToday ? base.streak : base.streak + 1,
+      sessions: base.sessions + 1,
+      minutesReplaced: base.minutesReplaced + 3
+    });
+    setPendingProgress(null);
+    setQuiz(null);
+    setQuizSelected([]);
+    setQuizAttempt(0);
+    setSwipeFeedback('');
+    setActivePage('Home');
+    setScreen('home');
+  }
+
+  function retryAfterQuiz() {
+    setQuiz(null);
+    setQuizSelected([]);
+    setPendingProgress(null);
+    setSessionIndex(0);
+    setSwipeFeedback('');
+    setScreen('session');
+  }
+
   function resetProgress() {
     localStorage.removeItem('mindSwipeProgress');
     const fresh = readProgress();
     setProgress(fresh);
     setSelectedInterests([]);
+    setQuizAttempt(0);
+    setQuiz(null);
+    setQuizSelected([]);
+    setPendingProgress(null);
     setSwipeFeedback('');
     setScreen('tutorial');
     setActivePage('Home');
@@ -535,13 +906,23 @@ function App() {
       <main className='appShell center'>
         <section className='onboardingPanel'>
           <h1>Pick what you want MindSwipe to help with.</h1>
-          <p>No preselected answers. Choose at least two broad lanes and the app will shape the cards and quote reminders around them.</p>
-          <div className='interestGrid'>
-            {broadInterests.map((interest) => (
-              <button key={interest.id} className={selectedInterests.includes(interest.id) ? 'interestButton active' : 'interestButton'} onClick={() => toggleInterest(interest.id)}>
-                <strong>{interest.label}</strong>
-                <span>{interest.detail}</span>
-              </button>
+          <p>Choose lanes that would genuinely make your next month better. Pick useful pressure points, not random boxes.</p>
+          <div className='interestSections'>
+            {interestCategories.map((category) => (
+              <section className='interestCategory' key={category.id}>
+                <div className='interestCategoryTitle'>
+                  <strong>{category.label}</strong>
+                  <span>{category.detail}</span>
+                </div>
+                <div className='interestGrid'>
+                  {broadInterests.filter((interest) => interest.category === category.id).map((interest) => (
+                    <button key={interest.id} className={selectedInterests.includes(interest.id) ? 'interestButton active' : 'interestButton'} onClick={() => toggleInterest(interest.id)}>
+                      <strong>{interest.label}</strong>
+                      <span>{interest.detail}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
           <div className='packGrid'>
@@ -593,10 +974,49 @@ function App() {
     );
   }
 
+  if (screen === 'quiz' && quiz) {
+    return (
+      <main className='appShell center'>
+        <section className='quizPanel'>
+          <p className='eyebrow'>Streak check</p>
+          <h1>{quiz.prompt}</h1>
+          <p className='quizHint'>0 to 5 can be right. Pick every answer that belongs.</p>
+          <div className='quizOptions'>
+            {quiz.options.map((option, index) => (
+              <button
+                key={option.text}
+                className={quizSelected.includes(index) ? 'quizOption active' : 'quizOption'}
+                onClick={() => toggleQuizAnswer(index)}
+              >
+                <span>{String.fromCharCode(65 + index)}</span>
+                <strong>{option.text}</strong>
+              </button>
+            ))}
+          </div>
+          <button className='primaryWide' onClick={submitQuiz}>Lock answers</button>
+        </section>
+      </main>
+    );
+  }
+
+  if (screen === 'quizRetry') {
+    return (
+      <main className='appShell center'>
+        <section className='quizPanel'>
+          <p className='eyebrow'>Not counted yet</p>
+          <h1>Close, but the streak needs proof.</h1>
+          <p className='quizHint'>You keep the cards you saw, but todays streak only counts after a clean check. MindSwipe will give you a fresh 3-card run.</p>
+          <button className='primaryWide' onClick={retryAfterQuiz}>Retry with new cards</button>
+          <button className='secondaryWide' onClick={() => setScreen('home')}>Back home</button>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className='appShell'>
       <header className='appTop'>
-        <button className='iconButton' aria-label='Open menu' onClick={() => setMenuOpen(!menuOpen)}><span className='hamburgerMark'><span /></span></button>
+        <span className='topSpacer' aria-hidden='true' />
         <div className='brandLockup'>
           <MindSwipeLogo className='topLogo' />
           <h1 className='brandTitle'>MindSwipe</h1>
@@ -606,17 +1026,11 @@ function App() {
 
       <nav className='pageRail' aria-label='MindSwipe sections'>
         {pages.map((page) => (
-          <button key={page} className={activePage === page ? 'active' : ''} onClick={() => { setActivePage(page); setMenuOpen(false); }}>
+          <button key={page} className={activePage === page ? 'active' : ''} onClick={() => setActivePage(page)}>
             {page}
           </button>
         ))}
       </nav>
-
-      {menuOpen ? (
-        <section className='cleanPanel menuList'>
-          {pages.map((page) => <button key={page} onClick={() => { setActivePage(page); setMenuOpen(false); }}>{page}<span>Open</span></button>)}
-        </section>
-      ) : null}
 
       {activePage === 'Home' ? (
         <section className='homeHero'>
