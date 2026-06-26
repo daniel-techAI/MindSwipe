@@ -951,10 +951,15 @@ function App() {
         <section className='onboardingPanel'>
           <h1>Pick what you want MindSwipe to help with.</h1>
           <p>Choose lanes that would genuinely make your next month better. Pick useful pressure points, not random boxes.</p>
+          <div className='selectionMeter'>
+            <strong>{selectedInterests.length} selected</strong>
+            <span>{selectedInterests.length < 2 ? 'Pick at least 2 useful lanes to unlock your daily run.' : 'Good. Your daily cards will adapt around these lanes.'}</span>
+          </div>
           <div className='interestCategoryRail' aria-label='Interest categories'>
             {interestCategories.map((category) => (
               <button key={category.id} onClick={() => scrollToInterestCategory(category.id)}>
-                {category.label}
+                <span>{category.label}</span>
+                <strong>{broadInterests.filter((interest) => interest.category === category.id).length}</strong>
               </button>
             ))}
           </div>
@@ -998,7 +1003,14 @@ function App() {
       <main className='appShell'>
         <header className='appTop'>
           <button className='iconButton' aria-label='Close session' onClick={() => setScreen('home')}><span className='closeMark' /></button>
-          <h1 className='brandTitle'>{sessionIndex + 1} / {nextSession.length}</h1>
+          <div className='sessionCounter' aria-label={`Card ${sessionIndex + 1} of ${nextSession.length}`}>
+            <strong>{sessionIndex + 1} / {nextSession.length}</strong>
+            <div className='sessionDots'>
+              {nextSession.map((lesson, index) => (
+                <span key={lesson.id} className={index <= sessionIndex ? 'active' : ''} />
+              ))}
+            </div>
+          </div>
           <span />
         </header>
         <section
@@ -1017,9 +1029,9 @@ function App() {
             <strong>{getMove(currentLesson)}</strong>
           </div>
           <div className='gestureGuide' aria-label='Swipe actions'>
-            <span>Left Save</span>
-            <span>Down Skip</span>
-            <span>Right Done</span>
+            <span data-arrow='<'>Save</span>
+            <span data-arrow='v'>Skip</span>
+            <span data-arrow='>'>Done</span>
           </div>
         </section>
       </main>
@@ -1086,9 +1098,14 @@ function App() {
 
       {activePage === 'Home' ? (
         <section className='homeHero'>
-          <div>
-            <span className='streakChip'>{progress.streak} day streak</span>
-            <button className='bigStart' onClick={() => startSession(activeMood)}>Start</button>
+          <div className='homeContent'>
+            <div className='homeStatusRow'>
+              <span className='streakChip'>{progress.streak} day streak</span>
+              <span className='miniMetric'>{progress.xp} XP</span>
+            </div>
+            <div className='startOrbWrap'>
+              <button className='bigStart' onClick={() => startSession(activeMood)}>Start</button>
+            </div>
             <section className='todayQuotePreview'>
               <p>{progress.quoteReminderEnabled ? 'Todays reminder' : 'Yesterday / preview quote'}</p>
               <strong>{progress.quoteReminderEnabled ? dailyQuote.text : yesterdayQuote.text}</strong>
