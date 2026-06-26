@@ -1,5 +1,5 @@
 export const packOptions = [
-  { id: 'comeback', label: 'No Money Comeback', detail: 'discipline, options, cash reality' },
+  { id: 'comeback', label: 'Broke Comeback', detail: 'cash leaks, options, next 7 days' },
   { id: 'discipline', label: 'Discipline', detail: 'start when motivation is low' },
   { id: 'confidence', label: 'Social Confidence', detail: 'talk cleaner, fear less' },
   { id: 'work', label: 'Work Grind', detail: 'energy for moving and hard weeks' },
@@ -15,18 +15,18 @@ export const extraLessons = [
     pack: 'comeback',
     area: 'Money',
     mood: 'Money ideas',
-    title: 'Stop romanticizing broke mode',
-    hook: 'Being broke is not a personality. It is a signal.',
-    body: 'When money is low, the goal is not to feel inspired. The goal is to reduce leaks, increase options, and make the next seven days less fragile.'
+    title: 'Broke is a phase, not a brand',
+    hook: 'Do not make being broke your personality.',
+    body: 'When money is low, the move is not motivation. It is less leaks, more options, and a cleaner next seven days.'
   },
   {
     id: 'comeback-2',
     pack: 'comeback',
     area: 'Strategy',
     mood: 'Need focus',
-    title: 'Your first win must be boring',
-    hook: 'Boring money beats exciting plans when you are starting from zero.',
-    body: 'The comeback starts with reliable income, fewer dumb costs, and one skill you can repeat. Flashy ideas can come later.'
+    title: 'Your first win should be boring',
+    hook: 'Boring money beats exciting plans when you start from zero.',
+    body: 'The comeback starts with reliable income, fewer dumb costs, and one skill you can repeat. Flashy ideas can wait.'
   },
   {
     id: 'comeback-3',
@@ -35,7 +35,34 @@ export const extraLessons = [
     mood: 'Stressed',
     title: 'Panic makes bad math',
     hook: 'Stress turns every problem into forever.',
-    body: 'Most money problems need numbers first, emotions second. Write the actual amount, date, and next move before deciding your life is finished.'
+    body: 'Most money problems need numbers first, emotions second. Write the amount, date, and next move before deciding your life is finished.'
+  },
+  {
+    id: 'comeback-4',
+    pack: 'comeback',
+    area: 'Money',
+    mood: 'Money ideas',
+    title: 'Kill one leak',
+    hook: 'You do not need a perfect budget. You need one leak gone.',
+    body: 'Subscriptions, takeaways, impulse snacks, random delivery, stupid fees. One leak removed today makes the week less fragile.'
+  },
+  {
+    id: 'comeback-5',
+    pack: 'comeback',
+    area: 'Strategy',
+    mood: 'Need focus',
+    title: 'Apply before you overthink',
+    hook: 'Thinking about better work does not pay you.',
+    body: 'A rough application sent beats a perfect plan saved in notes. You can improve while moving. Dead plans do not compound.'
+  },
+  {
+    id: 'comeback-6',
+    pack: 'comeback',
+    area: 'Habits',
+    mood: 'Need focus',
+    title: 'Win the next hour',
+    hook: 'A comeback is too big. The next hour is small enough.',
+    body: 'When life feels cooked, shrink the time window. Clean one thing, apply once, walk ten minutes, cook cheap, or send the message.'
   },
   {
     id: 'discipline-1',
@@ -178,19 +205,22 @@ export const extraActionMoves = {
   'comeback-1': 'Open notes and write three columns: leaks, options, next seven days. Put one real item under each.',
   'comeback-2': 'Pick one boring stabilizer for this week: extra shift, lower food spend, sell one unused thing, or apply to five better roles.',
   'comeback-3': 'Write the number, deadline, and smallest next action. No story, just facts.',
+  'comeback-4': 'Cancel, reduce, or avoid one money leak today. Small leak first. Ego later.',
+  'comeback-5': 'Send one application or message before you start researching more. Movement beats planning loops.',
+  'comeback-6': 'Win the next hour: clean one thing, apply once, walk ten minutes, cook cheap, or send the message.',
   'discipline-1': 'Do one ugly rep right now: one push-up, one cleaned item, one message, one paragraph.',
-  'discipline-2': 'Choose tomorrow’s first move tonight. Make it so clear you cannot debate it.',
+  'discipline-2': 'Choose tomorrow\'s first move tonight. Make it so clear you cannot debate it.',
   'discipline-3': 'Set a two-minute timer and start before your mood approves.',
   'confidence-1': 'Send one low-risk message today. Build proof, not fantasy.',
   'confidence-2': 'Say one simple honest sentence instead of trying to sound impressive.',
-  'confidence-3': 'After an awkward moment, say: “fine, next rep.” Then do one normal action.',
+  'confidence-3': 'After an awkward moment, say: fine, next rep. Then do one normal action.',
   'work-1': 'Drink water, stretch one tight area, and decide your sleep target before the shift eats your brain.',
   'work-2': 'Pick your three anchors: wake time, cheap meal, bedtime. Keep them boring.',
   'work-3': 'Choose one tiny upgrade today. Not ten. One.',
-  'focus-1': 'Before opening the feed, open Mind Swipe and finish one card. Break the first open.',
+  'focus-1': 'Before opening the feed, open MindSwipe and finish one card. Break the first open.',
   'focus-2': 'Add one friction step to your worst app today: log out, move it, or hide it.',
   'focus-3': 'Close every tab except the one task. Set a 15-minute timer.',
-  'income-1': 'Write one sentence: “I help X get Y without Z.” If you cannot fill it, keep learning the customer.',
+  'income-1': 'Write one sentence: I help X get Y without Z. If you cannot fill it, keep learning the customer.',
   'income-2': 'List three simple services you could offer with skills you already have or can learn in two weeks.',
   'income-3': 'Pick one place your target person already hangs out. Distribution starts there.'
 };
