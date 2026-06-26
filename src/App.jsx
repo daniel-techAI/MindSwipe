@@ -96,7 +96,7 @@ const baseActionMoves = {
   'habit-1': 'If you missed yesterday, make today stupid small. Two minutes counts.',
   'habit-2': 'Cut the task until it feels almost too easy: one sentence, one rep, one tab closed.',
   'strategy-1': 'Put a hard limit on the next move: 20 minutes, no spending, one result.',
-  'health-1': 'Pick tonight's sleep target now. Protect the first 30 minutes before bed from the feed.',
+  'health-1': 'Pick tonights sleep target now. Protect the first 30 minutes before bed from the feed.',
   'people-1': 'Ask one specific question today instead of sending dead small talk.'
 };
 
