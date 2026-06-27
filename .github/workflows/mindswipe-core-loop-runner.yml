@@ -1,0 +1,110 @@
+name: MindSwipe Core Loop Runner
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run-payload-and-build:
+    name: Run core loop payload and build Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Extract and run core loop payload
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          payload_path = Path('.github/workflows/mindswipe-core-loop-build.yml')
+          payload = payload_path.read_text()
+          start_marker = "          python3 - <<'PY'\n"
+          end_marker = "\n          PY"
+          start = payload.index(start_marker) + len(start_marker)
+          end = payload.index(end_marker, start)
+          raw_script = payload[start:end]
+          normalized = []
+          for line in raw_script.splitlines():
+              normalized.append(line[10:] if line.startswith('          ') else line)
+          script = '\n'.join(normalized) + '\n'
+          exec(compile(script, 'mindswipe-core-loop-payload', 'exec'))
+          PY
+          rm -f .github/workflows/mindswipe-core-loop-build.yml .github/workflows/mindswipe-core-loop-runner.yml
+
+      - name: Commit refined core loop
+        run: |
+          git config user.name "MindSwipe Bot"
+          git config user.email "actions@github.com"
+          git add -A src/App.jsx src/app-shell.css .github/workflows/mindswipe-core-loop-build.yml .github/workflows/mindswipe-core-loop-runner.yml
+          git commit -m "Refine MindSwipe core loop"
+          git push
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Sync web assets to Android
+        run: npx cap sync android
+
+      - name: Add Android notification permissions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("android/app/src/main/AndroidManifest.xml")
+          text = path.read_text()
+          marker = '<manifest xmlns:android="http://schemas.android.com/apk/res/android">'
+          permissions = [
+              '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
+              '    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
+          ]
+          if marker not in text:
+              raise SystemExit("Android manifest marker not found")
+          additions = "\n".join(permission for permission in permissions if permission not in text)
+          if additions:
+              text = text.replace(marker, f"{marker}\n{additions}", 1)
+              path.write_text(text)
+          PY
+
+      - name: Build debug APK and AAB
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug bundleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MindSwipe-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MindSwipe-debug-aab
+          path: android/app/build/outputs/bundle/debug/app-debug.aab
