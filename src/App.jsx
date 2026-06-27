@@ -79,7 +79,7 @@ const baseActionMoves = {
   'mind-1': 'Send one useful message you have been avoiding.',
   'habit-1': 'If you missed yesterday, make today stupid small. Two minutes counts.',
   'strategy-1': 'Put a hard limit on the next move: 20 minutes, no spending, one result.',
-  'health-1': 'Pick tonights sleep target now and protect the first 30 minutes before bed.',
+  'health-1': "Pick tonight's sleep target now and protect the first 30 minutes before bed.",
   'people-1': 'Ask one specific question today instead of sending dead small talk.'
 };
 
@@ -679,6 +679,8 @@ function App() {
 
   const savedLessons = allLessons.filter((lesson) => progress.saved.includes(lesson.id));
   const recentLessons = allLessons.filter((lesson) => progress.recent.includes(lesson.id)).slice(0, 6);
+  const completedLessons = allLessons.filter((lesson) => progress.completed.includes(lesson.id));
+  const exploredAreas = [...new Set(recentLessons.map((lesson) => lesson.area))];
   const currentLesson = nextSession[sessionIndex] || nextSession[0];
   const tutorialItems = [
     { label: 'Start', title: 'Start from the water button.', body: 'That opens the daily 3-card run. The app is built around fast action, not reading forever.', target: 'start' },
@@ -1145,7 +1147,7 @@ onPointerCancel={handleCardPointerEnd}
         <section className='quizPanel'>
 <p className='eyebrow'>Not counted yet</p>
 <h1>Close, but the streak needs proof.</h1>
-<p className='quizHint'>You keep the cards you saw, but todays streak only counts after a clean check. MindSwipe will give you a fresh 3-card run.</p>
+<p className='quizHint'>You keep the cards you saw, but today's streak only counts after a clean check. MindSwipe will give you a fresh 3-card run.</p>
 <button className='primaryWide' onClick={retryAfterQuiz}>Retry with new cards</button>
 <button className='secondaryWide' onClick={() => setScreen('home')}>Back home</button>
         </section>
@@ -1199,108 +1201,177 @@ onPointerCancel={handleCardPointerEnd}
         ))}
       </nav>
 
-      {activePage === 'Home' ? (
-        <section className='homeHero'>
-          <div className='homeContent'>
-            <div className='homeStatusRow'>
-              <span className='streakChip'>{progress.streak} day streak</span>
-              <span className='miniMetric'>{progress.xp} XP</span>
-            </div>
-            <div className='startOrbWrap'>
-              <button className='bigStart' onClick={() => startSession(activeMood)}>Start</button>
-            </div>
-            <section className='todayQuotePreview'>
-              <p>{progress.quoteReminderEnabled ? 'Todays reminder' : 'Yesterday / preview quote'}</p>
-              <strong>{progress.quoteReminderEnabled ? dailyQuote.text : yesterdayQuote.text}</strong>
-            </section>
-            <section className='recentPanel'>
-              <strong>Recent themes</strong>
-              <div className='recentList'>
-                {(recentLessons.length ? recentLessons : nextSession).map((lesson) => <span key={lesson.id}>{lesson.area}</span>)}
-              </div>
-            </section>
-          </div>
-        </section>
-      ) : null}
 
-      {activePage === 'Quote' ? (
-        <section className='dashboardPage'>
-          <article className='quoteCardLarge'>
-            <span className='quoteSource'>{dailyQuote.source || 'MindSwipe'}</span>
-            <h2>{dailyQuote.text}</h2>
-            <p className='quoteActionText'>{dailyQuote.action}</p>
+{activePage === 'Home' ? (
+  <section className='homeHero'>
+    <div className='homeContent'>
+      <div className='homeStatusRow'>
+        <span className='streakChip'>{progress.streak} day streak</span>
+        <span className='miniMetric'>{progress.xp} XP</span>
+      </div>
+      <div className='startOrbWrap'>
+        <button className='bigStart' onClick={() => startSession(activeMood)}>Start</button>
+      </div>
+      <section className='moodPanel' aria-label='Choose today's mood'>
+        <div className='sectionHeader compact'>
+          <span>Today feels like</span>
+          <strong>{activeMood}</strong>
+        </div>
+        <div className='moodGrid'>
+          {moodOptions.map((mood) => (
+            <button key={mood.label} className={activeMood === mood.label ? 'active' : ''} onClick={() => setActiveMood(mood.label)}>
+              <strong>{mood.label}</strong>
+              <span>{mood.detail}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+      <section className='todayQuotePreview'>
+        <p>{progress.quoteReminderEnabled ? "Today's reminder" : 'Yesterday / preview quote'}</p>
+        <strong>{progress.quoteReminderEnabled ? dailyQuote.text : yesterdayQuote.text}</strong>
+      </section>
+      <section className='recentPanel'>
+        <div className='sectionHeader compact'>
+          <span>Recent themes</span>
+          <strong>{exploredAreas.length || nextSession.length}</strong>
+        </div>
+        <div className='recentList'>
+          {(exploredAreas.length ? exploredAreas : nextSession.map((lesson) => lesson.area)).map((area) => <span key={area}>{area}</span>)}
+        </div>
+      </section>
+    </div>
+  </section>
+) : null}
+
+
+{activePage === 'Quote' ? (
+  <section className='dashboardPage'>
+    <div className='pageIntro'>
+      <span>Daily reminder</span>
+      <h2>Set the quote when it will actually hit.</h2>
+      <p>Pick a time, then MindSwipe will use your mood and interests for the reminder.</p>
+    </div>
+    <article className='quoteCardLarge'>
+      <span className='quoteSource'>{dailyQuote.source || 'MindSwipe'}</span>
+      <h2>{dailyQuote.text}</h2>
+      <p className='quoteActionText'>{dailyQuote.action}</p>
+    </article>
+    <div className='sectionHeader compact'>
+      <span>Reminder time</span>
+      <strong>{quoteReminderTime}</strong>
+    </div>
+    <div className='quickTimes'>
+      {reminderPresets.map((preset) => (
+        <button key={preset.time} className={quoteReminderTime === preset.time ? 'active' : ''} onClick={() => setQuoteReminderTime(preset.time)}>
+          {preset.label} {preset.time}
+        </button>
+      ))}
+    </div>
+    <div className='reminderRow'>
+      <input aria-label='Quote reminder time' type='time' value={quoteReminderTime} onChange={(event) => setQuoteReminderTime(event.target.value)} />
+      <button className='secondary' onClick={enableQuoteReminder}>{progress.quoteReminderEnabled ? 'Update' : 'Turn on'}</button>
+    </div>
+    {progress.quoteReminderEnabled ? <button className='secondaryWide dangerText' onClick={disableQuoteReminder}>Turn off reminder</button> : null}
+    {quoteMessage ? <p className='statusLine'>{quoteMessage}</p> : null}
+  </section>
+) : null}
+
+
+{activePage === 'History' ? (
+  <section className='dashboardPage'>
+    <div className='pageIntro'>
+      <span>Your trail</span>
+      <h2>What you saw, saved, and acted on.</h2>
+      <p>Use this page to come back to useful cards without repeating the whole run.</p>
+    </div>
+    <section className='cleanPanel'>
+      <div className='sectionHeader'>
+        <span>Recently seen</span>
+        <strong>{recentLessons.length || nextSession.length}</strong>
+      </div>
+      <div className='list'>
+        {(recentLessons.length ? recentLessons : nextSession).map((lesson) => (
+          <article className='miniCard' key={lesson.id}>
+            <span className='pill'>{lesson.area}</span>
+            <h3>{lesson.title}</h3>
+            <p>{lesson.hook}</p>
           </article>
-          <div className='quickTimes'>
-            {reminderPresets.map((preset) => (
-              <button key={preset.time} className={quoteReminderTime === preset.time ? 'active' : ''} onClick={() => setQuoteReminderTime(preset.time)}>
-                {preset.label} {preset.time}
-              </button>
-            ))}
+        ))}
+      </div>
+    </section>
+    <section className='cleanPanel'>
+      <div className='sectionHeader'>
+        <span>Saved moves</span>
+        <strong>{savedLessons.length}</strong>
+      </div>
+      <div className='list'>
+        {savedLessons.length ? savedLessons.map((lesson) => (
+          <article className='miniCard savedMove' key={lesson.id}>
+            <span className='pill'>{lesson.area}</span>
+            <h3>{lesson.title}</h3>
+            <p>{getMove(lesson)}</p>
+          </article>
+        )) : (
+          <div className='emptyState'>
+            <strong>No saved moves yet</strong>
+            <p>Swipe a card left during a run and it will land here.</p>
           </div>
-          <div className='reminderRow'>
-            <input aria-label='Quote reminder time' type='time' value={quoteReminderTime} onChange={(event) => setQuoteReminderTime(event.target.value)} />
-            <button className='secondary' onClick={enableQuoteReminder}>{progress.quoteReminderEnabled ? 'Update' : 'Turn on'}</button>
-          </div>
-          {progress.quoteReminderEnabled ? <button className='secondaryWide dangerText' onClick={disableQuoteReminder}>Turn off reminder</button> : null}
-          {quoteMessage ? <p className='statusLine'>{quoteMessage}</p> : null}
-        </section>
-      ) : null}
+        )}
+      </div>
+    </section>
+  </section>
+) : null}
 
-      {activePage === 'History' ? (
-        <section className='dashboardPage'>
-          <section className='cleanPanel'>
-            <strong>Recently seen</strong>
-            <div className='list'>
-              {(recentLessons.length ? recentLessons : nextSession).map((lesson) => (
-                <article className='miniCard' key={lesson.id}>
-                  <span className='pill'>{lesson.area}</span>
-                  <h3>{lesson.title}</h3>
-                  <p>{lesson.hook}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-          <section className='cleanPanel'>
-            <strong>Saved moves</strong>
-            <div className='list'>
-              {savedLessons.length ? savedLessons.map((lesson) => <p key={lesson.id}>{lesson.title}: {getMove(lesson)}</p>) : <p>No saved moves yet.</p>}
-            </div>
-          </section>
-        </section>
-      ) : null}
 
-      {activePage === 'Profile' ? (
-        <section className='dashboardPage'>
-          <div className='statGrid'>
-            <div><strong>{progress.xp}</strong><span>XP</span></div>
-            <div><strong>{progress.streak}</strong><span>streak</span></div>
-            <div><strong>{progress.minutesReplaced}</strong><span>minutes</span></div>
-          </div>
-          <section className='cleanPanel'>
-            <strong>Badges</strong>
-            <div className='badgeGrid'>
-              <div><strong>First swipe</strong><span>{progress.sessions > 0 ? 'Unlocked' : 'Locked'}</span></div>
-              <div><strong>Saved one</strong><span>{savedLessons.length ? 'Unlocked' : 'Locked'}</span></div>
-              <div><strong>Reminder set</strong><span>{progress.quoteReminderEnabled ? 'Unlocked' : 'Locked'}</span></div>
-              <div><strong>Comeback week</strong><span>{progress.streak >= 7 ? 'Unlocked' : 'Locked'}</span></div>
-            </div>
-          </section>
-        </section>
-      ) : null}
+{activePage === 'Profile' ? (
+  <section className='dashboardPage'>
+    <div className='pageIntro centerIntro'>
+      <span>Progress</span>
+      <h2>{progress.streak ? `${progress.streak} day streak` : 'First streak is waiting'}</h2>
+      <p>{progress.sessions ? `${progress.sessions} completed runs so far.` : 'Finish a run and pass the check to start building momentum.'}</p>
+    </div>
+    <div className='statGrid'>
+      <div><strong>{progress.xp}</strong><span>XP</span></div>
+      <div><strong>{progress.streak}</strong><span>streak</span></div>
+      <div><strong>{completedLessons.length}</strong><span>done cards</span></div>
+    </div>
+    <section className='cleanPanel'>
+      <div className='sectionHeader'>
+        <span>Badges</span>
+        <strong>{[progress.sessions > 0, savedLessons.length > 0, progress.quoteReminderEnabled, progress.streak >= 7].filter(Boolean).length}/4</strong>
+      </div>
+      <div className='badgeGrid'>
+        <div><strong>First swipe</strong><span>{progress.sessions > 0 ? 'Unlocked' : 'Locked'}</span></div>
+        <div><strong>Saved one</strong><span>{savedLessons.length ? 'Unlocked' : 'Locked'}</span></div>
+        <div><strong>Reminder set</strong><span>{progress.quoteReminderEnabled ? 'Unlocked' : 'Locked'}</span></div>
+        <div><strong>Comeback week</strong><span>{progress.streak >= 7 ? 'Unlocked' : 'Locked'}</span></div>
+      </div>
+    </section>
+  </section>
+) : null}
 
-      {activePage === 'Settings' ? (
-        <section className='dashboardPage'>
-          <section className='cleanPanel menuList'>
-            <strong>Preferences</strong>
-            <button onClick={() => setScreen('onboarding')}>Edit interests<span>Open</span></button>
-            <button onClick={() => setActivePage('Quote')}>Notifications<span>Open</span></button>
-            <button>Appearance<span>Soon</span></button>
-            <button>Contact support<span>Soon</span></button>
-            <button>Privacy policy<span>Soon</span></button>
-            <button className='dangerText' onClick={resetProgress}>Reset local progress<span>Reset</span></button>
-          </section>
-        </section>
-      ) : null}
+
+{activePage === 'Settings' ? (
+  <section className='dashboardPage'>
+    <div className='pageIntro'>
+      <span>Controls</span>
+      <h2>Keep the app tuned to you.</h2>
+      <p>These are the main controls for interests, reminders, support, and local data.</p>
+    </div>
+    <section className='cleanPanel menuList'>
+      <div className='sectionHeader'>
+        <span>Preferences</span>
+        <strong>Local</strong>
+      </div>
+      <button onClick={() => setScreen('onboarding')}>Edit interests<span>Open</span></button>
+      <button onClick={() => setActivePage('Quote')}>Notifications<span>Open</span></button>
+      <button>Appearance<span>Coming soon</span></button>
+      <button>Contact & support<span>Coming soon</span></button>
+      <button>Privacy policy<span>Coming soon</span></button>
+      <button className='dangerText' onClick={resetProgress}>Reset local progress<span>Reset</span></button>
+    </section>
+  </section>
+) : null}
 
       {quoteToast ? (
         <div className='quoteToast' role='status'>
