@@ -1,0 +1,472 @@
+name: MindSwipe Section Polish Runner
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-build:
+    name: Polish sections and build Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Apply robust section polish
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from textwrap import dedent
+
+          app_path = Path('src/App.jsx')
+          css_path = Path('src/app-shell.css')
+          app = app_path.read_text()
+          css = css_path.read_text()
+
+          def replace_between(text, start, end, replacement, label):
+              try:
+                  start_index = text.index(start)
+                  end_index = text.index(end, start_index)
+              except ValueError as exc:
+                  raise SystemExit(f'Missing boundary for {label}: {exc}')
+              return text[:start_index] + replacement + text[end_index:]
+
+          def replace_once(text, old, new, label):
+              if old not in text:
+                  raise SystemExit(f'Missing replacement target: {label}')
+              return text.replace(old, new, 1)
+
+          app = replace_once(app, "'health-1': 'Pick tonights sleep target now and protect the first 30 minutes before bed.'", "'health-1': \"Pick tonight's sleep target now and protect the first 30 minutes before bed.\"", 'tonights typo')
+          app = replace_once(app, "  const savedLessons = allLessons.filter((lesson) => progress.saved.includes(lesson.id));\n  const recentLessons = allLessons.filter((lesson) => progress.recent.includes(lesson.id)).slice(0, 6);", "  const savedLessons = allLessons.filter((lesson) => progress.saved.includes(lesson.id));\n  const recentLessons = allLessons.filter((lesson) => progress.recent.includes(lesson.id)).slice(0, 6);\n  const completedLessons = allLessons.filter((lesson) => progress.completed.includes(lesson.id));\n  const exploredAreas = [...new Set(recentLessons.map((lesson) => lesson.area))];", 'progress helpers')
+          app = app.replace('todays streak', "today's streak").replace('Todays reminder', "Today's reminder")
+
+          home_block = dedent("""
+                {activePage === 'Home' ? (
+                  <section className='homeHero'>
+                    <div className='homeContent'>
+                      <div className='homeStatusRow'>
+                        <span className='streakChip'>{progress.streak} day streak</span>
+                        <span className='miniMetric'>{progress.xp} XP</span>
+                      </div>
+                      <div className='startOrbWrap'>
+                        <button className='bigStart' onClick={() => startSession(activeMood)}>Start</button>
+                      </div>
+                      <section className='moodPanel' aria-label='Choose today\'s mood'>
+                        <div className='sectionHeader compact'>
+                          <span>Today feels like</span>
+                          <strong>{activeMood}</strong>
+                        </div>
+                        <div className='moodGrid'>
+                          {moodOptions.map((mood) => (
+                            <button key={mood.label} className={activeMood === mood.label ? 'active' : ''} onClick={() => setActiveMood(mood.label)}>
+                              <strong>{mood.label}</strong>
+                              <span>{mood.detail}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </section>
+                      <section className='todayQuotePreview'>
+                        <p>{progress.quoteReminderEnabled ? "Today's reminder" : 'Yesterday / preview quote'}</p>
+                        <strong>{progress.quoteReminderEnabled ? dailyQuote.text : yesterdayQuote.text}</strong>
+                      </section>
+                      <section className='recentPanel'>
+                        <div className='sectionHeader compact'>
+                          <span>Recent themes</span>
+                          <strong>{exploredAreas.length || nextSession.length}</strong>
+                        </div>
+                        <div className='recentList'>
+                          {(exploredAreas.length ? exploredAreas : nextSession.map((lesson) => lesson.area)).map((area) => <span key={area}>{area}</span>)}
+                        </div>
+                      </section>
+                    </div>
+                  </section>
+                ) : null}
+
+          """)
+          quote_block = dedent("""
+                {activePage === 'Quote' ? (
+                  <section className='dashboardPage'>
+                    <div className='pageIntro'>
+                      <span>Daily reminder</span>
+                      <h2>Set the quote when it will actually hit.</h2>
+                      <p>Pick a time, then MindSwipe will use your mood and interests for the reminder.</p>
+                    </div>
+                    <article className='quoteCardLarge'>
+                      <span className='quoteSource'>{dailyQuote.source || 'MindSwipe'}</span>
+                      <h2>{dailyQuote.text}</h2>
+                      <p className='quoteActionText'>{dailyQuote.action}</p>
+                    </article>
+                    <div className='sectionHeader compact'>
+                      <span>Reminder time</span>
+                      <strong>{quoteReminderTime}</strong>
+                    </div>
+                    <div className='quickTimes'>
+                      {reminderPresets.map((preset) => (
+                        <button key={preset.time} className={quoteReminderTime === preset.time ? 'active' : ''} onClick={() => setQuoteReminderTime(preset.time)}>
+                          {preset.label} {preset.time}
+                        </button>
+                      ))}
+                    </div>
+                    <div className='reminderRow'>
+                      <input aria-label='Quote reminder time' type='time' value={quoteReminderTime} onChange={(event) => setQuoteReminderTime(event.target.value)} />
+                      <button className='secondary' onClick={enableQuoteReminder}>{progress.quoteReminderEnabled ? 'Update' : 'Turn on'}</button>
+                    </div>
+                    {progress.quoteReminderEnabled ? <button className='secondaryWide dangerText' onClick={disableQuoteReminder}>Turn off reminder</button> : null}
+                    {quoteMessage ? <p className='statusLine'>{quoteMessage}</p> : null}
+                  </section>
+                ) : null}
+
+          """)
+          history_block = dedent("""
+                {activePage === 'History' ? (
+                  <section className='dashboardPage'>
+                    <div className='pageIntro'>
+                      <span>Your trail</span>
+                      <h2>What you saw, saved, and acted on.</h2>
+                      <p>Use this page to come back to useful cards without repeating the whole run.</p>
+                    </div>
+                    <section className='cleanPanel'>
+                      <div className='sectionHeader'>
+                        <span>Recently seen</span>
+                        <strong>{recentLessons.length || nextSession.length}</strong>
+                      </div>
+                      <div className='list'>
+                        {(recentLessons.length ? recentLessons : nextSession).map((lesson) => (
+                          <article className='miniCard' key={lesson.id}>
+                            <span className='pill'>{lesson.area}</span>
+                            <h3>{lesson.title}</h3>
+                            <p>{lesson.hook}</p>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                    <section className='cleanPanel'>
+                      <div className='sectionHeader'>
+                        <span>Saved moves</span>
+                        <strong>{savedLessons.length}</strong>
+                      </div>
+                      <div className='list'>
+                        {savedLessons.length ? savedLessons.map((lesson) => (
+                          <article className='miniCard savedMove' key={lesson.id}>
+                            <span className='pill'>{lesson.area}</span>
+                            <h3>{lesson.title}</h3>
+                            <p>{getMove(lesson)}</p>
+                          </article>
+                        )) : (
+                          <div className='emptyState'>
+                            <strong>No saved moves yet</strong>
+                            <p>Swipe a card left during a run and it will land here.</p>
+                          </div>
+                        )}
+                      </div>
+                    </section>
+                  </section>
+                ) : null}
+
+          """)
+          profile_block = dedent("""
+                {activePage === 'Profile' ? (
+                  <section className='dashboardPage'>
+                    <div className='pageIntro centerIntro'>
+                      <span>Progress</span>
+                      <h2>{progress.streak ? `${progress.streak} day streak` : 'First streak is waiting'}</h2>
+                      <p>{progress.sessions ? `${progress.sessions} completed runs so far.` : 'Finish a run and pass the check to start building momentum.'}</p>
+                    </div>
+                    <div className='statGrid'>
+                      <div><strong>{progress.xp}</strong><span>XP</span></div>
+                      <div><strong>{progress.streak}</strong><span>streak</span></div>
+                      <div><strong>{completedLessons.length}</strong><span>done cards</span></div>
+                    </div>
+                    <section className='cleanPanel'>
+                      <div className='sectionHeader'>
+                        <span>Badges</span>
+                        <strong>{[progress.sessions > 0, savedLessons.length > 0, progress.quoteReminderEnabled, progress.streak >= 7].filter(Boolean).length}/4</strong>
+                      </div>
+                      <div className='badgeGrid'>
+                        <div><strong>First swipe</strong><span>{progress.sessions > 0 ? 'Unlocked' : 'Locked'}</span></div>
+                        <div><strong>Saved one</strong><span>{savedLessons.length ? 'Unlocked' : 'Locked'}</span></div>
+                        <div><strong>Reminder set</strong><span>{progress.quoteReminderEnabled ? 'Unlocked' : 'Locked'}</span></div>
+                        <div><strong>Comeback week</strong><span>{progress.streak >= 7 ? 'Unlocked' : 'Locked'}</span></div>
+                      </div>
+                    </section>
+                  </section>
+                ) : null}
+
+          """)
+          settings_block = dedent("""
+                {activePage === 'Settings' ? (
+                  <section className='dashboardPage'>
+                    <div className='pageIntro'>
+                      <span>Controls</span>
+                      <h2>Keep the app tuned to you.</h2>
+                      <p>These are the main controls for interests, reminders, support, and local data.</p>
+                    </div>
+                    <section className='cleanPanel menuList'>
+                      <div className='sectionHeader'>
+                        <span>Preferences</span>
+                        <strong>Local</strong>
+                      </div>
+                      <button onClick={() => setScreen('onboarding')}>Edit interests<span>Open</span></button>
+                      <button onClick={() => setActivePage('Quote')}>Notifications<span>Open</span></button>
+                      <button>Appearance<span>Coming soon</span></button>
+                      <button>Contact & support<span>Coming soon</span></button>
+                      <button>Privacy policy<span>Coming soon</span></button>
+                      <button className='dangerText' onClick={resetProgress}>Reset local progress<span>Reset</span></button>
+                    </section>
+                  </section>
+                ) : null}
+
+          """)
+
+          app = replace_between(app, "      {activePage === 'Home' ? (\n", "      {activePage === 'Quote' ? (", home_block, 'home page')
+          app = replace_between(app, "      {activePage === 'Quote' ? (\n", "      {activePage === 'History' ? (", quote_block, 'quote page')
+          app = replace_between(app, "      {activePage === 'History' ? (\n", "      {activePage === 'Profile' ? (", history_block, 'history page')
+          app = replace_between(app, "      {activePage === 'Profile' ? (\n", "      {activePage === 'Settings' ? (", profile_block, 'profile page')
+          app = replace_between(app, "      {activePage === 'Settings' ? (\n", "      {quoteToast ? (", settings_block, 'settings page')
+
+          polish_css = dedent("""
+
+          .pageIntro {
+            display: grid;
+            gap: 7px;
+            width: 100%;
+            padding: 4px 2px 2px;
+            text-align: center;
+          }
+
+          .pageIntro span,
+          .sectionHeader span {
+            color: #72dccd;
+            font-size: 12px;
+            font-weight: 950;
+            letter-spacing: 0;
+            text-transform: uppercase;
+          }
+
+          .pageIntro h2 {
+            margin: 0;
+            color: #fff9ed;
+            font-size: clamp(26px, 7vw, 34px);
+            line-height: 1.05;
+          }
+
+          .pageIntro p {
+            margin: 0;
+            color: #b9c1bd;
+            font-size: 15px;
+            line-height: 1.45;
+          }
+
+          .sectionHeader {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+          }
+
+          .sectionHeader.compact {
+            min-height: 30px;
+          }
+
+          .sectionHeader strong {
+            display: inline-grid;
+            min-width: 34px;
+            min-height: 30px;
+            place-items: center;
+            border: 1px solid rgba(114, 220, 205, 0.2);
+            border-radius: 999px;
+            background: rgba(9, 18, 22, 0.48);
+            color: #fff9ed;
+            padding: 0 11px;
+            font-size: 13px;
+            font-weight: 950;
+            line-height: 1;
+            text-align: center;
+          }
+
+          .moodPanel {
+            display: grid;
+            gap: 12px;
+            width: 100%;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 22px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.035));
+            padding: 14px;
+            text-align: left;
+            box-shadow: 0 18px 52px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(18px) saturate(1.12);
+          }
+
+          .moodGrid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+          }
+
+          .moodGrid button {
+            display: grid;
+            gap: 4px;
+            min-height: 66px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            background: rgba(12, 16, 22, 0.54);
+            color: #f7f1e8;
+            padding: 11px 12px;
+            text-align: left;
+          }
+
+          .moodGrid button strong {
+            color: #fff9ed;
+            font-size: 14px;
+            line-height: 1.1;
+          }
+
+          .moodGrid button span {
+            color: #a8b0ad;
+            font-size: 12px;
+            line-height: 1.25;
+          }
+
+          .moodGrid button.active {
+            border-color: rgba(114, 220, 205, 0.68);
+            background: linear-gradient(145deg, rgba(114, 220, 205, 0.3), rgba(114, 220, 205, 0.1));
+          }
+
+          .menuList button {
+            gap: 12px;
+          }
+
+          .menuList button span {
+            flex: 0 0 auto;
+            color: #72dccd;
+            font-size: 12px;
+            font-weight: 950;
+          }
+
+          .statGrid div,
+          .badgeGrid div {
+            text-align: center;
+          }
+
+          .miniCard.savedMove {
+            border-color: rgba(114, 220, 205, 0.2);
+          }
+
+          .emptyState {
+            display: grid;
+            gap: 6px;
+            border: 1px dashed rgba(255, 255, 255, 0.14);
+            border-radius: 18px;
+            background: rgba(9, 14, 23, 0.3);
+            padding: 16px;
+            text-align: center;
+          }
+
+          .emptyState strong {
+            color: #fff9ed;
+            font-size: 16px;
+          }
+
+          .emptyState p {
+            margin: 0;
+            color: #a8b0ad;
+            font-size: 14px;
+            line-height: 1.4;
+          }
+          """)
+          if '.pageIntro {' not in css:
+              css = replace_once(css, '.quoteCardLarge {\n', polish_css + '\n.quoteCardLarge {\n', 'css polish insertion')
+          css = css.replace('.quickTimes button,\n.menuList button,\n.secondaryWide,', '.quickTimes button,\n.menuList button,\n.moodGrid button,\n.secondaryWide,', 1)
+          css = css.replace('.iconButton,\n.quickTimes button,\n.menuList button,\n.secondaryWide,', '.iconButton,\n.quickTimes button,\n.menuList button,\n.moodGrid button,\n.secondaryWide,', 1)
+          css = css.replace('.pageRail button.active,\n.interestButton.active,', '.pageRail button.active,\n.moodGrid button.active,\n.interestButton.active,', 1)
+
+          for marker in ['moodPanel', 'pageIntro', 'emptyState', 'completedLessons', "Today's reminder", "today's streak"]:
+              if marker not in app:
+                  raise SystemExit(f'Missing app marker after patch: {marker}')
+          for marker in ['.pageIntro', '.moodPanel', '.moodGrid', '.emptyState']:
+              if marker not in css:
+                  raise SystemExit(f'Missing css marker after patch: {marker}')
+
+          app_path.write_text(app)
+          css_path.write_text(css)
+          PY
+          rm -f .github/workflows/mindswipe-sections-polish.yml .github/workflows/mindswipe-sections-runner.yml
+
+      - name: Commit section polish
+        run: |
+          git config user.name "MindSwipe Bot"
+          git config user.email "actions@github.com"
+          git add -A src/App.jsx src/app-shell.css .github/workflows/mindswipe-sections-polish.yml .github/workflows/mindswipe-sections-runner.yml
+          git commit -m "Polish MindSwipe sections and copy"
+          git push
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Sync web assets to Android
+        run: npx cap sync android
+
+      - name: Add Android notification permissions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("android/app/src/main/AndroidManifest.xml")
+          text = path.read_text()
+          marker = '<manifest xmlns:android="http://schemas.android.com/apk/res/android">'
+          permissions = [
+              '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
+              '    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
+          ]
+          if marker not in text:
+              raise SystemExit("Android manifest marker not found")
+          additions = "\n".join(permission for permission in permissions if permission not in text)
+          if additions:
+              text = text.replace(marker, f"{marker}\n{additions}", 1)
+              path.write_text(text)
+          PY
+
+      - name: Build debug APK and AAB
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug bundleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MindSwipe-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MindSwipe-debug-aab
+          path: android/app/build/outputs/bundle/debug/app-debug.aab
