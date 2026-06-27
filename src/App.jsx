@@ -482,6 +482,31 @@ function isCorrectQuizSelection(quiz, selected) {
   return correctIndexes.every((index) => selectedSet.has(index));
 }
 
+const swipeActionMeta = {
+  Save: {
+    mode: 'save',
+    label: 'Saved',
+    cue: 'Saved for later',
+    detail: '+10 XP - moved to Saved',
+    tone: 'save'
+  },
+  Done: {
+    mode: 'done',
+    label: 'Done',
+    cue: 'Marked done',
+    detail: '+15 XP - progress counted',
+    tone: 'done'
+  },
+  Skip: {
+    mode: 'skip',
+    label: 'Skipped',
+    cue: 'Skipped cleanly',
+    detail: 'No XP - next card',
+    tone: 'skip'
+  }
+};
+
+
 function getDailyQuote(day, mood, activePack, interestIds) {
   const profile = getInterestProfile(interestIds);
   const pool = allQuotes.filter((quote) => {
@@ -617,6 +642,9 @@ function App() {
   const [pendingProgress, setPendingProgress] = useState(null);
   const [tutorialStep, setTutorialStep] = useState(0);
   const [exitSwipe, setExitSwipe] = useState('');
+  const [dragState, setDragState] = useState({ x: 0, y: 0, active: false });
+  const [actionFlash, setActionFlash] = useState(null);
+  const [sessionResult, setSessionResult] = useState(null);
   const touchStartRef = useRef(null);
   const [swipeFeedback, setSwipeFeedback] = useState('');
 
@@ -741,6 +769,9 @@ function App() {
     setSessionIndex(0);
     setSwipeFeedback('');
     setExitSwipe('');
+    setDragState({ x: 0, y: 0, active: false });
+    setActionFlash(null);
+    setSessionResult(null);
     setQuiz(null);
     setQuizSelected([]);
     setPendingProgress(null);
@@ -749,6 +780,7 @@ function App() {
 
   function finishCard(lesson, mode) {
     if (!lesson) return;
+    const flash = Object.values(swipeActionMeta).find((item) => item.mode === mode);
     const completed = progress.completed.includes(lesson.id) ? progress.completed : [...progress.completed, lesson.id];
     const saved = mode === 'save' && !progress.saved.includes(lesson.id) ? [...progress.saved, lesson.id] : progress.saved;
     const recent = [lesson.id, ...progress.recent.filter((id) => id !== lesson.id)].slice(0, 8);
@@ -768,6 +800,8 @@ function App() {
       setQuizSelected([]);
       setSwipeFeedback('');
       setExitSwipe('');
+      setDragState({ x: 0, y: 0, active: false });
+      setActionFlash(flash ? { ...flash, title: lesson.title } : null);
       setScreen('quiz');
       return;
     }
@@ -776,22 +810,27 @@ function App() {
     setSessionIndex(sessionIndex + 1);
     setSwipeFeedback('');
     setExitSwipe('');
+    setDragState({ x: 0, y: 0, active: false });
+    setActionFlash(flash ? { ...flash, title: lesson.title } : null);
   }
 
-  function handleCardTouchStart(event) {
+  function handleCardPointerStart(event) {
     if (exitSwipe) return;
-    const touch = event.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    touchStartRef.current = { x: event.clientX, y: event.clientY };
+    setDragState({ x: 0, y: 0, active: true });
     setSwipeFeedback('');
   }
 
-  function handleCardTouchMove(event) {
+  function handleCardPointerMove(event) {
     if (exitSwipe) return;
     const touchStart = touchStartRef.current;
     if (!touchStart) return;
-    const touch = event.touches[0];
-    const dx = touch.clientX - touchStart.x;
-    const dy = touch.clientY - touchStart.y;
+    const dx = event.clientX - touchStart.x;
+    const dy = event.clientY - touchStart.y;
+    const limitedX = Math.max(-120, Math.min(120, dx));
+    const limitedY = Math.max(-24, Math.min(150, dy));
+    setDragState({ x: limitedX, y: limitedY, active: true });
     if (Math.abs(dx) < 28 && Math.abs(dy) < 28) {
       setSwipeFeedback('');
       return;
@@ -805,33 +844,33 @@ function App() {
     }
   }
 
-  function handleCardTouchEnd(event) {
+  function handleCardPointerEnd(event) {
     if (exitSwipe) return;
     const touchStart = touchStartRef.current;
     if (!touchStart) return;
-    const touch = event.changedTouches[0];
-    const dx = touch.clientX - touchStart.x;
-    const dy = touch.clientY - touchStart.y;
+    const dx = event.clientX - touchStart.x;
+    const dy = event.clientY - touchStart.y;
     const horizontal = Math.abs(dx) > Math.abs(dy);
     touchStartRef.current = null;
     setSwipeFeedback('');
+    setDragState({ x: 0, y: 0, active: false });
 
     if (horizontal && dx <= -64) {
       setSwipeFeedback('Save');
       setExitSwipe('Save');
-      window.setTimeout(() => finishCard(currentLesson, 'save'), 230);
+      window.setTimeout(() => finishCard(currentLesson, 'save'), 280);
       return;
     }
     if (horizontal && dx >= 64) {
       setSwipeFeedback('Done');
       setExitSwipe('Done');
-      window.setTimeout(() => finishCard(currentLesson, 'done'), 230);
+      window.setTimeout(() => finishCard(currentLesson, 'done'), 280);
       return;
     }
     if (!horizontal && dy >= 64) {
       setSwipeFeedback('Skip');
       setExitSwipe('Skip');
-      window.setTimeout(() => finishCard(currentLesson, 'skip'), 230);
+      window.setTimeout(() => finishCard(currentLesson, 'skip'), 280);
     }
   }
 
@@ -851,18 +890,26 @@ function App() {
       setQuizAttempt((current) => current + 1);
       setSessionIndex(0);
       setSwipeFeedback('');
+      setActionFlash(null);
       setScreen('quizRetry');
       return;
     }
 
     const base = pendingProgress || progress;
     const wasActiveToday = base.lastActive === today;
-    commit({
+    const nextProgress = {
       ...base,
       lastActive: today,
       streak: wasActiveToday ? base.streak : base.streak + 1,
       sessions: base.sessions + 1,
       minutesReplaced: base.minutesReplaced + 3
+    };
+    commit(nextProgress);
+    setSessionResult({
+      streak: nextProgress.streak,
+      xp: nextProgress.xp,
+      newStreak: !wasActiveToday,
+      quote: dailyQuote
     });
     setPendingProgress(null);
     setQuiz(null);
@@ -870,7 +917,7 @@ function App() {
     setQuizAttempt(0);
     setSwipeFeedback('');
     setActivePage('Home');
-    setScreen('home');
+    setScreen('sessionComplete');
   }
 
   function retryAfterQuiz() {
@@ -880,6 +927,8 @@ function App() {
     setSessionIndex(0);
     setExitSwipe('');
     setSwipeFeedback('');
+    setDragState({ x: 0, y: 0, active: false });
+    setActionFlash(null);
     setScreen('session');
   }
 
@@ -894,6 +943,9 @@ function App() {
     setPendingProgress(null);
     setTutorialStep(0);
     setExitSwipe('');
+    setDragState({ x: 0, y: 0, active: false });
+    setActionFlash(null);
+    setSessionResult(null);
     setSwipeFeedback('');
     setScreen('tutorial');
     setActivePage('Home');
@@ -999,65 +1051,89 @@ function App() {
 
   if (screen === 'session') {
     const sessionCardClass = ['sessionCard', swipeFeedback ? `swipe${swipeFeedback}` : '', exitSwipe ? `exit${exitSwipe}` : ''].filter(Boolean).join(' ');
+    const dragRotation = Math.max(-10, Math.min(10, dragState.x / 14));
+    const sessionCardStyle = {
+      '--drag-x': `${dragState.x}px`,
+      '--drag-y': `${dragState.y}px`,
+      '--drag-rotate': `${dragRotation}deg`
+    };
     return (
       <main className='appShell'>
         <header className='appTop'>
-          <button className='iconButton' aria-label='Close session' onClick={() => setScreen('home')}><span className='closeMark' /></button>
-          <div className='sessionCounter' aria-label={`Card ${sessionIndex + 1} of ${nextSession.length}`}>
-            <strong>{sessionIndex + 1} / {nextSession.length}</strong>
-            <div className='sessionDots'>
-              {nextSession.map((lesson, index) => (
-                <span key={lesson.id} className={index <= sessionIndex ? 'active' : ''} />
-              ))}
-            </div>
-          </div>
-          <span />
+<button className='iconButton' aria-label='Close session' onClick={() => setScreen('home')}><span className='closeMark' /></button>
+<div className='sessionCounter' aria-label={`Card ${sessionIndex + 1} of ${nextSession.length}`}>
+  <strong>{sessionIndex + 1} / {nextSession.length}</strong>
+  <div className='sessionDots'>
+    {nextSession.map((lesson, index) => (
+      <span key={lesson.id} className={index <= sessionIndex ? 'active' : ''} />
+    ))}
+  </div>
+</div>
+<span />
         </header>
         <section
-          className={sessionCardClass}
-          onTouchStart={handleCardTouchStart}
-          onTouchMove={handleCardTouchMove}
-          onTouchEnd={handleCardTouchEnd}
+className={sessionCardClass}
+style={sessionCardStyle}
+onPointerDown={handleCardPointerStart}
+onPointerMove={handleCardPointerMove}
+onPointerUp={handleCardPointerEnd}
+onPointerCancel={handleCardPointerEnd}
         >
-          {swipeFeedback ? <div className='swipeFeedback'>{swipeFeedback}</div> : null}
-          <div className='sessionMeta'><span className='pill'>{currentLesson.area}</span></div>
-          <h1>{currentLesson.title}</h1>
-          <p className='sessionHook'>{currentLesson.hook}</p>
-          <p className='sessionBody'>{currentLesson.body}</p>
-          <div className='moveBox open'>
-            <span className='miniLabel'>Tiny move</span>
-            <strong>{getMove(currentLesson)}</strong>
-          </div>
-          <div className='gestureGuide' aria-label='Swipe actions'>
-            <span data-arrow='<'>Save</span>
-            <span data-arrow='v'>Skip</span>
-            <span data-arrow='>'>Done</span>
-          </div>
+{swipeFeedback ? <div className='swipeFeedback'>{swipeFeedback}</div> : null}
+<div className='sessionMeta'><span className='pill'>{currentLesson.area}</span></div>
+<h1>{currentLesson.title}</h1>
+<p className='sessionHook'>{currentLesson.hook}</p>
+<p className='sessionBody'>{currentLesson.body}</p>
+<div className='moveBox open'>
+  <span className='miniLabel'>Tiny move</span>
+  <strong>{getMove(currentLesson)}</strong>
+</div>
+<div className='gestureGuide' aria-label='Swipe actions'>
+  <span data-arrow='<'>Save</span>
+  <span data-arrow='v'>Skip</span>
+  <span data-arrow='>'>Done</span>
+</div>
         </section>
+        {actionFlash ? (
+<div className={`actionFlash ${actionFlash.tone}`} role='status'>
+  <strong>{actionFlash.cue}</strong>
+  <span>{actionFlash.detail}</span>
+</div>
+        ) : null}
       </main>
     );
   }
 
   if (screen === 'quiz' && quiz) {
+    const correctAnswerCount = quiz.options.filter((option) => option.correct).length;
     return (
       <main className='appShell center'>
+        {actionFlash ? (
+<div className={`actionFlash quizReady ${actionFlash.tone}`} role='status'>
+  <strong>3 cards cleared</strong>
+  <span>Pass this check and the streak counts.</span>
+</div>
+        ) : null}
         <section className='quizPanel'>
-          <p className='eyebrow'>Streak check</p>
-          <h1>{quiz.prompt}</h1>
-          <p className='quizHint'>0 to 5 can be right. Pick every answer that belongs.</p>
-          <div className='quizOptions'>
-            {quiz.options.map((option, index) => (
-              <button
-                key={option.text}
-                className={quizSelected.includes(index) ? 'quizOption active' : 'quizOption'}
-                onClick={() => toggleQuizAnswer(index)}
-              >
-                <span>{String.fromCharCode(65 + index)}</span>
-                <strong>{option.text}</strong>
-              </button>
-            ))}
-          </div>
-          <button className='primaryWide' onClick={submitQuiz}>Lock answers</button>
+<div className='quizTopline'>
+  <p className='eyebrow'>Streak check</p>
+  <span>{quizSelected.length} picked</span>
+</div>
+<h1>{quiz.prompt}</h1>
+<p className='quizHint'>Pick every answer that belongs. This one has {correctAnswerCount} correct {correctAnswerCount === 1 ? 'answer' : 'answers'}.</p>
+<div className='quizOptions'>
+  {quiz.options.map((option, index) => (
+    <button
+      key={option.text}
+      className={quizSelected.includes(index) ? 'quizOption active' : 'quizOption'}
+      onClick={() => toggleQuizAnswer(index)}
+    >
+      <span>{String.fromCharCode(65 + index)}</span>
+      <strong>{option.text}</strong>
+    </button>
+  ))}
+</div>
+<button className='primaryWide' onClick={submitQuiz} disabled={!quizSelected.length}>Lock answers</button>
         </section>
       </main>
     );
@@ -1067,11 +1143,38 @@ function App() {
     return (
       <main className='appShell center'>
         <section className='quizPanel'>
-          <p className='eyebrow'>Not counted yet</p>
-          <h1>Close, but the streak needs proof.</h1>
-          <p className='quizHint'>You keep the cards you saw, but todays streak only counts after a clean check. MindSwipe will give you a fresh 3-card run.</p>
-          <button className='primaryWide' onClick={retryAfterQuiz}>Retry with new cards</button>
-          <button className='secondaryWide' onClick={() => setScreen('home')}>Back home</button>
+<p className='eyebrow'>Not counted yet</p>
+<h1>Close, but the streak needs proof.</h1>
+<p className='quizHint'>You keep the cards you saw, but todays streak only counts after a clean check. MindSwipe will give you a fresh 3-card run.</p>
+<button className='primaryWide' onClick={retryAfterQuiz}>Retry with new cards</button>
+<button className='secondaryWide' onClick={() => setScreen('home')}>Back home</button>
+        </section>
+      </main>
+    );
+  }
+
+  if (screen === 'sessionComplete') {
+    const result = sessionResult || { streak: progress.streak, xp: progress.xp, newStreak: false, quote: dailyQuote };
+    return (
+      <main className='appShell center'>
+        <section className='completePanel'>
+<div className='completeOrb'>
+  <span>{result.newStreak ? '+1' : 'OK'}</span>
+</div>
+<p className='eyebrow'>{result.newStreak ? 'Streak earned' : 'Daily run complete'}</p>
+<h1>{result.newStreak ? `${result.streak} day streak` : 'Already counted today'}</h1>
+<p className='quizHint'>You finished 3 cards, passed the check, and kept the loop clean.</p>
+<div className='completeStats'>
+  <div><strong>{result.xp}</strong><span>XP</span></div>
+  <div><strong>{result.streak}</strong><span>streak</span></div>
+  <div><strong>3</strong><span>cards</span></div>
+</div>
+<article className='completeQuote'>
+  <span>Keep in mind</span>
+  <strong>{result.quote.text}</strong>
+</article>
+<button className='primaryWide' onClick={() => setScreen('home')}>Back home</button>
+<button className='secondaryWide' onClick={() => startSession(activeMood)}>Another run</button>
         </section>
       </main>
     );
