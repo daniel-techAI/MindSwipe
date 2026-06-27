@@ -1212,7 +1212,7 @@ onPointerCancel={handleCardPointerEnd}
       <div className='startOrbWrap'>
         <button className='bigStart' onClick={() => startSession(activeMood)}>Start</button>
       </div>
-      <section className='moodPanel' aria-label='Choose today's mood'>
+      <section className='moodPanel' aria-label="Choose today's mood">
         <div className='sectionHeader compact'>
           <span>Today feels like</span>
           <strong>{activeMood}</strong>
