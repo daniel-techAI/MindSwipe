@@ -1696,3 +1696,471 @@ button:disabled {
     font-size: 34px;
   }
 }
+
+/* Premium noir redesign: warm paper, oxblood, antique gold. */
+:root {
+  color: #f7efe3;
+  background: #080706;
+  color-scheme: dark;
+  --ms-bg: #080706;
+  --ms-bg-soft: #110f0d;
+  --ms-ink: #fff8ec;
+  --ms-ink-soft: #d7cbbb;
+  --ms-muted: #9f9180;
+  --ms-paper: #efe2cd;
+  --ms-paper-deep: #d8c2a2;
+  --ms-red: #9f1f26;
+  --ms-red-dark: #5f1016;
+  --ms-red-soft: rgba(159, 31, 38, 0.22);
+  --ms-gold: #d7ad5a;
+  --ms-gold-soft: rgba(215, 173, 90, 0.2);
+  --ms-border: rgba(239, 226, 205, 0.15);
+  --ms-border-strong: rgba(215, 173, 90, 0.38);
+  --ms-panel: rgba(21, 18, 15, 0.78);
+  --ms-panel-deep: rgba(12, 10, 9, 0.92);
+  --ms-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
+}
+
+body {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(215, 173, 90, 0.2), transparent 35%),
+    radial-gradient(circle at 12% 18%, rgba(159, 31, 38, 0.22), transparent 36%),
+    linear-gradient(180deg, #12100d 0%, #080706 56%, #050403 100%);
+}
+
+.appShell {
+  isolation: isolate;
+  padding-top: max(18px, env(safe-area-inset-top));
+  color: var(--ms-ink);
+}
+
+.appShell::before {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(239, 226, 205, 0.11), transparent 28%),
+    radial-gradient(circle at 8% 16%, rgba(159, 31, 38, 0.24), transparent 34%),
+    radial-gradient(circle at 94% 12%, rgba(215, 173, 90, 0.18), transparent 32%),
+    linear-gradient(160deg, #13100d 0%, #090807 52%, #040403 100%);
+}
+
+.brandTitle,
+.pageIntro h2,
+.tutorialPanel h1,
+.sessionCard h1,
+.quizPanel h1,
+.completePanel h1,
+.quoteCardLarge h2,
+.todayQuotePreview strong,
+.recentPanel strong,
+.cleanPanel strong,
+.statGrid strong,
+.badgeGrid strong,
+.miniCard h3,
+.quoteToast strong,
+.tutorialExplain strong {
+  color: var(--ms-ink);
+  letter-spacing: 0;
+}
+
+.brandTitle {
+  font-size: 23px;
+  text-shadow: 0 12px 36px rgba(215, 173, 90, 0.22);
+}
+
+.topLogo {
+  filter: drop-shadow(0 10px 24px rgba(215, 173, 90, 0.22));
+}
+
+.pageIntro,
+.centerIntro,
+.tutorialPanel p {
+  text-align: center;
+}
+
+.pageIntro span,
+.sectionHeader span,
+.eyebrow,
+.smallLabel,
+.miniLabel,
+.quizTopline .eyebrow {
+  color: var(--ms-gold);
+  letter-spacing: 0.08em;
+}
+
+.pageIntro p,
+.todayQuotePreview p,
+.cleanPanel p,
+.onboardingPanel p,
+.recentPanel p,
+.quoteActionText,
+.quizHint,
+.sessionBody,
+.doneText,
+.miniCard p,
+.quoteToast p,
+.quoteToast span,
+.tutorialCardPreview p,
+.tutorialExplain p,
+.reminderPanel p,
+.lead,
+.muted {
+  color: var(--ms-ink-soft);
+}
+
+.iconButton,
+.pageRail button,
+.quickTimes button,
+.menuList button,
+.moodGrid button,
+.secondaryWide,
+.secondary,
+.interestButton,
+.quizOption,
+.packCard,
+.recentList span,
+.textButton {
+  border-color: var(--ms-border);
+  background:
+    linear-gradient(145deg, rgba(239, 226, 205, 0.105), rgba(239, 226, 205, 0.035)),
+    rgba(14, 12, 10, 0.7);
+  color: var(--ms-ink);
+  box-shadow: inset 0 1px 0 rgba(255, 248, 236, 0.1), 0 14px 32px rgba(0, 0, 0, 0.24);
+}
+
+.iconButton,
+.quickTimes button,
+.menuList button,
+.moodGrid button,
+.secondaryWide,
+.secondary,
+.interestButton,
+.quizOption,
+.packCard,
+.textButton {
+  border-radius: 18px;
+}
+
+.pageRail {
+  margin-bottom: 20px;
+}
+
+.pageRail button {
+  min-height: 46px;
+  color: #cfc1ae;
+  border-radius: 999px;
+}
+
+.pageRail button.active,
+.moodGrid button.active,
+.interestButton.active,
+.quizOption.active,
+.packCard.active,
+.quickTimes button.active {
+  border-color: var(--ms-border-strong);
+  background:
+    linear-gradient(145deg, rgba(215, 173, 90, 0.24), rgba(159, 31, 38, 0.18)),
+    rgba(23, 17, 12, 0.9);
+  color: #fff7e7;
+  box-shadow: 0 18px 46px rgba(159, 31, 38, 0.18), inset 0 1px 0 rgba(255, 248, 236, 0.14);
+}
+
+.streakChip,
+.miniMetric,
+.sectionHeader strong,
+.pill,
+.quizTopline span,
+.missionBadge {
+  border-color: rgba(215, 173, 90, 0.32);
+  background: rgba(215, 173, 90, 0.11);
+  color: #f3d595;
+}
+
+.homeHero {
+  min-height: calc(100vh - 230px);
+}
+
+.homeContent {
+  gap: 12px;
+}
+
+.startOrbWrap::before {
+  border-color: rgba(215, 173, 90, 0.22);
+  background:
+    radial-gradient(circle, rgba(215, 173, 90, 0.18), transparent 66%),
+    radial-gradient(circle, rgba(159, 31, 38, 0.1), transparent 72%);
+}
+
+.bigStart,
+.primaryWide,
+.primary,
+.doneAction,
+.tutorialCta {
+  border: 1px solid rgba(255, 248, 236, 0.36);
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 250, 238, 0.98) 0 7%, rgba(231, 201, 139, 0.92) 17%, rgba(159, 31, 38, 0.95) 52%, rgba(67, 10, 14, 1) 100%);
+  color: #fff8ec;
+  text-shadow: 0 2px 18px rgba(38, 4, 6, 0.5);
+  box-shadow:
+    0 34px 90px rgba(159, 31, 38, 0.34),
+    0 0 0 14px rgba(215, 173, 90, 0.08),
+    inset 0 12px 26px rgba(255, 248, 236, 0.36),
+    inset 0 -30px 54px rgba(47, 4, 6, 0.42);
+}
+
+.bigStart::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 248, 236, 0.92), transparent);
+}
+
+.bigStart::after {
+  background: radial-gradient(ellipse at center, rgba(215, 173, 90, 0.48), transparent 68%);
+}
+
+@keyframes startPulse {
+  0%, 100% {
+    box-shadow:
+      0 34px 90px rgba(159, 31, 38, 0.34),
+      0 0 0 12px rgba(215, 173, 90, 0.08),
+      inset 0 12px 26px rgba(255, 248, 236, 0.36),
+      inset 0 -30px 54px rgba(47, 4, 6, 0.42);
+  }
+  50% {
+    box-shadow:
+      0 42px 108px rgba(159, 31, 38, 0.48),
+      0 0 0 22px rgba(215, 173, 90, 0.045),
+      inset 0 16px 32px rgba(255, 248, 236, 0.48),
+      inset 0 -26px 50px rgba(47, 4, 6, 0.36);
+  }
+}
+
+.todayQuotePreview,
+.recentPanel,
+.cleanPanel,
+.onboardingPanel,
+.quizPanel,
+.sessionCard,
+.quoteCardLarge,
+.statGrid div,
+.badgeGrid div,
+.moodPanel,
+.packPanel,
+.reminderPanel,
+.quotePanel,
+.tutorialPanel,
+.tutorialExplain,
+.moveBox.open,
+.completePanel,
+.completeQuote,
+.miniCard,
+.emptyState {
+  border-color: var(--ms-border);
+  background:
+    linear-gradient(145deg, rgba(239, 226, 205, 0.115), rgba(239, 226, 205, 0.038)),
+    var(--ms-panel);
+  box-shadow: var(--ms-shadow), inset 0 1px 0 rgba(255, 248, 236, 0.12);
+  backdrop-filter: blur(22px) saturate(1.12);
+}
+
+.todayQuotePreview,
+.quoteCardLarge,
+.quotePanel,
+.completeQuote {
+  border-color: rgba(215, 173, 90, 0.34);
+  background:
+    linear-gradient(145deg, rgba(215, 173, 90, 0.16), rgba(239, 226, 205, 0.035)),
+    rgba(24, 18, 12, 0.84);
+}
+
+.sessionCard,
+.quizPanel,
+.tutorialPanel,
+.completePanel {
+  border-radius: 28px;
+}
+
+.sessionCard {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(215, 173, 90, 0.13), transparent 32%),
+    linear-gradient(145deg, rgba(239, 226, 205, 0.12), rgba(239, 226, 205, 0.036)),
+    rgba(18, 15, 12, 0.92);
+}
+
+.sessionCard::before {
+  background:
+    linear-gradient(135deg, rgba(255, 248, 236, 0.16), transparent 28%, rgba(159, 31, 38, 0.09) 68%, transparent);
+}
+
+.sessionCard.swipeSave {
+  border-color: rgba(215, 173, 90, 0.74);
+  box-shadow: 0 30px 82px rgba(215, 173, 90, 0.18), inset 0 1px 0 rgba(255, 248, 236, 0.18);
+}
+
+.sessionCard.swipeDone {
+  border-color: rgba(159, 31, 38, 0.82);
+  box-shadow: 0 30px 82px rgba(159, 31, 38, 0.2), inset 0 1px 0 rgba(255, 248, 236, 0.18);
+}
+
+.sessionCard.swipeSkip {
+  border-color: rgba(239, 226, 205, 0.36);
+  box-shadow: 0 30px 82px rgba(239, 226, 205, 0.1), inset 0 1px 0 rgba(255, 248, 236, 0.18);
+}
+
+.swipeFeedback,
+.actionFlash,
+.quoteToast {
+  border-color: rgba(215, 173, 90, 0.26);
+  background: rgba(14, 11, 9, 0.88);
+  color: var(--ms-ink);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 248, 236, 0.12);
+}
+
+.actionFlash.save {
+  border-color: rgba(215, 173, 90, 0.46);
+}
+
+.actionFlash.done,
+.actionFlash.quizReady {
+  border-color: rgba(159, 31, 38, 0.46);
+}
+
+.actionFlash.skip {
+  border-color: rgba(239, 226, 205, 0.28);
+}
+
+.gestureGuide span,
+.tutorialTopic,
+.tutorialQuizPreview,
+.tutorialQuotePreview,
+.tutorialCardPreview,
+.tutorialStartOrb {
+  border-color: rgba(239, 226, 205, 0.14);
+  background: rgba(13, 11, 9, 0.64);
+  color: var(--ms-ink-soft);
+}
+
+.gestureGuide span::before {
+  background: rgba(215, 173, 90, 0.14);
+  color: #f2d28a;
+}
+
+.tutorialStage {
+  border-color: rgba(239, 226, 205, 0.14);
+  background:
+    radial-gradient(circle at 50% 12%, rgba(215, 173, 90, 0.18), transparent 35%),
+    radial-gradient(circle at 12% 88%, rgba(159, 31, 38, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(18, 14, 11, 0.9), rgba(8, 7, 6, 0.74));
+}
+
+.tutorialStartOrb,
+.completeOrb {
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 250, 238, 0.95), rgba(231, 201, 139, 0.85) 25%, rgba(159, 31, 38, 0.85) 67%, rgba(58, 7, 11, 0.98));
+  box-shadow: 0 22px 60px rgba(159, 31, 38, 0.32), inset 0 8px 20px rgba(255, 248, 236, 0.28);
+}
+
+.tutorialStage[data-focus="start"] .tutorialStartOrb,
+.tutorialStage[data-focus="card"] .tutorialCardPreview,
+.tutorialStage[data-focus="quiz"] .tutorialQuizPreview,
+.tutorialStage[data-focus="quote"] .tutorialQuotePreview {
+  outline-color: rgba(215, 173, 90, 0.86);
+  box-shadow: 0 0 42px rgba(215, 173, 90, 0.24), inset 0 1px 0 rgba(255, 248, 236, 0.14);
+}
+
+.interestCategory,
+.selectionMeter {
+  border-color: rgba(239, 226, 205, 0.13);
+  background: rgba(13, 11, 9, 0.56);
+  box-shadow: inset 0 1px 0 rgba(255, 248, 236, 0.08);
+}
+
+.interestCategoryTitle strong,
+.moodGrid button strong,
+.interestButton strong,
+.packCard strong,
+.quizOption strong {
+  color: var(--ms-ink);
+}
+
+.interestCategoryTitle > span,
+.moodGrid button span,
+.interestButton span,
+.packCard span,
+.quizOption span,
+.selectionMeter span,
+.statGrid span,
+.badgeGrid span,
+.completeStats span,
+.completeQuote span {
+  color: var(--ms-muted);
+}
+
+.interestCategoryRail button {
+  border-color: rgba(239, 226, 205, 0.13);
+  background: rgba(14, 12, 10, 0.68);
+  color: #d6c8b5;
+}
+
+.interestCategoryRail button.active {
+  border-color: rgba(215, 173, 90, 0.45);
+  background: rgba(215, 173, 90, 0.14);
+  color: #f3d595;
+}
+
+.quizOption.active {
+  box-shadow: 0 16px 42px rgba(159, 31, 38, 0.2), inset 0 1px 0 rgba(255, 248, 236, 0.14);
+}
+
+.reminderRow input {
+  border-color: var(--ms-border);
+  background: rgba(9, 8, 7, 0.82);
+  color: var(--ms-ink);
+  border-radius: 16px;
+}
+
+.dangerText,
+.skipAction {
+  color: #e5a28b;
+}
+
+.saveAction {
+  border-color: rgba(215, 173, 90, 0.42);
+  color: #f2d28a;
+}
+
+.doneAction {
+  color: #fff8ec;
+}
+
+.cardDots span,
+.sessionDots span {
+  background: rgba(239, 226, 205, 0.16);
+}
+
+.cardDots span.active,
+.sessionDots span.active,
+.meter span {
+  background: linear-gradient(90deg, var(--ms-gold), var(--ms-red));
+}
+
+.cardDots span.done {
+  background: var(--ms-gold);
+}
+
+.recentList span {
+  color: #f0d9a4;
+}
+
+.emptyState {
+  text-align: center;
+}
+
+@media (max-width: 390px) {
+  .pageIntro h2 {
+    font-size: 28px;
+  }
+
+  .sessionCard,
+  .quizPanel,
+  .tutorialPanel,
+  .completePanel {
+    border-radius: 24px;
+  }
+}
