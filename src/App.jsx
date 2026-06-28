@@ -1312,10 +1312,13 @@ onPointerCancel={handleCardPointerEnd}
     <div className='homeContent'>
       <div className='homeStatusRow'>
         <span className='streakChip'>{progress.streak} day streak</span>
-        <span className='miniMetric'>{progress.xp} XP</span>
+        <span className='miniMetric'>Level {getLevelFromXp(progress.xp)}</span>
       </div>
       <div className='startOrbWrap'>
-        <button className='bigStart' onClick={() => startSession(activeMood)}>Start</button>
+        <button className='bigStart' onClick={() => startSession(activeMood)}>
+          <span>Start</span>
+          <small>A new swipe</small>
+        </button>
       </div>
       <section className='moodPanel' aria-label="Choose today's mood">
         <div className='sectionHeader compact'>
