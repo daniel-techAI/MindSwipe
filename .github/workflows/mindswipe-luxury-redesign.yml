@@ -1,0 +1,73 @@
+name: MindSwipe Luxury Redesign
+
+on:
+  push:
+    paths:
+      - '.github/workflows/mindswipe-luxury-redesign.yml'
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Apply luxury redesign
+        env:
+          CSS_GZ_B64: "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"
+          LOGO_GZ_B64: "H4sIAAAAAAAEAJ1VS2/iMBC+91eMtKpcDoTYJCHVkj10V+qltIequ2c3cYK3JkaOw0NV//uOAwmBvrQVCM+Mx/PNG7FZamMhEzmvlYW8LlMrdQkzWWb3a7kUN7rQF8+QKl5Vt3whIAFC4GUAz2cARtjalHCBJMC0WhUHveS5I19gJcX6Sm8S4oMPUYBfAkYrkRC5KAhwI/lQ8UehEtIBg0Jk8qMxjcbRw6plkFWyFNxcG55JUVqQWUIW1bDQKhsuuHkisKEJoYzAFs8YWZaQ0LHuRL7Yv3wopa0SUlfC3C95Ku7Kh0qQA5ALy+oluJ+fWmmTkG95no/TnMDotZrO80pYjNMLQnL0KIt5Fk4+fESPX0yy0Gf06MV0dBx378ZJuDpNiKkft/uEpJj+0D9HYpuQcYwEgkTs/JNgw5D69GO/fS9ix67TyL/0+f8E64fucxLscUy9m1wqK0wbpKo3w0LpNVY5IcPAxbhtibXM7BzRYsfMhSzmds8duZaLa15XleTllaoNepb9EivJ3SiguhdhskSFA5KQR7w/DSwXTRgzbo3cgCxbLbtdYosvGjGBFVe1wF6j4O8+XhzhsWe9cNIQDeuxTgelB/BdlKfgM2EK0ZcdpLc6E41Db7x8Q+te1yYVmPDlXKanQKNXSChqCtEN6ag/pVMjUutKEjX1iLpiuDlsS+Fos3ElIYDGcAHURl1867fuoOdIZ3PihY3V5tzbDS4Pdh3d2I2cws5yqUvhus7oJ3HA6XbGoL37szPH+rhLbueA7TajMQTj34wqGgCNgAZDGq0Y+yJG4LFWcoOTnfJlQoyuy6wv/atdbfbiXcYPptvmH7zpLQuA0TmNZmOGrq7G9G0/u5W2E9zhJpR26yZ7wk6z8r7H72QrnrP4qyXwgs/BUmlSJZr9Nmb79caa7Tb2urqc7t/pCP+tHDn4fvZy9g8YXUx5BgcAAA=="
+        run: |
+          python - <<'PY'
+          import base64, gzip, os, pathlib, re
+
+          root = pathlib.Path('.')
+          app_path = root / 'src' / 'App.jsx'
+          css_path = root / 'src' / 'app-shell.css'
+          logo_path = root / 'src' / 'MindSwipeLogo.jsx'
+
+          app = app_path.read_text(encoding='utf-8')
+          app = app.replace("<span className='miniMetric'>{progress.xp} XP</span>", "<span className='miniMetric'>Level {getLevelFromXp(progress.xp)}</span>")
+          app = app.replace("<button className='bigStart' onClick={() => startSession(activeMood)}>Start</button>", "<button className='bigStart' onClick={() => startSession(activeMood)}>\n          <span>Start</span>\n          <small>A new swipe</small>\n        </button>")
+          app_path.write_text(app, encoding='utf-8')
+
+          logo = gzip.decompress(base64.b64decode(os.environ['LOGO_GZ_B64'])).decode('utf-8')
+          logo_path.write_text(logo, encoding='utf-8')
+
+          css = css_path.read_text(encoding='utf-8')
+          marker = '/* Brabus luxury pass: black lacquer, oxblood glass, champagne trim. */'
+          if marker in css:
+              css = css[:css.index(marker)].rstrip() + '\n'
+          override = gzip.decompress(base64.b64decode(os.environ['CSS_GZ_B64'])).decode('utf-8')
+          css_path.write_text(css.rstrip() + '\n\n' + override.rstrip() + '\n', encoding='utf-8')
+
+          for path in [app_path, css_path, logo_path]:
+              text = path.read_text(encoding='utf-8')
+              opens = text.count('{')
+              closes = text.count('}')
+              non_ascii = sum(1 for ch in text if ord(ch) > 127)
+              print(f'{path}: braces {opens}/{closes}, non-ascii {non_ascii}, length {len(text)}')
+              if opens != closes:
+                  raise SystemExit(f'brace mismatch in {path}')
+              if non_ascii:
+                  raise SystemExit(f'non-ascii found in {path}')
+          PY
+      - name: Commit source changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/mindswipe-luxury-redesign.yml
+          git add src/App.jsx src/app-shell.css src/MindSwipeLogo.jsx
+          git status --short
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Redesign app with luxury visual system"
+            git push
+          fi
