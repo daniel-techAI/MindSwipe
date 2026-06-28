@@ -38,101 +38,96 @@ jobs:
           package_path.write_text(json.dumps(package, indent=2) + '\n')
 
           app = app_path.read_text()
-          if "@capacitor/haptics" not in app:
+          if '@capacitor/haptics' not in app:
               app = app.replace(
                   "import { Capacitor } from '@capacitor/core';\n",
                   "import { Capacitor } from '@capacitor/core';\nimport { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';\n",
                   1,
               )
 
-          helpers = r'''
-function vibrateFallback(pattern = 10) {
-  if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-    navigator.vibrate(pattern);
-  }
-}
-
-async function hapticImpact(style = ImpactStyle.Light, fallback = 10) {
-  try {
-    if (Capacitor.isNativePlatform()) {
-      await Haptics.impact({ style });
-      return;
-    }
-  } catch {
-    // Fall through to browser vibration.
-  }
-  vibrateFallback(fallback);
-}
-
-async function hapticNotify(type = NotificationType.Success, fallback = [18, 20, 18]) {
-  try {
-    if (Capacitor.isNativePlatform()) {
-      await Haptics.notification({ type });
-      return;
-    }
-  } catch {
-    // Fall through to browser vibration.
-  }
-  vibrateFallback(fallback);
-}
-
-async function hapticSelect(fallback = 7) {
-  try {
-    if (Capacitor.isNativePlatform()) {
-      await Haptics.selectionChanged();
-      return;
-    }
-  } catch {
-    // Fall through to browser vibration.
-  }
-  vibrateFallback(fallback);
-}
-
-function hapticSwipe(mode) {
-  if (mode === 'skip') {
-    hapticNotify(NotificationType.Warning, [12, 28, 12]);
-    return;
-  }
-  if (mode === 'done') {
-    hapticNotify(NotificationType.Success, [16, 18, 28]);
-    return;
-  }
-  hapticImpact(ImpactStyle.Medium, 18);
-}
-
-function getLevelFromXp(xp) {
-  return Math.max(1, Math.floor(xp / 120) + 1);
-}
-
-function getLevelProgress(xp) {
-  return Math.min(100, Math.round(((xp % 120) / 120) * 100));
-}
-
-function getXpToNextLevel(xp) {
-  const remainder = xp % 120;
-  return remainder === 0 ? 120 : 120 - remainder;
-}
-'''
+          helper_lines = [
+              'function vibrateFallback(pattern = 10) {',
+              '  if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {',
+              '    navigator.vibrate(pattern);',
+              '  }',
+              '}',
+              '',
+              'async function hapticImpact(style = ImpactStyle.Light, fallback = 10) {',
+              '  try {',
+              '    if (Capacitor.isNativePlatform()) {',
+              '      await Haptics.impact({ style });',
+              '      return;',
+              '    }',
+              '  } catch {',
+              '    // Fall through to browser vibration.',
+              '  }',
+              '  vibrateFallback(fallback);',
+              '}',
+              '',
+              'async function hapticNotify(type = NotificationType.Success, fallback = [18, 20, 18]) {',
+              '  try {',
+              '    if (Capacitor.isNativePlatform()) {',
+              '      await Haptics.notification({ type });',
+              '      return;',
+              '    }',
+              '  } catch {',
+              '    // Fall through to browser vibration.',
+              '  }',
+              '  vibrateFallback(fallback);',
+              '}',
+              '',
+              'async function hapticSelect(fallback = 7) {',
+              '  try {',
+              '    if (Capacitor.isNativePlatform()) {',
+              '      await Haptics.selectionChanged();',
+              '      return;',
+              '    }',
+              '  } catch {',
+              '    // Fall through to browser vibration.',
+              '  }',
+              '  vibrateFallback(fallback);',
+              '}',
+              '',
+              'function hapticSwipe(mode) {',
+              '  if (mode === "skip") {',
+              '    hapticNotify(NotificationType.Warning, [12, 28, 12]);',
+              '    return;',
+              '  }',
+              '  if (mode === "done") {',
+              '    hapticNotify(NotificationType.Success, [16, 18, 28]);',
+              '    return;',
+              '  }',
+              '  hapticImpact(ImpactStyle.Medium, 18);',
+              '}',
+              '',
+              'function getLevelFromXp(xp) {',
+              '  return Math.max(1, Math.floor(xp / 120) + 1);',
+              '}',
+              '',
+              'function getLevelProgress(xp) {',
+              '  return Math.min(100, Math.round(((xp % 120) / 120) * 100));',
+              '}',
+              '',
+              'function getXpToNextLevel(xp) {',
+              '  const remainder = xp % 120;',
+              '  return remainder === 0 ? 120 : 120 - remainder;',
+              '}',
+              '',
+          ]
           if 'function hapticImpact' not in app:
               app = app.replace(
                   "function saveProgress(progress) {\n  localStorage.setItem('mindSwipeProgress', JSON.stringify(progress));\n}\n\n",
-                  "function saveProgress(progress) {\n  localStorage.setItem('mindSwipeProgress', JSON.stringify(progress));\n}\n\n" + helpers + "\n",
+                  "function saveProgress(progress) {\n  localStorage.setItem('mindSwipeProgress', JSON.stringify(progress));\n}\n\n" + '\n'.join(helper_lines),
                   1,
               )
-
-          app = app.replace(
-              "  const touchStartRef = useRef(null);\n  const [swipeFeedback, setSwipeFeedback] = useState('');",
-              "  const touchStartRef = useRef(null);\n  const lastSwipeCueRef = useRef('');\n  const [swipeFeedback, setSwipeFeedback] = useState('');",
-              1,
-          )
 
           replacements = [
               ("  function toggleInterest(id) {\n    setSelectedInterests((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);\n  }",
                "  function toggleInterest(id) {\n    hapticSelect();\n    setSelectedInterests((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);\n  }"),
               ("  function finishOnboarding() {\n    const next = { ...progress, onboarded: true, interests: selectedInterests, activePack };",
-               "  function finishOnboarding() {\n    hapticImpact(ImpactStyle.Medium, 18);\n    const next = { ...progress, onboarded: true, interests: selectedInterests, activePack };") ,
+               "  function finishOnboarding() {\n    hapticImpact(ImpactStyle.Medium, 18);\n    const next = { ...progress, onboarded: true, interests: selectedInterests, activePack };"),
               ("  function finishTutorial() {\n    const next = { ...progress, tutorialSeen: true };",
-               "  function finishTutorial() {\n    hapticImpact(ImpactStyle.Medium, 18);\n    const next = { ...progress, tutorialSeen: true };") ,
+               "  function finishTutorial() {\n    hapticImpact(ImpactStyle.Medium, 18);\n    const next = { ...progress, tutorialSeen: true };"),
               ("  function showQuoteReminder(quote, force = false) {\n    if (!force && progress.quoteNotifiedToday === today) return;",
                "  function showQuoteReminder(quote, force = false) {\n    if (!force && progress.quoteNotifiedToday === today) return;\n    hapticNotify(NotificationType.Success, [12, 18, 12]);"),
               ("  async function enableQuoteReminder() {\n    if (Capacitor.isNativePlatform()) {",
@@ -141,10 +136,6 @@ function getXpToNextLevel(xp) {
                "  async function disableQuoteReminder() {\n    hapticImpact(ImpactStyle.Light, 8);\n    await cancelNativeQuoteReminders();"),
               ("  function startSession(mood = activeMood) {\n    setActiveMood(mood);",
                "  function startSession(mood = activeMood) {\n    hapticImpact(ImpactStyle.Medium, 18);\n    setActiveMood(mood);"),
-              ("    setSessionResult(null);\n    setQuiz(null);",
-               "    setSessionResult(null);\n    lastSwipeCueRef.current = '';\n    setQuiz(null);"),
-              ("    touchStartRef.current = { x: event.clientX, y: event.clientY };\n    setDragState({ x: 0, y: 0, active: true });",
-               "    touchStartRef.current = { x: event.clientX, y: event.clientY };\n    lastSwipeCueRef.current = '';\n    setDragState({ x: 0, y: 0, active: true });"),
               ("  function scrollToInterestCategory(id) {\n    document.getElementById(`interest-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });\n  }",
                "  function scrollToInterestCategory(id) {\n    hapticSelect();\n    document.getElementById(`interest-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });\n  }"),
               ("  function toggleQuizAnswer(index) {\n    setQuizSelected((current) => current.includes(index) ? current.filter((item) => item !== index) : [...current, index]);\n  }",
@@ -155,84 +146,12 @@ function getXpToNextLevel(xp) {
                "\n    hapticNotify(NotificationType.Success, [18, 20, 30]);\n    const base = pendingProgress || progress;"),
               ("  function retryAfterQuiz() {\n    setQuiz(null);",
                "  function retryAfterQuiz() {\n    hapticImpact(ImpactStyle.Medium, 18);\n    setQuiz(null);"),
-          ]
-          for old, new in replacements:
-              if old in app and new not in app:
-                  app = app.replace(old, new, 1)
-
-          move_start = app.index('  function handleCardPointerMove(event) {')
-          end_start = app.index('  function handleCardPointerEnd(event) {')
-          move_func = r'''  function handleCardPointerMove(event) {
-    if (exitSwipe) return;
-    const touchStart = touchStartRef.current;
-    if (!touchStart) return;
-    const dx = event.clientX - touchStart.x;
-    const dy = event.clientY - touchStart.y;
-    const limitedX = Math.max(-120, Math.min(120, dx));
-    const limitedY = Math.max(-24, Math.min(150, dy));
-    setDragState({ x: limitedX, y: limitedY, active: true });
-    let nextFeedback = '';
-    if (Math.abs(dx) < 28 && Math.abs(dy) < 28) {
-      lastSwipeCueRef.current = '';
-      setSwipeFeedback('');
-      return;
-    }
-    if (Math.abs(dx) > Math.abs(dy)) {
-      nextFeedback = dx < 0 ? 'Save' : 'Done';
-    } else if (dy > 0) {
-      nextFeedback = 'Skip';
-    }
-    if (nextFeedback && nextFeedback !== lastSwipeCueRef.current) {
-      lastSwipeCueRef.current = nextFeedback;
-      hapticSelect();
-    }
-    setSwipeFeedback(nextFeedback);
-  }
-
-'''
-          if 'let nextFeedback' not in app[move_start:end_start]:
-              app = app[:move_start] + move_func + app[end_start:]
-
-          end_start = app.index('  function handleCardPointerEnd(event) {')
-          scroll_start = app.index('  function scrollToInterestCategory(id) {')
-          end_func = r'''  function handleCardPointerEnd(event) {
-    if (exitSwipe) return;
-    const touchStart = touchStartRef.current;
-    if (!touchStart) return;
-    const dx = event.clientX - touchStart.x;
-    const dy = event.clientY - touchStart.y;
-    const horizontal = Math.abs(dx) > Math.abs(dy);
-    touchStartRef.current = null;
-    setSwipeFeedback('');
-    setDragState({ x: 0, y: 0, active: false });
-
-    if (horizontal && dx <= -64) {
-      hapticSwipe('save');
-      setSwipeFeedback('Save');
-      setExitSwipe('Save');
-      window.setTimeout(() => finishCard(currentLesson, 'save'), 280);
-      return;
-    }
-    if (horizontal && dx >= 64) {
-      hapticSwipe('done');
-      setSwipeFeedback('Done');
-      setExitSwipe('Done');
-      window.setTimeout(() => finishCard(currentLesson, 'done'), 280);
-      return;
-    }
-    if (!horizontal && dy >= 64) {
-      hapticSwipe('skip');
-      setSwipeFeedback('Skip');
-      setExitSwipe('Skip');
-      window.setTimeout(() => finishCard(currentLesson, 'skip'), 280);
-    }
-  }
-
-'''
-          if "hapticSwipe('save')" not in app[end_start:scroll_start]:
-              app = app[:end_start] + end_func + app[scroll_start:]
-
-          jsx_replacements = [
+              ("    if (horizontal && dx <= -64) {\n      setSwipeFeedback('Save');",
+               "    if (horizontal && dx <= -64) {\n      hapticSwipe('save');\n      setSwipeFeedback('Save');"),
+              ("    if (horizontal && dx >= 64) {\n      setSwipeFeedback('Done');",
+               "    if (horizontal && dx >= 64) {\n      hapticSwipe('done');\n      setSwipeFeedback('Done');"),
+              ("    if (!horizontal && dy >= 64) {\n      setSwipeFeedback('Skip');",
+               "    if (!horizontal && dy >= 64) {\n      hapticSwipe('skip');\n      setSwipeFeedback('Skip');"),
               ("<button className='tutorialStartOrb' onClick={() => setTutorialStep(1)}>Start</button>",
                "<button className='tutorialStartOrb' onClick={() => { hapticSelect(); setTutorialStep(1); }}>Start</button>"),
               ("<button key={item.label} className={tutorialStep === index ? 'active' : ''} onClick={() => setTutorialStep(index)}>",
@@ -252,8 +171,9 @@ function getXpToNextLevel(xp) {
               ("<button onClick={() => setActivePage('Quote')}>Notifications<span>Open</span></button>",
                "<button onClick={() => { hapticSelect(); setActivePage('Quote'); }}>Notifications<span>Open</span></button>"),
           ]
-          for old, new in jsx_replacements:
-              app = app.replace(old, new)
+          for old, new in replacements:
+              if old in app and new not in app:
+                  app = app.replace(old, new, 1)
 
           if 'rewardTrack' not in app:
               app = app.replace(
@@ -271,180 +191,39 @@ function getXpToNextLevel(xp) {
                   "<p className='quizHint'>You finished 3 cards, passed the check, and kept the loop clean.</p>\n<div className='rewardTrack'>\n  <div>\n    <span>Level {level}</span>\n    <strong>{xpToNext} XP to next level</strong>\n  </div>\n  <div className='rewardMeter' aria-label={`Level progress ${levelProgress}%`}>\n    <span style={{ width: `${levelProgress}%` }} />\n  </div>\n</div>\n<div className='rewardChips' aria-label='Rewards earned'>\n  <span>Streak protected</span>\n  <span>3 cards cleared</span>\n  <span>Quiz passed</span>\n</div>\n<div className='completeStats'>",
                   1,
               )
-
           app_path.write_text(app)
 
           css = css_path.read_text()
-          reward_css = r'''
-
-/* Native-feel reward polish. */
-.completePanel {
-  position: relative;
-  overflow: hidden;
-}
-
-.completePanel > * {
-  position: relative;
-  z-index: 1;
-}
-
-.completeWin {
-  border-color: rgba(215, 173, 90, 0.44);
-}
-
-.completeDone {
-  border-color: rgba(239, 226, 205, 0.18);
-}
-
-.rewardBurst {
-  position: absolute;
-  inset: 20px 20px auto;
-  z-index: 0;
-  display: grid;
-  height: 178px;
-  place-items: center;
-  pointer-events: none;
-}
-
-.rewardBurst span {
-  position: absolute;
-  width: 150px;
-  height: 150px;
-  border: 1px solid rgba(215, 173, 90, 0.2);
-  border-radius: 999px;
-  opacity: 0.5;
-  animation: rewardRing 3.8s ease-in-out infinite;
-}
-
-.rewardBurst span:nth-child(2) {
-  width: 206px;
-  height: 206px;
-  border-color: rgba(159, 31, 38, 0.18);
-  animation-delay: 260ms;
-}
-
-.rewardBurst span:nth-child(3) {
-  width: 260px;
-  height: 260px;
-  border-color: rgba(239, 226, 205, 0.12);
-  animation-delay: 520ms;
-}
-
-.rewardBurst span:nth-child(4) {
-  width: 106px;
-  height: 106px;
-  background: radial-gradient(circle, rgba(215, 173, 90, 0.18), transparent 68%);
-  border-color: transparent;
-  animation: rewardCore 2.6s ease-in-out infinite;
-}
-
-.rewardTrack {
-  display: grid;
-  gap: 10px;
-  border: 1px solid rgba(215, 173, 90, 0.24);
-  border-radius: 20px;
-  background: linear-gradient(145deg, rgba(215, 173, 90, 0.13), rgba(239, 226, 205, 0.035)), rgba(12, 10, 9, 0.52);
-  padding: 13px;
-  text-align: left;
-}
-
-.rewardTrack div:first-child {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.rewardTrack span {
-  color: #f3d595;
-  font-size: 12px;
-  font-weight: 950;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.rewardTrack strong {
-  color: var(--ms-ink);
-  font-size: 13px;
-  text-align: right;
-}
-
-.rewardMeter {
-  height: 10px;
-  overflow: hidden;
-  border: 1px solid rgba(239, 226, 205, 0.12);
-  border-radius: 999px;
-  background: rgba(239, 226, 205, 0.08);
-}
-
-.rewardMeter span {
-  display: block;
-  height: 100%;
-  min-width: 8px;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--ms-gold), var(--ms-red));
-  box-shadow: 0 0 24px rgba(215, 173, 90, 0.36);
-  animation: rewardFill 760ms cubic-bezier(.2, .9, .2, 1) both;
-}
-
-.rewardChips {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.rewardChips span {
-  display: grid;
-  min-height: 42px;
-  place-items: center;
-  border: 1px solid rgba(239, 226, 205, 0.13);
-  border-radius: 999px;
-  background: rgba(14, 12, 10, 0.58);
-  color: #ead7b4;
-  padding: 0 10px;
-  font-size: 11px;
-  font-weight: 950;
-  line-height: 1.15;
-  text-align: center;
-  animation: rewardChipIn 420ms cubic-bezier(.2, .9, .2, 1) both;
-}
-
-.rewardChips span:nth-child(2) {
-  animation-delay: 90ms;
-}
-
-.rewardChips span:nth-child(3) {
-  animation-delay: 160ms;
-}
-
-@keyframes rewardRing {
-  0%, 100% { opacity: 0.26; transform: scale(0.92); }
-  50% { opacity: 0.7; transform: scale(1.06); }
-}
-
-@keyframes rewardCore {
-  0%, 100% { opacity: 0.45; transform: scale(0.9); }
-  50% { opacity: 0.82; transform: scale(1.12); }
-}
-
-@keyframes rewardFill {
-  from { transform: scaleX(0.18); transform-origin: left; }
-  to { transform: scaleX(1); transform-origin: left; }
-}
-
-@keyframes rewardChipIn {
-  from { opacity: 0; transform: translateY(8px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@media (max-width: 390px) {
-  .rewardChips { grid-template-columns: 1fr; }
-  .rewardTrack div:first-child { display: grid; }
-  .rewardTrack strong { text-align: left; }
-}
-'''
+          reward_lines = [
+              '',
+              '/* Native-feel reward polish. */',
+              '.completePanel { position: relative; overflow: hidden; }',
+              '.completePanel > * { position: relative; z-index: 1; }',
+              '.completeWin { border-color: rgba(215, 173, 90, 0.44); }',
+              '.completeDone { border-color: rgba(239, 226, 205, 0.18); }',
+              '.rewardBurst { position: absolute; inset: 20px 20px auto; z-index: 0; display: grid; height: 178px; place-items: center; pointer-events: none; }',
+              '.rewardBurst span { position: absolute; width: 150px; height: 150px; border: 1px solid rgba(215, 173, 90, 0.2); border-radius: 999px; opacity: 0.5; animation: rewardRing 3.8s ease-in-out infinite; }',
+              '.rewardBurst span:nth-child(2) { width: 206px; height: 206px; border-color: rgba(159, 31, 38, 0.18); animation-delay: 260ms; }',
+              '.rewardBurst span:nth-child(3) { width: 260px; height: 260px; border-color: rgba(239, 226, 205, 0.12); animation-delay: 520ms; }',
+              '.rewardBurst span:nth-child(4) { width: 106px; height: 106px; background: radial-gradient(circle, rgba(215, 173, 90, 0.18), transparent 68%); border-color: transparent; animation: rewardCore 2.6s ease-in-out infinite; }',
+              '.rewardTrack { display: grid; gap: 10px; border: 1px solid rgba(215, 173, 90, 0.24); border-radius: 20px; background: linear-gradient(145deg, rgba(215, 173, 90, 0.13), rgba(239, 226, 205, 0.035)), rgba(12, 10, 9, 0.52); padding: 13px; text-align: left; }',
+              '.rewardTrack div:first-child { display: flex; align-items: center; justify-content: space-between; gap: 10px; }',
+              '.rewardTrack span { color: #f3d595; font-size: 12px; font-weight: 950; letter-spacing: 0.08em; text-transform: uppercase; }',
+              '.rewardTrack strong { color: var(--ms-ink); font-size: 13px; text-align: right; }',
+              '.rewardMeter { height: 10px; overflow: hidden; border: 1px solid rgba(239, 226, 205, 0.12); border-radius: 999px; background: rgba(239, 226, 205, 0.08); }',
+              '.rewardMeter span { display: block; height: 100%; min-width: 8px; border-radius: inherit; background: linear-gradient(90deg, var(--ms-gold), var(--ms-red)); box-shadow: 0 0 24px rgba(215, 173, 90, 0.36); animation: rewardFill 760ms cubic-bezier(.2, .9, .2, 1) both; }',
+              '.rewardChips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }',
+              '.rewardChips span { display: grid; min-height: 42px; place-items: center; border: 1px solid rgba(239, 226, 205, 0.13); border-radius: 999px; background: rgba(14, 12, 10, 0.58); color: #ead7b4; padding: 0 10px; font-size: 11px; font-weight: 950; line-height: 1.15; text-align: center; animation: rewardChipIn 420ms cubic-bezier(.2, .9, .2, 1) both; }',
+              '.rewardChips span:nth-child(2) { animation-delay: 90ms; }',
+              '.rewardChips span:nth-child(3) { animation-delay: 160ms; }',
+              '@keyframes rewardRing { 0%, 100% { opacity: 0.26; transform: scale(0.92); } 50% { opacity: 0.7; transform: scale(1.06); } }',
+              '@keyframes rewardCore { 0%, 100% { opacity: 0.45; transform: scale(0.9); } 50% { opacity: 0.82; transform: scale(1.12); } }',
+              '@keyframes rewardFill { from { transform: scaleX(0.18); transform-origin: left; } to { transform: scaleX(1); transform-origin: left; } }',
+              '@keyframes rewardChipIn { from { opacity: 0; transform: translateY(8px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }',
+              '@media (max-width: 390px) { .rewardChips { grid-template-columns: 1fr; } .rewardTrack div:first-child { display: grid; } .rewardTrack strong { text-align: left; } }',
+          ]
           if 'Native-feel reward polish' not in css:
-              css = css.rstrip() + reward_css
+              css = css.rstrip() + '\n'.join(reward_lines) + '\n'
           css_path.write_text(css)
 
           for path in [app_path, css_path]:
