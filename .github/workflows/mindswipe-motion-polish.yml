@@ -1,0 +1,130 @@
+name: MindSwipe Motion Polish
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/mindswipe-motion-polish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  motion-and-build:
+    name: Apply motion polish and build Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply motion stylesheet layer
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64
+
+          css_path = Path('src/app-shell.css')
+          marker = '/* Motion polish: premium, fast, tactile. */'
+          motion = base64.b64decode('''LyogTW90aW9uIHBvbGlzaDogcHJlbWl1bSwgZmFzdCwgdGFjdGlsZS4gKi8KLmhvbWVIZXJvLAouZGFzaGJvYXJkUGFnZSwKLm9uYm9hcmRpbmdQYW5lbCwKLnR1dG9yaWFsUGFuZWwsCi5xdWl6UGFuZWwsCi5jb21wbGV0ZVBhbmVsIHsKICBhbmltYXRpb246IG1zU2NyZWVuSW4gNDYwbXMgY3ViaWMtYmV6aWVyKC4yLCAuOSwgLjIsIDEpIGJvdGg7Cn0KCi5wYWdlSW50cm8sCi5zZWN0aW9uSGVhZGVyLAouaG9tZVN0YXR1c1JvdywKLm1vb2RQYW5lbCwKLnRvZGF5UXVvdGVQcmV2aWV3LAoucmVjZW50UGFuZWwsCi5xdW90ZUNhcmRMYXJnZSwKLnJlbWluZGVyUGFuZWwsCi5wYWNrUGFuZWwsCi5jbGVhblBhbmVsLAouc3RhdEdyaWQgZGl2LAouYmFkZ2VHcmlkIGRpdiwKLm1pbmlDYXJkLAouZW1wdHlTdGF0ZSwKLm1lbnVMaXN0IGJ1dHRvbiwKLmludGVyZXN0Q2F0ZWdvcnksCi5zZWxlY3Rpb25NZXRlciB7CiAgYW5pbWF0aW9uOiBtc0l0ZW1SaXNlIDUyMG1zIGN1YmljLWJlemllciguMiwgLjksIC4yLCAxKSBib3RoOwp9CgoudG9kYXlRdW90ZVByZXZpZXcsCi5xdW90ZUNhcmRMYXJnZSwKLnJlbWluZGVyUGFuZWwgewogIGFuaW1hdGlvbi1kZWxheTogNDVtczsKfQoKLnJlY2VudFBhbmVsLAoucGFja1BhbmVsLAouYmFkZ2VHcmlkIGRpdjpudGgtY2hpbGQoMiksCi5zdGF0R3JpZCBkaXY6bnRoLWNoaWxkKDIpIHsKICBhbmltYXRpb24tZGVsYXk6IDgwbXM7Cn0KCi5iYWRnZUdyaWQgZGl2Om50aC1jaGlsZCgzKSwKLnN0YXRHcmlkIGRpdjpudGgtY2hpbGQoMykgewogIGFuaW1hdGlvbi1kZWxheTogMTIwbXM7Cn0KCi5zZXNzaW9uQ2FyZCB7CiAgYW5pbWF0aW9uOiBtc0NhcmRBcnJpdmUgNDIwbXMgY3ViaWMtYmV6aWVyKC4yLCAuOSwgLjIsIDEpIGJvdGg7CiAgd2lsbC1jaGFuZ2U6IHRyYW5zZm9ybSwgb3BhY2l0eSwgYm94LXNoYWRvdywgYm9yZGVyLWNvbG9yOwp9Cgouc2Vzc2lvbkNhcmQgPiAqIHsKICBhbmltYXRpb246IG1zQ29udGVudExpZnQgNDQwbXMgY3ViaWMtYmV6aWVyKC4yLCAuOSwgLjIsIDEpIGJvdGg7Cn0KCi5zZXNzaW9uQ2FyZDo6YmVmb3JlIHsKICBhbmltYXRpb246IG1zQ2FyZFNoZWVuIDUuOHMgZWFzZS1pbi1vdXQgaW5maW5pdGU7Cn0KCi5iaWdTdGFydCB7CiAgYW5pbWF0aW9uOiBzdGFydFB1bHNlIDIuMzVzIGVhc2UtaW4tb3V0IGluZmluaXRlLCBzdGFydEZsb2F0IDUuMnMgZWFzZS1pbi1vdXQgaW5maW5pdGUsIG1zT3JiR2xvdyA2cyBlYXNlLWluLW91dCBpbmZpbml0ZTsKfQoKLmJpZ1N0YXJ0OjpiZWZvcmUgewogIGFuaW1hdGlvbjogbXNPcmJTaGluZSAzLjFzIGVhc2UtaW4tb3V0IGluZmluaXRlOwp9CgouYmlnU3RhcnQ6OmFmdGVyIHsKICBhbmltYXRpb246IG1zT3JiQ3VycmVudCA0LjhzIGVhc2UtaW4tb3V0IGluZmluaXRlOwp9Cgouc3RhcnRPcmJXcmFwOjpiZWZvcmUgewogIGFuaW1hdGlvbjogc3RhcnRIYWxvIDMuNHMgZWFzZS1pbi1vdXQgaW5maW5pdGUsIG1zSGFsb1R1cm4gOXMgbGluZWFyIGluZmluaXRlOwp9CgoucGFnZVJhaWwgYnV0dG9uLAoucXVpY2tUaW1lcyBidXR0b24sCi5tZW51TGlzdCBidXR0b24sCi5tb29kR3JpZCBidXR0b24sCi5zZWNvbmRhcnlXaWRlLAouc2Vjb25kYXJ5LAouaW50ZXJlc3RCdXR0b24sCi5xdWl6T3B0aW9uLAoucGFja0NhcmQsCi50ZXh0QnV0dG9uLAoucHJpbWFyeVdpZGUsCi5pY29uQnV0dG9uIHsKICBwb3NpdGlvbjogcmVsYXRpdmU7CiAgb3ZlcmZsb3c6IGhpZGRlbjsKICB0cmFuc2l0aW9uOgogICAgdHJhbnNmb3JtIDE4MG1zIGN1YmljLWJlemllciguMiwgLjksIC4yLCAxKSwKICAgIGJvcmRlci1jb2xvciAxODBtcyBlYXNlLAogICAgY29sb3IgMTgwbXMgZWFzZSwKICAgIGJhY2tncm91bmQgMTgwbXMgZWFzZSwKICAgIGJveC1zaGFkb3cgMTgwbXMgZWFzZSwKICAgIGZpbHRlciAxODBtcyBlYXNlOwp9CgoucGFnZVJhaWwgYnV0dG9uLmFjdGl2ZSwKLm1vb2RHcmlkIGJ1dHRvbi5hY3RpdmUsCi5pbnRlcmVzdEJ1dHRvbi5hY3RpdmUsCi5xdWl6T3B0aW9uLmFjdGl2ZSwKLnBhY2tDYXJkLmFjdGl2ZSwKLnF1aWNrVGltZXMgYnV0dG9uLmFjdGl2ZSB7CiAgYW5pbWF0aW9uOiBtc1NlbGVjdGVkU2V0dGxlIDMwMG1zIGN1YmljLWJlemllciguMiwgLjksIC4yLCAxKSBib3RoOwp9CgoucGFnZVJhaWwgYnV0dG9uLmFjdGl2ZTo6YWZ0ZXIsCi5tb29kR3JpZCBidXR0b24uYWN0aXZlOjphZnRlciwKLmludGVyZXN0QnV0dG9uLmFjdGl2ZTo6YWZ0ZXIsCi5xdWl6T3B0aW9uLmFjdGl2ZTo6YWZ0ZXIsCi5wYWNrQ2FyZC5hY3RpdmU6OmFmdGVyLAoucXVpY2tUaW1lcyBidXR0b24uYWN0aXZlOjphZnRlciwKLnByaW1hcnlXaWRlOjphZnRlciB7CiAgcG9zaXRpb246IGFic29sdXRlOwogIGluc2V0OiAwOwogIHBvaW50ZXItZXZlbnRzOiBub25lOwogIGJhY2tncm91bmQ6IGxpbmVhci1ncmFkaWVudCgxMTBkZWcsIHRyYW5zcGFyZW50IDIwJSwgcmdiYSgyNTUsIDI0OCwgMjM2LCAwLjE0KSA0OCUsIHRyYW5zcGFyZW50IDc2JSk7CiAgY29udGVudDogIiI7CiAgdHJhbnNmb3JtOiB0cmFuc2xhdGVYKC0xMjAlKTsKICBhbmltYXRpb246IG1zQnV0dG9uU3dlZXAgMi42cyBlYXNlLWluLW91dCBpbmZpbml0ZTsKfQoKLnBhZ2VSYWlsIGJ1dHRvbjphY3RpdmUsCi5xdWlja1RpbWVzIGJ1dHRvbjphY3RpdmUsCi5tZW51TGlzdCBidXR0b246YWN0aXZlLAoubW9vZEdyaWQgYnV0dG9uOmFjdGl2ZSwKLnNlY29uZGFyeVdpZGU6YWN0aXZlLAouc2Vjb25kYXJ5OmFjdGl2ZSwKLmludGVyZXN0QnV0dG9uOmFjdGl2ZSwKLnF1aXpPcHRpb246YWN0aXZlLAoucGFja0NhcmQ6YWN0aXZlLAoudGV4dEJ1dHRvbjphY3RpdmUsCi5wcmltYXJ5V2lkZTphY3RpdmUsCi5pY29uQnV0dG9uOmFjdGl2ZSB7CiAgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKDFweCkgc2NhbGUoMC45NjUpOwogIGZpbHRlcjogYnJpZ2h0bmVzcygxLjA4KTsKfQoKLmFjdGlvbkZsYXNoLAoucXVvdGVUb2FzdCB7CiAgYW5pbWF0aW9uOiBtc1RvYXN0SW4gMzYwbXMgY3ViaWMtYmV6aWVyKC4xNiwgLjkyLCAuMjQsIDEpIGJvdGg7Cn0KCi5zd2lwZUZlZWRiYWNrIHsKICBhbmltYXRpb246IG1zRmVlZGJhY2tQb3AgMjYwbXMgY3ViaWMtYmV6aWVyKC4xNiwgLjkyLCAuMjQsIDEpIGJvdGg7Cn0KCi5jb21wbGV0ZU9yYiB7CiAgYW5pbWF0aW9uOiBtc1Jld2FyZFB1bHNlIDIuMnMgZWFzZS1pbi1vdXQgaW5maW5pdGU7Cn0KCi5jb21wbGV0ZVN0YXRzIGRpdiwKLmNvbXBsZXRlUXVvdGUgewogIGFuaW1hdGlvbjogbXNJdGVtUmlzZSA1MDBtcyBjdWJpYy1iZXppZXIoLjIsIC45LCAuMiwgMSkgYm90aDsKfQoKLmNvbXBsZXRlU3RhdHMgZGl2Om50aC1jaGlsZCgyKSB7CiAgYW5pbWF0aW9uLWRlbGF5OiA3MG1zOwp9CgouY29tcGxldGVTdGF0cyBkaXY6bnRoLWNoaWxkKDMpLAouY29tcGxldGVRdW90ZSB7CiAgYW5pbWF0aW9uLWRlbGF5OiAxMzBtczsKfQoKLnR1dG9yaWFsU3RhZ2VbZGF0YS1mb2N1cz0ic3RhcnQiXSAudHV0b3JpYWxTdGFydE9yYiwKLnR1dG9yaWFsU3RhZ2VbZGF0YS1mb2N1cz0iY2FyZCJdIC50dXRvcmlhbENhcmRQcmV2aWV3LAoudHV0b3JpYWxTdGFnZVtkYXRhLWZvY3VzPSJxdWl6Il0gLnR1dG9yaWFsUXVpelByZXZpZXcsCi50dXRvcmlhbFN0YWdlW2RhdGEtZm9jdXM9InF1b3RlIl0gLnR1dG9yaWFsUXVvdGVQcmV2aWV3IHsKICBhbmltYXRpb246IG1zRm9jdXNQdWxzZSAxLjg1cyBlYXNlLWluLW91dCBpbmZpbml0ZTsKfQoKLmdlc3R1cmVHdWlkZSBzcGFuIHsKICB0cmFuc2l0aW9uOiB0cmFuc2Zvcm0gMTYwbXMgZWFzZSwgYm9yZGVyLWNvbG9yIDE4MG1zIGVhc2UsIGJhY2tncm91bmQgMTgwbXMgZWFzZTsKfQoKLmdlc3R1cmVHdWlkZSBzcGFuOmFjdGl2ZSB7CiAgdHJhbnNmb3JtOiBzY2FsZSgwLjk2KTsKfQoKQG1lZGlhIChob3ZlcjogaG92ZXIpIHsKICAucGFnZVJhaWwgYnV0dG9uOmhvdmVyLAogIC5xdWlja1RpbWVzIGJ1dHRvbjpob3ZlciwKICAubWVudUxpc3QgYnV0dG9uOmhvdmVyLAogIC5tb29kR3JpZCBidXR0b246aG92ZXIsCiAgLnNlY29uZGFyeVdpZGU6aG92ZXIsCiAgLnNlY29uZGFyeTpob3ZlciwKICAuaW50ZXJlc3RCdXR0b246aG92ZXIsCiAgLnF1aXpPcHRpb246aG92ZXIsCiAgLnBhY2tDYXJkOmhvdmVyLAogIC50ZXh0QnV0dG9uOmhvdmVyLAogIC5pY29uQnV0dG9uOmhvdmVyIHsKICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWSgtMnB4KTsKICAgIGJvcmRlci1jb2xvcjogcmdiYSgyMTUsIDE3MywgOTAsIDAuMzQpOwogICAgYm94LXNoYWRvdzogMCAxOHB4IDQ0cHggcmdiYSgwLCAwLCAwLCAwLjMyKSwgaW5zZXQgMCAxcHggMCByZ2JhKDI1NSwgMjQ4LCAyMzYsIDAuMTQpOwogIH0KCiAgLmJpZ1N0YXJ0OmhvdmVyIHsKICAgIGZpbHRlcjogYnJpZ2h0bmVzcygxLjA2KSBzYXR1cmF0ZSgxLjA4KTsKICB9Cn0KCkBrZXlmcmFtZXMgbXNTY3JlZW5JbiB7CiAgZnJvbSB7CiAgICBvcGFjaXR5OiAwOwogICAgZmlsdGVyOiBibHVyKDEwcHgpOwogICAgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKDIwcHgpIHNjYWxlKDAuOTg1KTsKICB9CiAgdG8gewogICAgb3BhY2l0eTogMTsKICAgIGZpbHRlcjogYmx1cigwKTsKICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWSgwKSBzY2FsZSgxKTsKICB9Cn0KCkBrZXlmcmFtZXMgbXNJdGVtUmlzZSB7CiAgZnJvbSB7CiAgICBvcGFjaXR5OiAwOwogICAgZmlsdGVyOiBibHVyKDZweCk7CiAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoMTRweCk7CiAgfQogIHRvIHsKICAgIG9wYWNpdHk6IDE7CiAgICBmaWx0ZXI6IGJsdXIoMCk7CiAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoMCk7CiAgfQp9CgpAa2V5ZnJhbWVzIG1zQ2FyZEFycml2ZSB7CiAgZnJvbSB7CiAgICBvcGFjaXR5OiAwOwogICAgZmlsdGVyOiBibHVyKDhweCk7CiAgfQogIHRvIHsKICAgIG9wYWNpdHk6IDE7CiAgICBmaWx0ZXI6IGJsdXIoMCk7CiAgfQp9CgpAa2V5ZnJhbWVzIG1zQ29udGVudExpZnQgewogIGZyb20gewogICAgb3BhY2l0eTogMDsKICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWSgxMnB4KTsKICB9CiAgdG8gewogICAgb3BhY2l0eTogMTsKICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWSgwKTsKICB9Cn0KCkBrZXlmcmFtZXMgbXNDYXJkU2hlZW4gewogIDAlLCAxMDAlIHsKICAgIG9wYWNpdHk6IDAuNjI7CiAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVgoLTglKSByb3RhdGUoMGRlZyk7CiAgfQogIDUwJSB7CiAgICBvcGFjaXR5OiAwLjk2OwogICAgdHJhbnNmb3JtOiB0cmFuc2xhdGVYKDglKSByb3RhdGUoMGRlZyk7CiAgfQp9CgpAa2V5ZnJhbWVzIG1zT3JiR2xvdyB7CiAgMCUsIDEwMCUgewogICAgZmlsdGVyOiBzYXR1cmF0ZSgxKSBicmlnaHRuZXNzKDEpOwogIH0KICA1MCUgewogICAgZmlsdGVyOiBzYXR1cmF0ZSgxLjEzKSBicmlnaHRuZXNzKDEuMDgpOwogIH0KfQoKQGtleWZyYW1lcyBtc09yYlNoaW5lIHsKICAwJSwgMTAwJSB7CiAgICBvcGFjaXR5OiAwLjU7CiAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVgoLTM0cHgpIHJvdGF0ZSgtMTJkZWcpIHNjYWxlWCgwLjg2KTsKICB9CiAgNDUlLCA1NSUgewogICAgb3BhY2l0eTogMC45NjsKICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWCgzNHB4KSByb3RhdGUoLTEyZGVnKSBzY2FsZVgoMS4wOCk7CiAgfQp9CgpAa2V5ZnJhbWVzIG1zT3JiQ3VycmVudCB7CiAgMCUsIDEwMCUgewogICAgb3BhY2l0eTogMC40MjsKICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlM2QoLThweCwgNHB4LCAwKSBzY2FsZSgwLjk2KTsKICB9CiAgNTAlIHsKICAgIG9wYWNpdHk6IDAuNjY7CiAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZTNkKDhweCwgLTRweCwgMCkgc2NhbGUoMS4wNik7CiAgfQp9CgpAa2V5ZnJhbWVzIG1zSGFsb1R1cm4gewogIHRvIHsKICAgIHJvdGF0ZTogMzYwZGVnOwogIH0KfQoKQGtleWZyYW1lcyBtc1NlbGVjdGVkU2V0dGxlIHsKICAwJSB7CiAgICB0cmFuc2Zvcm06IHNjYWxlKDAuOTYpOwogIH0KICA2MiUgewogICAgdHJhbnNmb3JtOiBzY2FsZSgxLjAyNSk7CiAgfQogIDEwMCUgewogICAgdHJhbnNmb3JtOiBzY2FsZSgxKTsKICB9Cn0KCkBrZXlmcmFtZXMgbXNCdXR0b25Td2VlcCB7CiAgMCUsIDQyJSB7CiAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVgoLTEyMCUpOwogIH0KICA3MiUsIDEwMCUgewogICAgdHJhbnNmb3JtOiB0cmFuc2xhdGVYKDEyMCUpOwogIH0KfQoKQGtleWZyYW1lcyBtc1RvYXN0SW4gewogIGZyb20gewogICAgb3BhY2l0eTogMDsKICAgIGZpbHRlcjogYmx1cig4cHgpOwogICAgdHJhbnNmb3JtOiB0cmFuc2xhdGUzZCgtNTAlLCAyMnB4LCAwKSBzY2FsZSgwLjk3KTsKICB9CiAgdG8gewogICAgb3BhY2l0eTogMTsKICAgIGZpbHRlcjogYmx1cigwKTsKICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlM2QoLTUwJSwgMCwgMCkgc2NhbGUoMSk7CiAgfQp9CgpAa2V5ZnJhbWVzIG1zRmVlZGJhY2tQb3AgewogIDAlIHsKICAgIG9wYWNpdHk6IDA7CiAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoLThweCkgc2NhbGUoMC45Mik7CiAgfQogIDcwJSB7CiAgICBvcGFjaXR5OiAxOwogICAgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKDApIHNjYWxlKDEuMDUpOwogIH0KICAxMDAlIHsKICAgIG9wYWNpdHk6IDE7CiAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoMCkgc2NhbGUoMSk7CiAgfQp9CgpAa2V5ZnJhbWVzIG1zUmV3YXJkUHVsc2UgewogIDAlLCAxMDAlIHsKICAgIHRyYW5zZm9ybTogc2NhbGUoMSk7CiAgICBib3gtc2hhZG93OiAwIDIycHggNjBweCByZ2JhKDE1OSwgMzEsIDM4LCAwLjMyKSwgaW5zZXQgMCA4cHggMjBweCByZ2JhKDI1NSwgMjQ4LCAyMzYsIDAuMjgpOwogIH0KICA1MCUgewogICAgdHJhbnNmb3JtOiBzY2FsZSgxLjA0NSk7CiAgICBib3gtc2hhZG93OiAwIDMwcHggODJweCByZ2JhKDIxNSwgMTczLCA5MCwgMC4yNCksIGluc2V0IDAgMTBweCAyNHB4IHJnYmEoMjU1LCAyNDgsIDIzNiwgMC4zNik7CiAgfQp9CgpAa2V5ZnJhbWVzIG1zRm9jdXNQdWxzZSB7CiAgMCUsIDEwMCUgewogICAgb3V0bGluZS1vZmZzZXQ6IDRweDsKICAgIGZpbHRlcjogYnJpZ2h0bmVzcygxKTsKICB9CiAgNTAlIHsKICAgIG91dGxpbmUtb2Zmc2V0OiA3cHg7CiAgICBmaWx0ZXI6IGJyaWdodG5lc3MoMS4xKTsKICB9Cn0KCkBtZWRpYSAocHJlZmVycy1yZWR1Y2VkLW1vdGlvbjogcmVkdWNlKSB7CiAgKiwKICAqOjpiZWZvcmUsCiAgKjo6YWZ0ZXIgewogICAgYW5pbWF0aW9uLWR1cmF0aW9uOiAxbXMgIWltcG9ydGFudDsKICAgIGFuaW1hdGlvbi1pdGVyYXRpb24tY291bnQ6IDEgIWltcG9ydGFudDsKICAgIHNjcm9sbC1iZWhhdmlvcjogYXV0byAhaW1wb3J0YW50OwogICAgdHJhbnNpdGlvbi1kdXJhdGlvbjogMW1zICFpbXBvcnRhbnQ7CiAgfQp9Cg==''').decode('utf-8')
+
+          css = css_path.read_text()
+          if marker in css:
+              css = css[:css.index(marker)].rstrip() + '\n\n' + motion.rstrip() + '\n'
+          else:
+              css = css.rstrip() + '\n\n' + motion.rstrip() + '\n'
+          css_path.write_text(css)
+
+          for workflow in [
+              Path('.github/workflows/mindswipe-motion-polish.yml'),
+              Path('.github/workflows/mindswipe-noir-redesign.yml'),
+              Path('.github/workflows/mindswipe-fix-section-build.yml'),
+              Path('.github/workflows/mindswipe-sections-polish.yml'),
+              Path('.github/workflows/mindswipe-sections-runner.yml'),
+          ]:
+              if workflow.exists():
+                  workflow.unlink()
+          PY
+
+      - name: Commit motion polish
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app-shell.css .github/workflows
+          if git diff --cached --quiet; then
+            echo "No motion changes to commit."
+          else
+            git commit -m "Polish MindSwipe motion"
+            git push
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Sync web assets to Android
+        run: npx cap sync android
+
+      - name: Add Android notification permissions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('android/app/src/main/AndroidManifest.xml')
+          text = path.read_text()
+          marker = '<manifest xmlns:android="http://schemas.android.com/apk/res/android">'
+          permissions = [
+              '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
+              '    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
+          ]
+
+          if marker not in text:
+              raise SystemExit('Android manifest marker not found')
+
+          additions = '\n'.join(permission for permission in permissions if permission not in text)
+          if additions:
+              text = text.replace(marker, f'{marker}\n{additions}', 1)
+              path.write_text(text)
+          PY
+
+      - name: Build debug APK and AAB
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug bundleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MindSwipe-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MindSwipe-debug-aab
+          path: android/app/build/outputs/bundle/debug/app-debug.aab
