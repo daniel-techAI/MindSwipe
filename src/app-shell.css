@@ -2547,3 +2547,28 @@ body {
     transition-duration: 1ms !important;
   }
 }
+/* Native-feel reward polish. */
+.completePanel { position: relative; overflow: hidden; }
+.completePanel > * { position: relative; z-index: 1; }
+.completeWin { border-color: rgba(215, 173, 90, 0.44); }
+.completeDone { border-color: rgba(239, 226, 205, 0.18); }
+.rewardBurst { position: absolute; inset: 20px 20px auto; z-index: 0; display: grid; height: 178px; place-items: center; pointer-events: none; }
+.rewardBurst span { position: absolute; width: 150px; height: 150px; border: 1px solid rgba(215, 173, 90, 0.2); border-radius: 999px; opacity: 0.5; animation: rewardRing 3.8s ease-in-out infinite; }
+.rewardBurst span:nth-child(2) { width: 206px; height: 206px; border-color: rgba(159, 31, 38, 0.18); animation-delay: 260ms; }
+.rewardBurst span:nth-child(3) { width: 260px; height: 260px; border-color: rgba(239, 226, 205, 0.12); animation-delay: 520ms; }
+.rewardBurst span:nth-child(4) { width: 106px; height: 106px; background: radial-gradient(circle, rgba(215, 173, 90, 0.18), transparent 68%); border-color: transparent; animation: rewardCore 2.6s ease-in-out infinite; }
+.rewardTrack { display: grid; gap: 10px; border: 1px solid rgba(215, 173, 90, 0.24); border-radius: 20px; background: linear-gradient(145deg, rgba(215, 173, 90, 0.13), rgba(239, 226, 205, 0.035)), rgba(12, 10, 9, 0.52); padding: 13px; text-align: left; }
+.rewardTrack div:first-child { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.rewardTrack span { color: #f3d595; font-size: 12px; font-weight: 950; letter-spacing: 0.08em; text-transform: uppercase; }
+.rewardTrack strong { color: var(--ms-ink); font-size: 13px; text-align: right; }
+.rewardMeter { height: 10px; overflow: hidden; border: 1px solid rgba(239, 226, 205, 0.12); border-radius: 999px; background: rgba(239, 226, 205, 0.08); }
+.rewardMeter span { display: block; height: 100%; min-width: 8px; border-radius: inherit; background: linear-gradient(90deg, var(--ms-gold), var(--ms-red)); box-shadow: 0 0 24px rgba(215, 173, 90, 0.36); animation: rewardFill 760ms cubic-bezier(.2, .9, .2, 1) both; }
+.rewardChips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.rewardChips span { display: grid; min-height: 42px; place-items: center; border: 1px solid rgba(239, 226, 205, 0.13); border-radius: 999px; background: rgba(14, 12, 10, 0.58); color: #ead7b4; padding: 0 10px; font-size: 11px; font-weight: 950; line-height: 1.15; text-align: center; animation: rewardChipIn 420ms cubic-bezier(.2, .9, .2, 1) both; }
+.rewardChips span:nth-child(2) { animation-delay: 90ms; }
+.rewardChips span:nth-child(3) { animation-delay: 160ms; }
+@keyframes rewardRing { 0%, 100% { opacity: 0.26; transform: scale(0.92); } 50% { opacity: 0.7; transform: scale(1.06); } }
+@keyframes rewardCore { 0%, 100% { opacity: 0.45; transform: scale(0.9); } 50% { opacity: 0.82; transform: scale(1.12); } }
+@keyframes rewardFill { from { transform: scaleX(0.18); transform-origin: left; } to { transform: scaleX(1); transform-origin: left; } }
+@keyframes rewardChipIn { from { opacity: 0; transform: translateY(8px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (max-width: 390px) { .rewardChips { grid-template-columns: 1fr; } .rewardTrack div:first-child { display: grid; } .rewardTrack strong { text-align: left; } }

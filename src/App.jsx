@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { createRoot } from 'react-dom/client';
 import { dailyQuotes, extraActionMoves, extraLessons, packOptions } from './content.js';
@@ -625,6 +626,72 @@ function saveProgress(progress) {
   localStorage.setItem('mindSwipeProgress', JSON.stringify(progress));
 }
 
+function vibrateFallback(pattern = 10) {
+  if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+    navigator.vibrate(pattern);
+  }
+}
+
+async function hapticImpact(style = ImpactStyle.Light, fallback = 10) {
+  try {
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style });
+      return;
+    }
+  } catch {
+    // Fall through to browser vibration.
+  }
+  vibrateFallback(fallback);
+}
+
+async function hapticNotify(type = NotificationType.Success, fallback = [18, 20, 18]) {
+  try {
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.notification({ type });
+      return;
+    }
+  } catch {
+    // Fall through to browser vibration.
+  }
+  vibrateFallback(fallback);
+}
+
+async function hapticSelect(fallback = 7) {
+  try {
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.selectionChanged();
+      return;
+    }
+  } catch {
+    // Fall through to browser vibration.
+  }
+  vibrateFallback(fallback);
+}
+
+function hapticSwipe(mode) {
+  if (mode === "skip") {
+    hapticNotify(NotificationType.Warning, [12, 28, 12]);
+    return;
+  }
+  if (mode === "done") {
+    hapticNotify(NotificationType.Success, [16, 18, 28]);
+    return;
+  }
+  hapticImpact(ImpactStyle.Medium, 18);
+}
+
+function getLevelFromXp(xp) {
+  return Math.max(1, Math.floor(xp / 120) + 1);
+}
+
+function getLevelProgress(xp) {
+  return Math.min(100, Math.round(((xp % 120) / 120) * 100));
+}
+
+function getXpToNextLevel(xp) {
+  const remainder = xp % 120;
+  return remainder === 0 ? 120 : 120 - remainder;
+}
 function App() {
   const [progress, setProgress] = useState(readProgress);
   const [screen, setScreen] = useState(progress.tutorialSeen ? (progress.onboarded ? 'home' : 'onboarding') : 'tutorial');
@@ -718,16 +785,19 @@ function App() {
   }, []);
 
   function toggleInterest(id) {
+    hapticSelect();
     setSelectedInterests((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   }
 
   function finishOnboarding() {
+    hapticImpact(ImpactStyle.Medium, 18);
     const next = { ...progress, onboarded: true, interests: selectedInterests, activePack };
     commit(next);
     setScreen('home');
   }
 
   function finishTutorial() {
+    hapticImpact(ImpactStyle.Medium, 18);
     const next = { ...progress, tutorialSeen: true };
     commit(next);
     setScreen(progress.onboarded ? 'home' : 'onboarding');
@@ -735,6 +805,7 @@ function App() {
 
   function showQuoteReminder(quote, force = false) {
     if (!force && progress.quoteNotifiedToday === today) return;
+    hapticNotify(NotificationType.Success, [12, 18, 12]);
     const body = quote.source ? `${quote.text} - ${quote.source}` : quote.text;
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('MindSwipe daily quote', { body: `${body} ${quote.action}` });
@@ -744,6 +815,7 @@ function App() {
   }
 
   async function enableQuoteReminder() {
+    hapticImpact(ImpactStyle.Light, 8);
     if (Capacitor.isNativePlatform()) {
       const result = await scheduleNativeQuoteReminders({ time: quoteReminderTime, mood: activeMood, activePack, interestIds: selectedInterests });
       commit({ ...progress, quoteReminderTime, quoteReminderEnabled: result.scheduled });
@@ -761,12 +833,14 @@ function App() {
   }
 
   async function disableQuoteReminder() {
+    hapticImpact(ImpactStyle.Light, 8);
     await cancelNativeQuoteReminders();
     commit({ ...progress, quoteReminderEnabled: false, quoteReminderTime });
     setQuoteMessage('Daily reminder turned off.');
   }
 
   function startSession(mood = activeMood) {
+    hapticImpact(ImpactStyle.Medium, 18);
     setActiveMood(mood);
     setSessionIndex(0);
     setSwipeFeedback('');
@@ -858,18 +932,21 @@ function App() {
     setDragState({ x: 0, y: 0, active: false });
 
     if (horizontal && dx <= -64) {
+      hapticSwipe('save');
       setSwipeFeedback('Save');
       setExitSwipe('Save');
       window.setTimeout(() => finishCard(currentLesson, 'save'), 280);
       return;
     }
     if (horizontal && dx >= 64) {
+      hapticSwipe('done');
       setSwipeFeedback('Done');
       setExitSwipe('Done');
       window.setTimeout(() => finishCard(currentLesson, 'done'), 280);
       return;
     }
     if (!horizontal && dy >= 64) {
+      hapticSwipe('skip');
       setSwipeFeedback('Skip');
       setExitSwipe('Skip');
       window.setTimeout(() => finishCard(currentLesson, 'skip'), 280);
@@ -877,16 +954,19 @@ function App() {
   }
 
   function scrollToInterestCategory(id) {
+    hapticSelect();
     document.getElementById(`interest-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function toggleQuizAnswer(index) {
+    hapticSelect();
     setQuizSelected((current) => current.includes(index) ? current.filter((item) => item !== index) : [...current, index]);
   }
 
   function submitQuiz() {
     if (!quiz) return;
     if (!isCorrectQuizSelection(quiz, quizSelected)) {
+      hapticNotify(NotificationType.Error, [30, 30, 30]);
       setPendingProgress(null);
       setQuizSelected([]);
       setQuizAttempt((current) => current + 1);
@@ -897,6 +977,7 @@ function App() {
       return;
     }
 
+    hapticNotify(NotificationType.Success, [18, 20, 30]);
     const base = pendingProgress || progress;
     const wasActiveToday = base.lastActive === today;
     const nextProgress = {
@@ -923,6 +1004,7 @@ function App() {
   }
 
   function retryAfterQuiz() {
+    hapticImpact(ImpactStyle.Medium, 18);
     setQuiz(null);
     setQuizSelected([]);
     setPendingProgress(null);
@@ -967,7 +1049,7 @@ function App() {
               <span>MindSwipe</span>
               <strong>3</strong>
             </div>
-            <button className='tutorialStartOrb' onClick={() => setTutorialStep(1)}>Start</button>
+            <button className='tutorialStartOrb' onClick={() => { hapticSelect(); setTutorialStep(1); }}>Start</button>
             <div className='tutorialCardPreview'>
               <span className='tutorialTopic'>Focus</span>
               <strong>Protect one deep block</strong>
@@ -982,7 +1064,7 @@ function App() {
           </div>
           <div className='tutorialStepper'>
             {tutorialItems.map((item, index) => (
-              <button key={item.label} className={tutorialStep === index ? 'active' : ''} onClick={() => setTutorialStep(index)}>
+              <button key={item.label} className={tutorialStep === index ? 'active' : ''} onClick={() => { hapticSelect(); setTutorialStep(index); }}>
                 {item.label}
               </button>
             ))}
@@ -1037,7 +1119,7 @@ function App() {
           </div>
           <div className='packGrid'>
             {packOptions.slice(0, 4).map((pack) => (
-              <button key={pack.id} className={activePack === pack.id ? 'packCard active' : 'packCard'} onClick={() => setActivePack(pack.id)}>
+              <button key={pack.id} className={activePack === pack.id ? 'packCard active' : 'packCard'} onClick={() => { hapticSelect(); setActivePack(pack.id); }}>
                 <strong>{pack.label}</strong>
                 <span>{pack.detail}</span>
               </button>
@@ -1062,7 +1144,7 @@ function App() {
     return (
       <main className='appShell'>
         <header className='appTop'>
-<button className='iconButton' aria-label='Close session' onClick={() => setScreen('home')}><span className='closeMark' /></button>
+<button className='iconButton' aria-label='Close session' onClick={() => { hapticImpact(ImpactStyle.Light, 8); setScreen('home'); }}><span className='closeMark' /></button>
 <div className='sessionCounter' aria-label={`Card ${sessionIndex + 1} of ${nextSession.length}`}>
   <strong>{sessionIndex + 1} / {nextSession.length}</strong>
   <div className='sessionDots'>
@@ -1149,7 +1231,7 @@ onPointerCancel={handleCardPointerEnd}
 <h1>Close, but the streak needs proof.</h1>
 <p className='quizHint'>You keep the cards you saw, but today's streak only counts after a clean check. MindSwipe will give you a fresh 3-card run.</p>
 <button className='primaryWide' onClick={retryAfterQuiz}>Retry with new cards</button>
-<button className='secondaryWide' onClick={() => setScreen('home')}>Back home</button>
+<button className='secondaryWide' onClick={() => { hapticImpact(ImpactStyle.Light, 8); setScreen('home'); }}>Back home</button>
         </section>
       </main>
     );
@@ -1157,15 +1239,38 @@ onPointerCancel={handleCardPointerEnd}
 
   if (screen === 'sessionComplete') {
     const result = sessionResult || { streak: progress.streak, xp: progress.xp, newStreak: false, quote: dailyQuote };
+    const level = getLevelFromXp(result.xp);
+    const levelProgress = getLevelProgress(result.xp);
+    const xpToNext = getXpToNextLevel(result.xp);
     return (
       <main className='appShell center'>
-        <section className='completePanel'>
+        <section className={`completePanel ${result.newStreak ? 'completeWin' : 'completeDone'}`}>
+<div className='rewardBurst' aria-hidden='true'>
+  <span />
+  <span />
+  <span />
+  <span />
+</div>
 <div className='completeOrb'>
   <span>{result.newStreak ? '+1' : 'OK'}</span>
 </div>
 <p className='eyebrow'>{result.newStreak ? 'Streak earned' : 'Daily run complete'}</p>
 <h1>{result.newStreak ? `${result.streak} day streak` : 'Already counted today'}</h1>
 <p className='quizHint'>You finished 3 cards, passed the check, and kept the loop clean.</p>
+<div className='rewardTrack'>
+  <div>
+    <span>Level {level}</span>
+    <strong>{xpToNext} XP to next level</strong>
+  </div>
+  <div className='rewardMeter' aria-label={`Level progress ${levelProgress}%`}>
+    <span style={{ width: `${levelProgress}%` }} />
+  </div>
+</div>
+<div className='rewardChips' aria-label='Rewards earned'>
+  <span>Streak protected</span>
+  <span>3 cards cleared</span>
+  <span>Quiz passed</span>
+</div>
 <div className='completeStats'>
   <div><strong>{result.xp}</strong><span>XP</span></div>
   <div><strong>{result.streak}</strong><span>streak</span></div>
@@ -1175,7 +1280,7 @@ onPointerCancel={handleCardPointerEnd}
   <span>Keep in mind</span>
   <strong>{result.quote.text}</strong>
 </article>
-<button className='primaryWide' onClick={() => setScreen('home')}>Back home</button>
+<button className='primaryWide' onClick={() => { hapticImpact(ImpactStyle.Light, 8); setScreen('home'); }}>Back home</button>
 <button className='secondaryWide' onClick={() => startSession(activeMood)}>Another run</button>
         </section>
       </main>
@@ -1190,12 +1295,12 @@ onPointerCancel={handleCardPointerEnd}
           <MindSwipeLogo className='topLogo' />
           <h1 className='brandTitle'>MindSwipe</h1>
         </div>
-        <button className='iconButton' aria-label='Profile' onClick={() => setActivePage('Profile')}><span className='smallLabel'>{progress.streak}</span></button>
+        <button className='iconButton' aria-label='Profile' onClick={() => { hapticSelect(); setActivePage('Profile'); }}><span className='smallLabel'>{progress.streak}</span></button>
       </header>
 
       <nav className='pageRail' aria-label='MindSwipe sections'>
         {pages.map((page) => (
-          <button key={page} className={activePage === page ? 'active' : ''} onClick={() => setActivePage(page)}>
+          <button key={page} className={activePage === page ? 'active' : ''} onClick={() => { hapticSelect(); setActivePage(page); }}>
             {page}
           </button>
         ))}
@@ -1364,7 +1469,7 @@ onPointerCancel={handleCardPointerEnd}
         <strong>Local</strong>
       </div>
       <button onClick={() => setScreen('onboarding')}>Edit interests<span>Open</span></button>
-      <button onClick={() => setActivePage('Quote')}>Notifications<span>Open</span></button>
+      <button onClick={() => { hapticSelect(); setActivePage('Quote'); }}>Notifications<span>Open</span></button>
       <button>Appearance<span>Coming soon</span></button>
       <button>Contact & support<span>Coming soon</span></button>
       <button>Privacy policy<span>Coming soon</span></button>
