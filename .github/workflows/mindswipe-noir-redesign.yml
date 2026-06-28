@@ -1,0 +1,129 @@
+name: MindSwipe Noir Redesign
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/mindswipe-noir-redesign.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  redesign-and-build:
+    name: Apply premium noir redesign and build Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply redesign stylesheet layer
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64
+
+          css_path = Path('src/app-shell.css')
+          marker = '/* Premium noir redesign: warm paper, oxblood, antique gold. */'
+          override = base64.b64decode('''LyogUHJlbWl1bSBub2lyIHJlZGVzaWduOiB3YXJtIHBhcGVyLCBveGJsb29kLCBhbnRpcXVlIGdvbGQuICovCjpyb290IHsKICBjb2xvcjogI2Y3ZWZlMzsKICBiYWNrZ3JvdW5kOiAjMDgwNzA2OwogIGNvbG9yLXNjaGVtZTogZGFyazsKICAtLW1zLWJnOiAjMDgwNzA2OwogIC0tbXMtYmctc29mdDogIzExMGYwZDsKICAtLW1zLWluazogI2ZmZjhlYzsKICAtLW1zLWluay1zb2Z0OiAjZDdjYmJiOwogIC0tbXMtbXV0ZWQ6ICM5ZjkxODA7CiAgLS1tcy1wYXBlcjogI2VmZTJjZDsKICAtLW1zLXBhcGVyLWRlZXA6ICNkOGMyYTI7CiAgLS1tcy1yZWQ6ICM5ZjFmMjY7CiAgLS1tcy1yZWQtZGFyazogIzVmMTAxNjsKICAtLW1zLXJlZC1zb2Z0OiByZ2JhKDE1OSwgMzEsIDM4LCAwLjIyKTsKICAtLW1zLWdvbGQ6ICNkN2FkNWE7CiAgLS1tcy1nb2xkLXNvZnQ6IHJnYmEoMjE1LCAxNzMsIDkwLCAwLjIpOwogIC0tbXMtYm9yZGVyOiByZ2JhKDIzOSwgMjI2LCAyMDUsIDAuMTUpOwogIC0tbXMtYm9yZGVyLXN0cm9uZzogcmdiYSgyMTUsIDE3MywgOTAsIDAuMzgpOwogIC0tbXMtcGFuZWw6IHJnYmEoMjEsIDE4LCAxNSwgMC43OCk7CiAgLS1tcy1wYW5lbC1kZWVwOiByZ2JhKDEyLCAxMCwgOSwgMC45Mik7CiAgLS1tcy1zaGFkb3c6IDAgMjhweCA4MHB4IHJnYmEoMCwgMCwgMCwgMC40Mik7Cn0KCmJvZHkgewogIGJhY2tncm91bmQ6CiAgICByYWRpYWwtZ3JhZGllbnQoY2lyY2xlIGF0IDUwJSAtMTAlLCByZ2JhKDIxNSwgMTczLCA5MCwgMC4yKSwgdHJhbnNwYXJlbnQgMzUlKSwKICAgIHJhZGlhbC1ncmFkaWVudChjaXJjbGUgYXQgMTIlIDE4JSwgcmdiYSgxNTksIDMxLCAzOCwgMC4yMiksIHRyYW5zcGFyZW50IDM2JSksCiAgICBsaW5lYXItZ3JhZGllbnQoMTgwZGVnLCAjMTIxMDBkIDAlLCAjMDgwNzA2IDU2JSwgIzA1MDQwMyAxMDAlKTsKfQoKLmFwcFNoZWxsIHsKICBpc29sYXRpb246IGlzb2xhdGU7CiAgcGFkZGluZy10b3A6IG1heCgxOHB4LCBlbnYoc2FmZS1hcmVhLWluc2V0LXRvcCkpOwogIGNvbG9yOiB2YXIoLS1tcy1pbmspOwp9CgouYXBwU2hlbGw6OmJlZm9yZSB7CiAgYmFja2dyb3VuZDoKICAgIHJhZGlhbC1ncmFkaWVudChjaXJjbGUgYXQgNTAlIDAlLCByZ2JhKDIzOSwgMjI2LCAyMDUsIDAuMTEpLCB0cmFuc3BhcmVudCAyOCUpLAogICAgcmFkaWFsLWdyYWRpZW50KGNpcmNsZSBhdCA4JSAxNiUsIHJnYmEoMTU5LCAzMSwgMzgsIDAuMjQpLCB0cmFuc3BhcmVudCAzNCUpLAogICAgcmFkaWFsLWdyYWRpZW50KGNpcmNsZSBhdCA5NCUgMTIlLCByZ2JhKDIxNSwgMTczLCA5MCwgMC4xOCksIHRyYW5zcGFyZW50IDMyJSksCiAgICBsaW5lYXItZ3JhZGllbnQoMTYwZGVnLCAjMTMxMDBkIDAlLCAjMDkwODA3IDUyJSwgIzA0MDQwMyAxMDAlKTsKfQoKLmJyYW5kVGl0bGUsCi5wYWdlSW50cm8gaDIsCi50dXRvcmlhbFBhbmVsIGgxLAouc2Vzc2lvbkNhcmQgaDEsCi5xdWl6UGFuZWwgaDEsCi5jb21wbGV0ZVBhbmVsIGgxLAoucXVvdGVDYXJkTGFyZ2UgaDIsCi50b2RheVF1b3RlUHJldmlldyBzdHJvbmcsCi5yZWNlbnRQYW5lbCBzdHJvbmcsCi5jbGVhblBhbmVsIHN0cm9uZywKLnN0YXRHcmlkIHN0cm9uZywKLmJhZGdlR3JpZCBzdHJvbmcsCi5taW5pQ2FyZCBoMywKLnF1b3RlVG9hc3Qgc3Ryb25nLAoudHV0b3JpYWxFeHBsYWluIHN0cm9uZyB7CiAgY29sb3I6IHZhcigtLW1zLWluayk7CiAgbGV0dGVyLXNwYWNpbmc6IDA7Cn0KCi5icmFuZFRpdGxlIHsKICBmb250LXNpemU6IDIzcHg7CiAgdGV4dC1zaGFkb3c6IDAgMTJweCAzNnB4IHJnYmEoMjE1LCAxNzMsIDkwLCAwLjIyKTsKfQoKLnRvcExvZ28gewogIGZpbHRlcjogZHJvcC1zaGFkb3coMCAxMHB4IDI0cHggcmdiYSgyMTUsIDE3MywgOTAsIDAuMjIpKTsKfQoKLnBhZ2VJbnRybywKLmNlbnRlckludHJvLAoudHV0b3JpYWxQYW5lbCBwIHsKICB0ZXh0LWFsaWduOiBjZW50ZXI7Cn0KCi5wYWdlSW50cm8gc3BhbiwKLnNlY3Rpb25IZWFkZXIgc3BhbiwKLmV5ZWJyb3csCi5zbWFsbExhYmVsLAoubWluaUxhYmVsLAoucXVpelRvcGxpbmUgLmV5ZWJyb3cgewogIGNvbG9yOiB2YXIoLS1tcy1nb2xkKTsKICBsZXR0ZXItc3BhY2luZzogMC4wOGVtOwp9CgoucGFnZUludHJvIHAsCi50b2RheVF1b3RlUHJldmlldyBwLAouY2xlYW5QYW5lbCBwLAoub25ib2FyZGluZ1BhbmVsIHAsCi5yZWNlbnRQYW5lbCBwLAoucXVvdGVBY3Rpb25UZXh0LAoucXVpekhpbnQsCi5zZXNzaW9uQm9keSwKLmRvbmVUZXh0LAoubWluaUNhcmQgcCwKLnF1b3RlVG9hc3QgcCwKLnF1b3RlVG9hc3Qgc3BhbiwKLnR1dG9yaWFsQ2FyZFByZXZpZXcgcCwKLnR1dG9yaWFsRXhwbGFpbiBwLAoucmVtaW5kZXJQYW5lbCBwLAoubGVhZCwKLm11dGVkIHsKICBjb2xvcjogdmFyKC0tbXMtaW5rLXNvZnQpOwp9CgouaWNvbkJ1dHRvbiwKLnBhZ2VSYWlsIGJ1dHRvbiwKLnF1aWNrVGltZXMgYnV0dG9uLAoubWVudUxpc3QgYnV0dG9uLAoubW9vZEdyaWQgYnV0dG9uLAouc2Vjb25kYXJ5V2lkZSwKLnNlY29uZGFyeSwKLmludGVyZXN0QnV0dG9uLAoucXVpek9wdGlvbiwKLnBhY2tDYXJkLAoucmVjZW50TGlzdCBzcGFuLAoudGV4dEJ1dHRvbiB7CiAgYm9yZGVyLWNvbG9yOiB2YXIoLS1tcy1ib3JkZXIpOwogIGJhY2tncm91bmQ6CiAgICBsaW5lYXItZ3JhZGllbnQoMTQ1ZGVnLCByZ2JhKDIzOSwgMjI2LCAyMDUsIDAuMTA1KSwgcmdiYSgyMzksIDIyNiwgMjA1LCAwLjAzNSkpLAogICAgcmdiYSgxNCwgMTIsIDEwLCAwLjcpOwogIGNvbG9yOiB2YXIoLS1tcy1pbmspOwogIGJveC1zaGFkb3c6IGluc2V0IDAgMXB4IDAgcmdiYSgyNTUsIDI0OCwgMjM2LCAwLjEpLCAwIDE0cHggMzJweCByZ2JhKDAsIDAsIDAsIDAuMjQpOwp9CgouaWNvbkJ1dHRvbiwKLnF1aWNrVGltZXMgYnV0dG9uLAoubWVudUxpc3QgYnV0dG9uLAoubW9vZEdyaWQgYnV0dG9uLAouc2Vjb25kYXJ5V2lkZSwKLnNlY29uZGFyeSwKLmludGVyZXN0QnV0dG9uLAoucXVpek9wdGlvbiwKLnBhY2tDYXJkLAoudGV4dEJ1dHRvbiB7CiAgYm9yZGVyLXJhZGl1czogMThweDsKfQoKLnBhZ2VSYWlsIHsKICBtYXJnaW4tYm90dG9tOiAyMHB4Owp9CgoucGFnZVJhaWwgYnV0dG9uIHsKICBtaW4taGVpZ2h0OiA0NnB4OwogIGNvbG9yOiAjY2ZjMWFlOwogIGJvcmRlci1yYWRpdXM6IDk5OXB4Owp9CgoucGFnZVJhaWwgYnV0dG9uLmFjdGl2ZSwKLm1vb2RHcmlkIGJ1dHRvbi5hY3RpdmUsCi5pbnRlcmVzdEJ1dHRvbi5hY3RpdmUsCi5xdWl6T3B0aW9uLmFjdGl2ZSwKLnBhY2tDYXJkLmFjdGl2ZSwKLnF1aWNrVGltZXMgYnV0dG9uLmFjdGl2ZSB7CiAgYm9yZGVyLWNvbG9yOiB2YXIoLS1tcy1ib3JkZXItc3Ryb25nKTsKICBiYWNrZ3JvdW5kOgogICAgbGluZWFyLWdyYWRpZW50KDE0NWRlZywgcmdiYSgyMTUsIDE3MywgOTAsIDAuMjQpLCByZ2JhKDE1OSwgMzEsIDM4LCAwLjE4KSksCiAgICByZ2JhKDIzLCAxNywgMTIsIDAuOSk7CiAgY29sb3I6ICNmZmY3ZTc7CiAgYm94LXNoYWRvdzogMCAxOHB4IDQ2cHggcmdiYSgxNTksIDMxLCAzOCwgMC4xOCksIGluc2V0IDAgMXB4IDAgcmdiYSgyNTUsIDI0OCwgMjM2LCAwLjE0KTsKfQoKLnN0cmVha0NoaXAsCi5taW5pTWV0cmljLAouc2VjdGlvbkhlYWRlciBzdHJvbmcsCi5waWxsLAoucXVpelRvcGxpbmUgc3BhbiwKLm1pc3Npb25CYWRnZSB7CiAgYm9yZGVyLWNvbG9yOiByZ2JhKDIxNSwgMTczLCA5MCwgMC4zMik7CiAgYmFja2dyb3VuZDogcmdiYSgyMTUsIDE3MywgOTAsIDAuMTEpOwogIGNvbG9yOiAjZjNkNTk1Owp9CgouaG9tZUhlcm8gewogIG1pbi1oZWlnaHQ6IGNhbGMoMTAwdmggLSAyMzBweCk7Cn0KCi5ob21lQ29udGVudCB7CiAgZ2FwOiAxMnB4Owp9Cgouc3RhcnRPcmJXcmFwOjpiZWZvcmUgewogIGJvcmRlci1jb2xvcjogcmdiYSgyMTUsIDE3MywgOTAsIDAuMjIpOwogIGJhY2tncm91bmQ6CiAgICByYWRpYWwtZ3JhZGllbnQoY2lyY2xlLCByZ2JhKDIxNSwgMTczLCA5MCwgMC4xOCksIHRyYW5zcGFyZW50IDY2JSksCiAgICByYWRpYWwtZ3JhZGllbnQoY2lyY2xlLCByZ2JhKDE1OSwgMzEsIDM4LCAwLjEpLCB0cmFuc3BhcmVudCA3MiUpOwp9CgouYmlnU3RhcnQsCi5wcmltYXJ5V2lkZSwKLnByaW1hcnksCi5kb25lQWN0aW9uLAoudHV0b3JpYWxDdGEgewogIGJvcmRlcjogMXB4IHNvbGlkIHJnYmEoMjU1LCAyNDgsIDIzNiwgMC4zNik7CiAgYmFja2dyb3VuZDoKICAgIHJhZGlhbC1ncmFkaWVudChjaXJjbGUgYXQgMzQlIDIyJSwgcmdiYSgyNTUsIDI1MCwgMjM4LCAwLjk4KSAwIDclLCByZ2JhKDIzMSwgMjAxLCAxMzksIDAuOTIpIDE3JSwgcmdiYSgxNTksIDMxLCAzOCwgMC45NSkgNTIlLCByZ2JhKDY3LCAxMCwgMTQsIDEpIDEwMCUpOwogIGNvbG9yOiAjZmZmOGVjOwogIHRleHQtc2hhZG93OiAwIDJweCAxOHB4IHJnYmEoMzgsIDQsIDYsIDAuNSk7CiAgYm94LXNoYWRvdzoKICAgIDAgMzRweCA5MHB4IHJnYmEoMTU5LCAzMSwgMzgsIDAuMzQpLAogICAgMCAwIDAgMTRweCByZ2JhKDIxNSwgMTczLCA5MCwgMC4wOCksCiAgICBpbnNldCAwIDEycHggMjZweCByZ2JhKDI1NSwgMjQ4LCAyMzYsIDAuMzYpLAogICAgaW5zZXQgMCAtMzBweCA1NHB4IHJnYmEoNDcsIDQsIDYsIDAuNDIpOwp9CgouYmlnU3RhcnQ6OmJlZm9yZSB7CiAgYmFja2dyb3VuZDogbGluZWFyLWdyYWRpZW50KDkwZGVnLCB0cmFuc3BhcmVudCwgcmdiYSgyNTUsIDI0OCwgMjM2LCAwLjkyKSwgdHJhbnNwYXJlbnQpOwp9CgouYmlnU3RhcnQ6OmFmdGVyIHsKICBiYWNrZ3JvdW5kOiByYWRpYWwtZ3JhZGllbnQoZWxsaXBzZSBhdCBjZW50ZXIsIHJnYmEoMjE1LCAxNzMsIDkwLCAwLjQ4KSwgdHJhbnNwYXJlbnQgNjglKTsKfQoKQGtleWZyYW1lcyBzdGFydFB1bHNlIHsKICAwJSwgMTAwJSB7CiAgICBib3gtc2hhZG93OgogICAgICAwIDM0cHggOTBweCByZ2JhKDE1OSwgMzEsIDM4LCAwLjM0KSwKICAgICAgMCAwIDAgMTJweCByZ2JhKDIxNSwgMTczLCA5MCwgMC4wOCksCiAgICAgIGluc2V0IDAgMTJweCAyNnB4IHJnYmEoMjU1LCAyNDgsIDIzNiwgMC4zNiksCiAgICAgIGluc2V0IDAgLTMwcHggNTRweCByZ2JhKDQ3LCA0LCA2LCAwLjQyKTsKICB9CiAgNTAlIHsKICAgIGJveC1zaGFkb3c6CiAgICAgIDAgNDJweCAxMDhweCByZ2JhKDE1OSwgMzEsIDM4LCAwLjQ4KSwKICAgICAgMCAwIDAgMjJweCByZ2JhKDIxNSwgMTczLCA5MCwgMC4wNDUpLAogICAgICBpbnNldCAwIDE2cHggMzJweCByZ2JhKDI1NSwgMjQ4LCAyMzYsIDAuNDgpLAogICAgICBpbnNldCAwIC0yNnB4IDUwcHggcmdiYSg0NywgNCwgNiwgMC4zNik7CiAgfQp9CgoudG9kYXlRdW90ZVByZXZpZXcsCi5yZWNlbnRQYW5lbCwKLmNsZWFuUGFuZWwsCi5vbmJvYXJkaW5nUGFuZWwsCi5xdWl6UGFuZWwsCi5zZXNzaW9uQ2FyZCwKLnF1b3RlQ2FyZExhcmdlLAouc3RhdEdyaWQgZGl2LAouYmFkZ2VHcmlkIGRpdiwKLm1vb2RQYW5lbCwKLnBhY2tQYW5lbCwKLnJlbWluZGVyUGFuZWwsCi5xdW90ZVBhbmVsLAoudHV0b3JpYWxQYW5lbCwKLnR1dG9yaWFsRXhwbGFpbiwKLm1vdmVCb3gub3BlbiwKLmNvbXBsZXRlUGFuZWwsCi5jb21wbGV0ZVF1b3RlLAoubWluaUNhcmQsCi5lbXB0eVN0YXRlIHsKICBib3JkZXItY29sb3I6IHZhcigtLW1zLWJvcmRlcik7CiAgYmFja2dyb3VuZDoKICAgIGxpbmVhci1ncmFkaWVudCgxNDVkZWcsIHJnYmEoMjM5LCAyMjYsIDIwNSwgMC4xMTUpLCByZ2JhKDIzOSwgMjI2LCAyMDUsIDAuMDM4KSksCiAgICB2YXIoLS1tcy1wYW5lbCk7CiAgYm94LXNoYWRvdzogdmFyKC0tbXMtc2hhZG93KSwgaW5zZXQgMCAxcHggMCByZ2JhKDI1NSwgMjQ4LCAyMzYsIDAuMTIpOwogIGJhY2tkcm9wLWZpbHRlcjogYmx1cigyMnB4KSBzYXR1cmF0ZSgxLjEyKTsKfQoKLnRvZGF5UXVvdGVQcmV2aWV3LAoucXVvdGVDYXJkTGFyZ2UsCi5xdW90ZVBhbmVsLAouY29tcGxldGVRdW90ZSB7CiAgYm9yZGVyLWNvbG9yOiByZ2JhKDIxNSwgMTczLCA5MCwgMC4zNCk7CiAgYmFja2dyb3VuZDoKICAgIGxpbmVhci1ncmFkaWVudCgxNDVkZWcsIHJnYmEoMjE1LCAxNzMsIDkwLCAwLjE2KSwgcmdiYSgyMzksIDIyNiwgMjA1LCAwLjAzNSkpLAogICAgcmdiYSgyNCwgMTgsIDEyLCAwLjg0KTsKfQoKLnNlc3Npb25DYXJkLAoucXVpelBhbmVsLAoudHV0b3JpYWxQYW5lbCwKLmNvbXBsZXRlUGFuZWwgewogIGJvcmRlci1yYWRpdXM6IDI4cHg7Cn0KCi5zZXNzaW9uQ2FyZCB7CiAgYmFja2dyb3VuZDoKICAgIHJhZGlhbC1ncmFkaWVudChjaXJjbGUgYXQgOCUgMCUsIHJnYmEoMjE1LCAxNzMsIDkwLCAwLjEzKSwgdHJhbnNwYXJlbnQgMzIlKSwKICAgIGxpbmVhci1ncmFkaWVudCgxNDVkZWcsIHJnYmEoMjM5LCAyMjYsIDIwNSwgMC4xMiksIHJnYmEoMjM5LCAyMjYsIDIwNSwgMC4wMzYpKSwKICAgIHJnYmEoMTgsIDE1LCAxMiwgMC45Mik7Cn0KCi5zZXNzaW9uQ2FyZDo6YmVmb3JlIHsKICBiYWNrZ3JvdW5kOgogICAgbGluZWFyLWdyYWRpZW50KDEzNWRlZywgcmdiYSgyNTUsIDI0OCwgMjM2LCAwLjE2KSwgdHJhbnNwYXJlbnQgMjglLCByZ2JhKDE1OSwgMzEsIDM4LCAwLjA5KSA2OCUsIHRyYW5zcGFyZW50KTsKfQoKLnNlc3Npb25DYXJkLnN3aXBlU2F2ZSB7CiAgYm9yZGVyLWNvbG9yOiByZ2JhKDIxNSwgMTczLCA5MCwgMC43NCk7CiAgYm94LXNoYWRvdzogMCAzMHB4IDgycHggcmdiYSgyMTUsIDE3MywgOTAsIDAuMTgpLCBpbnNldCAwIDFweCAwIHJnYmEoMjU1LCAyNDgsIDIzNiwgMC4xOCk7Cn0KCi5zZXNzaW9uQ2FyZC5zd2lwZURvbmUgewogIGJvcmRlci1jb2xvcjogcmdiYSgxNTksIDMxLCAzOCwgMC44Mik7CiAgYm94LXNoYWRvdzogMCAzMHB4IDgycHggcmdiYSgxNTksIDMxLCAzOCwgMC4yKSwgaW5zZXQgMCAxcHggMCByZ2JhKDI1NSwgMjQ4LCAyMzYsIDAuMTgpOwp9Cgouc2Vzc2lvbkNhcmQuc3dpcGVTa2lwIHsKICBib3JkZXItY29sb3I6IHJnYmEoMjM5LCAyMjYsIDIwNSwgMC4zNik7CiAgYm94LXNoYWRvdzogMCAzMHB4IDgycHggcmdiYSgyMzksIDIyNiwgMjA1LCAwLjEpLCBpbnNldCAwIDFweCAwIHJnYmEoMjU1LCAyNDgsIDIzNiwgMC4xOCk7Cn0KCi5zd2lwZUZlZWRiYWNrLAouYWN0aW9uRmxhc2gsCi5xdW90ZVRvYXN0IHsKICBib3JkZXItY29sb3I6IHJnYmEoMjE1LCAxNzMsIDkwLCAwLjI2KTsKICBiYWNrZ3JvdW5kOiByZ2JhKDE0LCAxMSwgOSwgMC44OCk7CiAgY29sb3I6IHZhcigtLW1zLWluayk7CiAgYm94LXNoYWRvdzogMCAyNHB4IDcwcHggcmdiYSgwLCAwLCAwLCAwLjQ4KSwgaW5zZXQgMCAxcHggMCByZ2JhKDI1NSwgMjQ4LCAyMzYsIDAuMTIpOwp9CgouYWN0aW9uRmxhc2guc2F2ZSB7CiAgYm9yZGVyLWNvbG9yOiByZ2JhKDIxNSwgMTczLCA5MCwgMC40Nik7Cn0KCi5hY3Rpb25GbGFzaC5kb25lLAouYWN0aW9uRmxhc2gucXVpelJlYWR5IHsKICBib3JkZXItY29sb3I6IHJnYmEoMTU5LCAzMSwgMzgsIDAuNDYpOwp9CgouYWN0aW9uRmxhc2guc2tpcCB7CiAgYm9yZGVyLWNvbG9yOiByZ2JhKDIzOSwgMjI2LCAyMDUsIDAuMjgpOwp9CgouZ2VzdHVyZUd1aWRlIHNwYW4sCi50dXRvcmlhbFRvcGljLAoudHV0b3JpYWxRdWl6UHJldmlldywKLnR1dG9yaWFsUXVvdGVQcmV2aWV3LAoudHV0b3JpYWxDYXJkUHJldmlldywKLnR1dG9yaWFsU3RhcnRPcmIgewogIGJvcmRlci1jb2xvcjogcmdiYSgyMzksIDIyNiwgMjA1LCAwLjE0KTsKICBiYWNrZ3JvdW5kOiByZ2JhKDEzLCAxMSwgOSwgMC42NCk7CiAgY29sb3I6IHZhcigtLW1zLWluay1zb2Z0KTsKfQoKLmdlc3R1cmVHdWlkZSBzcGFuOjpiZWZvcmUgewogIGJhY2tncm91bmQ6IHJnYmEoMjE1LCAxNzMsIDkwLCAwLjE0KTsKICBjb2xvcjogI2YyZDI4YTsKfQoKLnR1dG9yaWFsU3RhZ2UgewogIGJvcmRlci1jb2xvcjogcmdiYSgyMzksIDIyNiwgMjA1LCAwLjE0KTsKICBiYWNrZ3JvdW5kOgogICAgcmFkaWFsLWdyYWRpZW50KGNpcmNsZSBhdCA1MCUgMTIlLCByZ2JhKDIxNSwgMTczLCA5MCwgMC4xOCksIHRyYW5zcGFyZW50IDM1JSksCiAgICByYWRpYWwtZ3JhZGllbnQoY2lyY2xlIGF0IDEyJSA4OCUsIHJnYmEoMTU5LCAzMSwgMzgsIDAuMTgpLCB0cmFuc3BhcmVudCAzNCUpLAogICAgbGluZWFyLWdyYWRpZW50KDE4MGRlZywgcmdiYSgxOCwgMTQsIDExLCAwLjkpLCByZ2JhKDgsIDcsIDYsIDAuNzQpKTsKfQoKLnR1dG9yaWFsU3RhcnRPcmIsCi5jb21wbGV0ZU9yYiB7CiAgYmFja2dyb3VuZDoKICAgIHJhZGlhbC1ncmFkaWVudChjaXJjbGUgYXQgMzQlIDIyJSwgcmdiYSgyNTUsIDI1MCwgMjM4LCAwLjk1KSwgcmdiYSgyMzEsIDIwMSwgMTM5LCAwLjg1KSAyNSUsIHJnYmEoMTU5LCAzMSwgMzgsIDAuODUpIDY3JSwgcmdiYSg1OCwgNywgMTEsIDAuOTgpKTsKICBib3gtc2hhZG93OiAwIDIycHggNjBweCByZ2JhKDE1OSwgMzEsIDM4LCAwLjMyKSwgaW5zZXQgMCA4cHggMjBweCByZ2JhKDI1NSwgMjQ4LCAyMzYsIDAuMjgpOwp9CgoudHV0b3JpYWxTdGFnZVtkYXRhLWZvY3VzPSJzdGFydCJdIC50dXRvcmlhbFN0YXJ0T3JiLAoudHV0b3JpYWxTdGFnZVtkYXRhLWZvY3VzPSJjYXJkIl0gLnR1dG9yaWFsQ2FyZFByZXZpZXcsCi50dXRvcmlhbFN0YWdlW2RhdGEtZm9jdXM9InF1aXoiXSAudHV0b3JpYWxRdWl6UHJldmlldywKLnR1dG9yaWFsU3RhZ2VbZGF0YS1mb2N1cz0icXVvdGUiXSAudHV0b3JpYWxRdW90ZVByZXZpZXcgewogIG91dGxpbmUtY29sb3I6IHJnYmEoMjE1LCAxNzMsIDkwLCAwLjg2KTsKICBib3gtc2hhZG93OiAwIDAgNDJweCByZ2JhKDIxNSwgMTczLCA5MCwgMC4yNCksIGluc2V0IDAgMXB4IDAgcmdiYSgyNTUsIDI0OCwgMjM2LCAwLjE0KTsKfQoKLmludGVyZXN0Q2F0ZWdvcnksCi5zZWxlY3Rpb25NZXRlciB7CiAgYm9yZGVyLWNvbG9yOiByZ2JhKDIzOSwgMjI2LCAyMDUsIDAuMTMpOwogIGJhY2tncm91bmQ6IHJnYmEoMTMsIDExLCA5LCAwLjU2KTsKICBib3gtc2hhZG93OiBpbnNldCAwIDFweCAwIHJnYmEoMjU1LCAyNDgsIDIzNiwgMC4wOCk7Cn0KCi5pbnRlcmVzdENhdGVnb3J5VGl0bGUgc3Ryb25nLAoubW9vZEdyaWQgYnV0dG9uIHN0cm9uZywKLmludGVyZXN0QnV0dG9uIHN0cm9uZywKLnBhY2tDYXJkIHN0cm9uZywKLnF1aXpPcHRpb24gc3Ryb25nIHsKICBjb2xvcjogdmFyKC0tbXMtaW5rKTsKfQoKLmludGVyZXN0Q2F0ZWdvcnlUaXRsZSA+IHNwYW4sCi5tb29kR3JpZCBidXR0b24gc3BhbiwKLmludGVyZXN0QnV0dG9uIHNwYW4sCi5wYWNrQ2FyZCBzcGFuLAoucXVpek9wdGlvbiBzcGFuLAouc2VsZWN0aW9uTWV0ZXIgc3BhbiwKLnN0YXRHcmlkIHNwYW4sCi5iYWRnZUdyaWQgc3BhbiwKLmNvbXBsZXRlU3RhdHMgc3BhbiwKLmNvbXBsZXRlUXVvdGUgc3BhbiB7CiAgY29sb3I6IHZhcigtLW1zLW11dGVkKTsKfQoKLmludGVyZXN0Q2F0ZWdvcnlSYWlsIGJ1dHRvbiB7CiAgYm9yZGVyLWNvbG9yOiByZ2JhKDIzOSwgMjI2LCAyMDUsIDAuMTMpOwogIGJhY2tncm91bmQ6IHJnYmEoMTQsIDEyLCAxMCwgMC42OCk7CiAgY29sb3I6ICNkNmM4YjU7Cn0KCi5pbnRlcmVzdENhdGVnb3J5UmFpbCBidXR0b24uYWN0aXZlIHsKICBib3JkZXItY29sb3I6IHJnYmEoMjE1LCAxNzMsIDkwLCAwLjQ1KTsKICBiYWNrZ3JvdW5kOiByZ2JhKDIxNSwgMTczLCA5MCwgMC4xNCk7CiAgY29sb3I6ICNmM2Q1OTU7Cn0KCi5xdWl6T3B0aW9uLmFjdGl2ZSB7CiAgYm94LXNoYWRvdzogMCAxNnB4IDQycHggcmdiYSgxNTksIDMxLCAzOCwgMC4yKSwgaW5zZXQgMCAxcHggMCByZ2JhKDI1NSwgMjQ4LCAyMzYsIDAuMTQpOwp9CgoucmVtaW5kZXJSb3cgaW5wdXQgewogIGJvcmRlci1jb2xvcjogdmFyKC0tbXMtYm9yZGVyKTsKICBiYWNrZ3JvdW5kOiByZ2JhKDksIDgsIDcsIDAuODIpOwogIGNvbG9yOiB2YXIoLS1tcy1pbmspOwogIGJvcmRlci1yYWRpdXM6IDE2cHg7Cn0KCi5kYW5nZXJUZXh0LAouc2tpcEFjdGlvbiB7CiAgY29sb3I6ICNlNWEyOGI7Cn0KCi5zYXZlQWN0aW9uIHsKICBib3JkZXItY29sb3I6IHJnYmEoMjE1LCAxNzMsIDkwLCAwLjQyKTsKICBjb2xvcjogI2YyZDI4YTsKfQoKLmRvbmVBY3Rpb24gewogIGNvbG9yOiAjZmZmOGVjOwp9CgouY2FyZERvdHMgc3BhbiwKLnNlc3Npb25Eb3RzIHNwYW4gewogIGJhY2tncm91bmQ6IHJnYmEoMjM5LCAyMjYsIDIwNSwgMC4xNik7Cn0KCi5jYXJkRG90cyBzcGFuLmFjdGl2ZSwKLnNlc3Npb25Eb3RzIHNwYW4uYWN0aXZlLAoubWV0ZXIgc3BhbiB7CiAgYmFja2dyb3VuZDogbGluZWFyLWdyYWRpZW50KDkwZGVnLCB2YXIoLS1tcy1nb2xkKSwgdmFyKC0tbXMtcmVkKSk7Cn0KCi5jYXJkRG90cyBzcGFuLmRvbmUgewogIGJhY2tncm91bmQ6IHZhcigtLW1zLWdvbGQpOwp9CgoucmVjZW50TGlzdCBzcGFuIHsKICBjb2xvcjogI2YwZDlhNDsKfQoKLmVtcHR5U3RhdGUgewogIHRleHQtYWxpZ246IGNlbnRlcjsKfQoKQG1lZGlhIChtYXgtd2lkdGg6IDM5MHB4KSB7CiAgLnBhZ2VJbnRybyBoMiB7CiAgICBmb250LXNpemU6IDI4cHg7CiAgfQoKICAuc2Vzc2lvbkNhcmQsCiAgLnF1aXpQYW5lbCwKICAudHV0b3JpYWxQYW5lbCwKICAuY29tcGxldGVQYW5lbCB7CiAgICBib3JkZXItcmFkaXVzOiAyNHB4OwogIH0KfQo=''' ).decode('utf-8')
+
+          css = css_path.read_text()
+          if marker in css:
+              css = css[:css.index(marker)].rstrip() + '\n\n' + override.rstrip() + '\n'
+          else:
+              css = css.rstrip() + '\n\n' + override.rstrip() + '\n'
+          css_path.write_text(css)
+
+          for workflow in [
+              Path('.github/workflows/mindswipe-noir-redesign.yml'),
+              Path('.github/workflows/mindswipe-fix-section-build.yml'),
+              Path('.github/workflows/mindswipe-sections-polish.yml'),
+              Path('.github/workflows/mindswipe-sections-runner.yml'),
+          ]:
+              if workflow.exists():
+                  workflow.unlink()
+          PY
+
+      - name: Commit redesign
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app-shell.css .github/workflows
+          if git diff --cached --quiet; then
+            echo "No redesign changes to commit."
+          else
+            git commit -m "Apply premium noir MindSwipe redesign"
+            git push
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Sync web assets to Android
+        run: npx cap sync android
+
+      - name: Add Android notification permissions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('android/app/src/main/AndroidManifest.xml')
+          text = path.read_text()
+          marker = '<manifest xmlns:android="http://schemas.android.com/apk/res/android">'
+          permissions = [
+              '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
+              '    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
+          ]
+
+          if marker not in text:
+              raise SystemExit('Android manifest marker not found')
+
+          additions = '\n'.join(permission for permission in permissions if permission not in text)
+          if additions:
+              text = text.replace(marker, f'{marker}\n{additions}', 1)
+              path.write_text(text)
+          PY
+
+      - name: Build debug APK and AAB
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug bundleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MindSwipe-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MindSwipe-debug-aab
+          path: android/app/build/outputs/bundle/debug/app-debug.aab
