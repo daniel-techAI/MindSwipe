@@ -1,11 +1,17 @@
 {
   "name": "mind-swipe",
   "version": "0.1.0",
+  "description": "Focused three-card learning sessions that replace doomscrolling with practical actions.",
   "private": true,
   "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
+    "check": "npm run build",
     "preview": "vite preview --host 0.0.0.0",
     "android:add": "npm run build && cap add android",
     "android:sync": "npm run build && cap sync android",
@@ -24,5 +30,6 @@
   "devDependencies": {
     "@capacitor/android": "^8.3.4",
     "@capacitor/cli": "^8.3.4"
-  }
+  },
+  "packageManager": "npm@11.9.0"
 }

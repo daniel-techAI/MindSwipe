@@ -2,7 +2,7 @@
 
 ## Build
 
-- [ ] Confirm latest GitHub Actions APK installs on Android.
+- [ ] Manually run the Android workflow and confirm its APK installs on Android.
 - [ ] Confirm `Test notification` fires after 5 seconds.
 - [ ] Confirm scheduled quote reminder fires when the app is closed.
 - [ ] Confirm Android notification permission denial is handled clearly.

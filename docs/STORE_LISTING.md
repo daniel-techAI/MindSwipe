@@ -2,7 +2,7 @@
 
 ## Direction
 
-Audience: broke comeback first.
+Audience: people replacing unproductive scrolling with practical, short learning sessions.
 Tone: direct bro, store-safe, practical, blunt without being cringe.
 Public brand: MindSwipe.
 
@@ -32,9 +32,9 @@ MindSwipe tracks XP, streaks, saved ideas, daily missions, and minutes rescued f
 - Daily missions and streaks
 - Local progress storage
 
-## Placeholder Details To Replace
+## Release Details Still Required
 
-- Support email: support@example.com
+- Support email: not set; add a monitored public address before store submission
 - Developer name: MindSwipe
 - Privacy policy URL: add hosted URL before Play Store submission
 - App category: Education or Productivity

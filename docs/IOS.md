@@ -19,5 +19,5 @@ MindSwipe should stay in one shared repository for now. The React app is the sou
 ## Practical path
 
 1. Improve the shared app until the product feels worth testing daily.
-2. Keep Android debug APK builds on GitHub Actions for fast testing.
+2. Use the manually triggered Android debug workflow for controlled test builds.
 3. Add iOS only after the core loop, content, privacy policy, and app identity are stable.
