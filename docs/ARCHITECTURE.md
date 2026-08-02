@@ -16,8 +16,10 @@ content modules ──> React session UI ──> local progress state
 
 - `src/content.js`, `src/quoteBank.js`: user-facing learning material.
 - `src/App.jsx`: navigation, session selection, progress persistence, reminders, and native capability checks.
+- `src/pwa.js`: base-path-safe service-worker registration.
 - `src/*.css`: responsive presentation.
 - `public/manifest.webmanifest`: installable web-app identity.
+- `scripts/create-service-worker.mjs`: deterministic precache generation from the completed Vite build.
 - `capacitor.config.json`: Android application ID, web output directory, and native plugin configuration.
 
 ## Data and trust boundaries
@@ -32,4 +34,4 @@ These statements must be revalidated whenever networking, analytics, ads, accoun
 
 ## Release boundaries
 
-`npm run build` validates the web bundle. The manual GitHub workflow generates unsigned debug artifacts. Production distribution still requires signed builds, final raster assets, store-policy review, device testing, and a public support contact.
+`npm run check` lints, tests, and builds the web app. GitHub Pages publishes the installable PWA from `main`. The manual Android workflow generates unsigned debug artifacts only. Production store distribution still requires a protected signing process, a signed release AAB, store-policy review, device testing, and a public support contact.

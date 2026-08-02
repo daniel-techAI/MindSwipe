@@ -1,6 +1,8 @@
 node_modules
 dist
 android
+playwright-report
+test-results
 *.log
 .DS_Store
 Thumbs.db
