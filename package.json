@@ -21,7 +21,7 @@
     "android:open": "cap open android"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "^5.0.4",
+    "@vitejs/plugin-react": "^6.0.5",
     "vite": "^7.3.2",
     "typescript": "~5.9.3",
     "react": "^19.1.0",
