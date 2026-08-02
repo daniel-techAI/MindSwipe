@@ -34,6 +34,6 @@ If MindSwipe later adds accounts, analytics, advertising, payments, AI services,
 
 ## Contact
 
-Developer contact: replace this with your public support email before publishing.
+Prototype contact: use the repository's GitHub Issues page for general project questions, but never post personal or sensitive information there. Add a monitored public support email before store submission.
 
 This is a working draft, not legal advice. Review it before using it publicly.

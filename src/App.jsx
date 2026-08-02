@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { dailyQuotes, extraActionMoves, extraLessons, packOptions } from './content.js';
 import { famousQuotes } from './quoteBank.js';
 import MindSwipeLogo from './MindSwipeLogo.jsx';
+import { registerMindSwipeServiceWorker } from './pwa.js';
 import './styles.css';
 import './packs.css';
 import './app-shell.css';
@@ -692,6 +693,15 @@ function getXpToNextLevel(xp) {
   const remainder = xp % 120;
   return remainder === 0 ? 120 : 120 - remainder;
 }
+
+function isRunningStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function SkipLink() {
+  return <a className='skipLink' href='#main-content'>Skip to main content</a>;
+}
+
 function App() {
   const [progress, setProgress] = useState(readProgress);
   const [screen, setScreen] = useState(progress.tutorialSeen ? (progress.onboarded ? 'home' : 'onboarding') : 'tutorial');
@@ -714,6 +724,9 @@ function App() {
   const [sessionResult, setSessionResult] = useState(null);
   const touchStartRef = useRef(null);
   const [swipeFeedback, setSwipeFeedback] = useState('');
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [installMessage, setInstallMessage] = useState(isRunningStandalone() ? 'MindSwipe is installed on this device.' : '');
+  const [isInstalled, setIsInstalled] = useState(isRunningStandalone);
 
   function commit(next) {
     setProgress(next);
@@ -721,9 +734,8 @@ function App() {
   }
 
   const today = todayKey();
-  const interestKey = selectedInterests.join('|');
-  const dailyQuote = useMemo(() => getDailyQuote(today, activeMood, activePack, selectedInterests), [today, activeMood, activePack, interestKey]);
-  const yesterdayQuote = useMemo(() => getDailyQuote(dateKey(addDays(new Date(), -1)), activeMood, activePack, selectedInterests), [activeMood, activePack, interestKey]);
+  const dailyQuote = useMemo(() => getDailyQuote(today, activeMood, activePack, selectedInterests), [today, activeMood, activePack, selectedInterests]);
+  const yesterdayQuote = useMemo(() => getDailyQuote(dateKey(addDays(new Date(), -1)), activeMood, activePack, selectedInterests), [activeMood, activePack, selectedInterests]);
 
   const nextSession = useMemo(() => {
     const profile = getInterestProfile(selectedInterests);
@@ -742,7 +754,7 @@ function App() {
       .map((item) => item.lesson);
     const offset = (progress.sessions + quizAttempt * sessionSize) % Math.max(1, scored.length);
     return [...scored.slice(offset), ...scored.slice(0, offset)].slice(0, sessionSize);
-  }, [activeMood, activePack, interestKey, progress.completed, progress.sessions, quizAttempt]);
+  }, [activeMood, activePack, selectedInterests, progress.completed, progress.sessions, quizAttempt]);
 
   const savedLessons = allLessons.filter((lesson) => progress.saved.includes(lesson.id));
   const recentLessons = allLessons.filter((lesson) => progress.recent.includes(lesson.id)).slice(0, 6);
@@ -760,15 +772,28 @@ function App() {
   useEffect(() => {
     if (!progress.quoteReminderEnabled || !progress.quoteReminderTime || Capacitor.isNativePlatform()) return undefined;
     const target = getNextReminderDate(progress.quoteReminderTime);
-    const timeoutId = window.setTimeout(() => showQuoteReminder(dailyQuote), target.getTime() - Date.now());
+    const timeoutId = window.setTimeout(() => {
+      if (progress.quoteNotifiedToday === today) return;
+      hapticNotify(NotificationType.Success, [12, 18, 12]);
+      const body = dailyQuote.source ? `${dailyQuote.text} - ${dailyQuote.source}` : dailyQuote.text;
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('MindSwipe daily quote', { body: `${body} ${dailyQuote.action}` });
+      }
+      setQuoteToast(dailyQuote);
+      setProgress((current) => {
+        const next = { ...current, quoteNotifiedToday: today };
+        saveProgress(next);
+        return next;
+      });
+    }, target.getTime() - Date.now());
     return () => window.clearTimeout(timeoutId);
-  }, [dailyQuote, progress.quoteNotifiedToday, progress.quoteReminderEnabled, progress.quoteReminderTime]);
+  }, [dailyQuote, progress.quoteNotifiedToday, progress.quoteReminderEnabled, progress.quoteReminderTime, today]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform() || !progress.quoteReminderEnabled) return;
     scheduleNativeQuoteReminders({ time: progress.quoteReminderTime, mood: activeMood, activePack, interestIds: selectedInterests })
       .catch(() => setQuoteMessage('Native quote reminder needs notification permission.'));
-  }, [activeMood, activePack, progress.quoteReminderEnabled, progress.quoteReminderTime, interestKey]);
+  }, [activeMood, activePack, progress.quoteReminderEnabled, progress.quoteReminderTime, selectedInterests]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined;
@@ -781,6 +806,27 @@ function App() {
     });
     return () => {
       if (actionHandle) actionHandle.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleInstallPrompt(event) {
+      event.preventDefault();
+      setInstallPrompt(event);
+      setInstallMessage('MindSwipe is ready to install.');
+    }
+
+    function handleInstalled() {
+      setInstallPrompt(null);
+      setIsInstalled(true);
+      setInstallMessage('MindSwipe is installed and can open from your apps.');
+    }
+
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+    window.addEventListener('appinstalled', handleInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+      window.removeEventListener('appinstalled', handleInstalled);
     };
   }, []);
 
@@ -801,17 +847,6 @@ function App() {
     const next = { ...progress, tutorialSeen: true };
     commit(next);
     setScreen(progress.onboarded ? 'home' : 'onboarding');
-  }
-
-  function showQuoteReminder(quote, force = false) {
-    if (!force && progress.quoteNotifiedToday === today) return;
-    hapticNotify(NotificationType.Success, [12, 18, 12]);
-    const body = quote.source ? `${quote.text} - ${quote.source}` : quote.text;
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('MindSwipe daily quote', { body: `${body} ${quote.action}` });
-    }
-    setQuoteToast(quote);
-    commit({ ...progress, quoteNotifiedToday: today });
   }
 
   async function enableQuoteReminder() {
@@ -932,25 +967,27 @@ function App() {
     setDragState({ x: 0, y: 0, active: false });
 
     if (horizontal && dx <= -64) {
-      hapticSwipe('save');
-      setSwipeFeedback('Save');
-      setExitSwipe('Save');
-      window.setTimeout(() => finishCard(currentLesson, 'save'), 280);
+      queueCardAction('save');
       return;
     }
     if (horizontal && dx >= 64) {
-      hapticSwipe('done');
-      setSwipeFeedback('Done');
-      setExitSwipe('Done');
-      window.setTimeout(() => finishCard(currentLesson, 'done'), 280);
+      queueCardAction('done');
       return;
     }
     if (!horizontal && dy >= 64) {
-      hapticSwipe('skip');
-      setSwipeFeedback('Skip');
-      setExitSwipe('Skip');
-      window.setTimeout(() => finishCard(currentLesson, 'skip'), 280);
+      queueCardAction('skip');
     }
+  }
+
+  function queueCardAction(mode) {
+    if (exitSwipe) return;
+    const labels = { save: 'Save', skip: 'Skip', done: 'Done' };
+    const label = labels[mode];
+    hapticSwipe(mode);
+    setSwipeFeedback(label);
+    setExitSwipe(label);
+    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 20 : 280;
+    window.setTimeout(() => finishCard(currentLesson, mode), delay);
   }
 
   function scrollToInterestCategory(id) {
@@ -1017,6 +1054,7 @@ function App() {
   }
 
   function resetProgress() {
+    if (!window.confirm('Reset all MindSwipe progress stored on this device? This cannot be undone.')) return;
     localStorage.removeItem('mindSwipeProgress');
     const fresh = readProgress();
     setProgress(fresh);
@@ -1035,12 +1073,28 @@ function App() {
     setActivePage('Home');
   }
 
+  async function installMindSwipe() {
+    if (!installPrompt) {
+      setInstallMessage('In Chrome, open the browser menu and choose Install app or Add to Home screen.');
+      return;
+    }
+
+    await installPrompt.prompt();
+    const result = await installPrompt.userChoice;
+    setInstallPrompt(null);
+    setInstallMessage(result.outcome === 'accepted'
+      ? 'Installation started. MindSwipe will appear with your apps.'
+      : 'Installation was cancelled. You can install it later from Settings.');
+  }
+
   if (screen === 'tutorial') {
     return (
-      <main className='appShell center tutorialShell'>
-        <section className='tutorialPanel'>
+      <>
+      <SkipLink />
+      <main id='main-content' className='appShell center tutorialShell' tabIndex='-1'>
+        <section className='tutorialPanel' aria-labelledby='tutorial-title'>
           <div>
-            <h1>Learn the app by touching the flow.</h1>
+            <h1 id='tutorial-title'>Learn the app by touching the flow.</h1>
             <p>MindSwipe is three cards, one check, and one reminder. Tap each step and watch the part it uses.</p>
           </div>
           <div className='tutorialStage' data-focus={activeTutorial.target}>
@@ -1062,14 +1116,14 @@ function App() {
             </div>
             <div className='tutorialQuotePreview'>Quote 12:00</div>
           </div>
-          <div className='tutorialStepper'>
+          <div className='tutorialStepper' aria-label='Tutorial steps'>
             {tutorialItems.map((item, index) => (
-              <button key={item.label} className={tutorialStep === index ? 'active' : ''} onClick={() => { hapticSelect(); setTutorialStep(index); }}>
+              <button key={item.label} className={tutorialStep === index ? 'active' : ''} aria-pressed={tutorialStep === index} onClick={() => { hapticSelect(); setTutorialStep(index); }}>
                 {item.label}
               </button>
             ))}
           </div>
-          <div className='tutorialExplain'>
+          <div className='tutorialExplain' aria-live='polite'>
             <strong>{activeTutorial.title}</strong>
             <p>{activeTutorial.body}</p>
           </div>
@@ -1078,37 +1132,40 @@ function App() {
           </button>
         </section>
       </main>
+      </>
     );
   }
 
   if (screen === 'onboarding') {
     return (
-      <main className='appShell center'>
-        <section className='onboardingPanel'>
-          <h1>Pick what you want MindSwipe to help with.</h1>
+      <>
+      <SkipLink />
+      <main id='main-content' className='appShell center' tabIndex='-1'>
+        <section className='onboardingPanel' aria-labelledby='onboarding-title'>
+          <h1 id='onboarding-title'>Pick what you want MindSwipe to help with.</h1>
           <p>Choose lanes that would genuinely make your next month better. Pick useful pressure points, not random boxes.</p>
-          <div className='selectionMeter'>
+          <div className='selectionMeter' role='status'>
             <strong>{selectedInterests.length} selected</strong>
             <span>{selectedInterests.length < 2 ? 'Pick at least 2 useful lanes to unlock your daily run.' : 'Good. Your daily cards will adapt around these lanes.'}</span>
           </div>
-          <div className='interestCategoryRail' aria-label='Interest categories'>
+          <nav className='interestCategoryRail' aria-label='Interest categories'>
             {interestCategories.map((category) => (
               <button key={category.id} onClick={() => scrollToInterestCategory(category.id)}>
                 <span>{category.label}</span>
                 <strong>{broadInterests.filter((interest) => interest.category === category.id).length}</strong>
               </button>
             ))}
-          </div>
+          </nav>
           <div className='interestSections'>
             {interestCategories.map((category) => (
               <section className='interestCategory' id={`interest-${category.id}`} key={category.id}>
                 <div className='interestCategoryTitle'>
-                  <strong>{category.label}<span>{broadInterests.filter((interest) => interest.category === category.id).length}</span></strong>
+                  <h2>{category.label}<span>{broadInterests.filter((interest) => interest.category === category.id).length}</span></h2>
                   <span>{category.detail}</span>
                 </div>
                 <div className='interestGrid'>
                   {broadInterests.filter((interest) => interest.category === category.id).map((interest) => (
-                    <button key={interest.id} className={selectedInterests.includes(interest.id) ? 'interestButton active' : 'interestButton'} onClick={() => toggleInterest(interest.id)}>
+                    <button key={interest.id} className={selectedInterests.includes(interest.id) ? 'interestButton active' : 'interestButton'} aria-pressed={selectedInterests.includes(interest.id)} onClick={() => toggleInterest(interest.id)}>
                       <strong>{interest.label}</strong>
                       <span>{interest.detail}</span>
                     </button>
@@ -1117,19 +1174,21 @@ function App() {
               </section>
             ))}
           </div>
-          <div className='packGrid'>
+          <section className='packGrid' aria-labelledby='content-style-title'>
+            <h2 id='content-style-title' className='visuallyHidden'>Choose a content style</h2>
             {packOptions.slice(0, 4).map((pack) => (
-              <button key={pack.id} className={activePack === pack.id ? 'packCard active' : 'packCard'} onClick={() => { hapticSelect(); setActivePack(pack.id); }}>
+              <button key={pack.id} className={activePack === pack.id ? 'packCard active' : 'packCard'} aria-pressed={activePack === pack.id} onClick={() => { hapticSelect(); setActivePack(pack.id); }}>
                 <strong>{pack.label}</strong>
                 <span>{pack.detail}</span>
               </button>
             ))}
-          </div>
+          </section>
           <button className='primaryWide' disabled={selectedInterests.length < 2} onClick={finishOnboarding}>
             {selectedInterests.length < 2 ? 'Pick at least 2' : 'Start MindSwipe'}
           </button>
         </section>
       </main>
+      </>
     );
   }
 
@@ -1142,12 +1201,14 @@ function App() {
       '--drag-rotate': `${dragRotation}deg`
     };
     return (
-      <main className='appShell'>
+      <>
+      <SkipLink />
+      <main id='main-content' className='appShell' tabIndex='-1'>
         <header className='appTop'>
 <button className='iconButton' aria-label='Close session' onClick={() => { hapticImpact(ImpactStyle.Light, 8); setScreen('home'); }}><span className='closeMark' /></button>
 <div className='sessionCounter' aria-label={`Card ${sessionIndex + 1} of ${nextSession.length}`}>
   <strong>{sessionIndex + 1} / {nextSession.length}</strong>
-  <div className='sessionDots'>
+  <div className='sessionDots' aria-hidden='true'>
     {nextSession.map((lesson, index) => (
       <span key={lesson.id} className={index <= sessionIndex ? 'active' : ''} />
     ))}
@@ -1155,29 +1216,32 @@ function App() {
 </div>
 <span />
         </header>
-        <section
+        <article
 className={sessionCardClass}
 style={sessionCardStyle}
+aria-labelledby='session-card-title'
+aria-describedby='session-card-instructions'
 onPointerDown={handleCardPointerStart}
 onPointerMove={handleCardPointerMove}
 onPointerUp={handleCardPointerEnd}
 onPointerCancel={handleCardPointerEnd}
         >
-{swipeFeedback ? <div className='swipeFeedback'>{swipeFeedback}</div> : null}
+{swipeFeedback ? <div className='swipeFeedback' role='status'>{swipeFeedback}</div> : null}
 <div className='sessionMeta'><span className='pill'>{currentLesson.area}</span></div>
-<h1>{currentLesson.title}</h1>
+<h1 id='session-card-title'>{currentLesson.title}</h1>
 <p className='sessionHook'>{currentLesson.hook}</p>
 <p className='sessionBody'>{currentLesson.body}</p>
 <div className='moveBox open'>
   <span className='miniLabel'>Tiny move</span>
   <strong>{getMove(currentLesson)}</strong>
 </div>
-<div className='gestureGuide' aria-label='Swipe actions'>
-  <span data-arrow='<'>Save</span>
-  <span data-arrow='v'>Skip</span>
-  <span data-arrow='>'>Done</span>
+<p id='session-card-instructions' className='visuallyHidden'>Swipe left to save, down to skip, or right to mark done. You can also use the three buttons below.</p>
+<div className='gestureGuide gestureActions' aria-label='Card actions'>
+  <button type='button' data-arrow='←' onPointerDown={(event) => event.stopPropagation()} onClick={() => queueCardAction('save')}>Save</button>
+  <button type='button' data-arrow='↓' onPointerDown={(event) => event.stopPropagation()} onClick={() => queueCardAction('skip')}>Skip</button>
+  <button type='button' data-arrow='→' onPointerDown={(event) => event.stopPropagation()} onClick={() => queueCardAction('done')}>Done</button>
 </div>
-        </section>
+        </article>
         {actionFlash ? (
 <div className={`actionFlash ${actionFlash.tone}`} role='status'>
   <strong>{actionFlash.cue}</strong>
@@ -1185,13 +1249,16 @@ onPointerCancel={handleCardPointerEnd}
 </div>
         ) : null}
       </main>
+      </>
     );
   }
 
   if (screen === 'quiz' && quiz) {
     const correctAnswerCount = quiz.options.filter((option) => option.correct).length;
     return (
-      <main className='appShell center'>
+      <>
+      <SkipLink />
+      <main id='main-content' className='appShell center' tabIndex='-1'>
         {actionFlash ? (
 <div className={`actionFlash quizReady ${actionFlash.tone}`} role='status'>
   <strong>3 cards cleared</strong>
@@ -1210,6 +1277,7 @@ onPointerCancel={handleCardPointerEnd}
     <button
       key={option.text}
       className={quizSelected.includes(index) ? 'quizOption active' : 'quizOption'}
+      aria-pressed={quizSelected.includes(index)}
       onClick={() => toggleQuizAnswer(index)}
     >
       <span>{String.fromCharCode(65 + index)}</span>
@@ -1220,12 +1288,15 @@ onPointerCancel={handleCardPointerEnd}
 <button className='primaryWide' onClick={submitQuiz} disabled={!quizSelected.length}>Lock answers</button>
         </section>
       </main>
+      </>
     );
   }
 
   if (screen === 'quizRetry') {
     return (
-      <main className='appShell center'>
+      <>
+      <SkipLink />
+      <main id='main-content' className='appShell center' tabIndex='-1'>
         <section className='quizPanel'>
 <p className='eyebrow'>Not counted yet</p>
 <h1>Close, but the streak needs proof.</h1>
@@ -1234,6 +1305,7 @@ onPointerCancel={handleCardPointerEnd}
 <button className='secondaryWide' onClick={() => { hapticImpact(ImpactStyle.Light, 8); setScreen('home'); }}>Back home</button>
         </section>
       </main>
+      </>
     );
   }
 
@@ -1243,7 +1315,9 @@ onPointerCancel={handleCardPointerEnd}
     const levelProgress = getLevelProgress(result.xp);
     const xpToNext = getXpToNextLevel(result.xp);
     return (
-      <main className='appShell center'>
+      <>
+      <SkipLink />
+      <main id='main-content' className='appShell center' tabIndex='-1'>
         <section className={`completePanel ${result.newStreak ? 'completeWin' : 'completeDone'}`}>
 <div className='rewardBurst' aria-hidden='true'>
   <span />
@@ -1262,7 +1336,7 @@ onPointerCancel={handleCardPointerEnd}
     <span>Level {level}</span>
     <strong>{xpToNext} XP to next level</strong>
   </div>
-  <div className='rewardMeter' aria-label={`Level progress ${levelProgress}%`}>
+  <div className='rewardMeter' role='progressbar' aria-label='Level progress' aria-valuemin='0' aria-valuemax='100' aria-valuenow={levelProgress}>
     <span style={{ width: `${levelProgress}%` }} />
   </div>
 </div>
@@ -1284,11 +1358,14 @@ onPointerCancel={handleCardPointerEnd}
 <button className='secondaryWide' onClick={() => startSession(activeMood)}>Another run</button>
         </section>
       </main>
+      </>
     );
   }
 
   return (
-    <main className='appShell'>
+    <>
+    <SkipLink />
+    <main id='main-content' className='appShell' tabIndex='-1'>
       <header className='appTop'>
         <span className='topSpacer' aria-hidden='true' />
         <div className='brandLockup'>
@@ -1300,7 +1377,7 @@ onPointerCancel={handleCardPointerEnd}
 
       <nav className='pageRail' aria-label='MindSwipe sections'>
         {pages.map((page) => (
-          <button key={page} className={activePage === page ? 'active' : ''} onClick={() => { hapticSelect(); setActivePage(page); }}>
+          <button key={page} className={activePage === page ? 'active' : ''} aria-current={activePage === page ? 'page' : undefined} onClick={() => { hapticSelect(); setActivePage(page); }}>
             {page}
           </button>
         ))}
@@ -1327,7 +1404,7 @@ onPointerCancel={handleCardPointerEnd}
         </div>
         <div className='moodGrid'>
           {moodOptions.map((mood) => (
-            <button key={mood.label} className={activeMood === mood.label ? 'active' : ''} onClick={() => setActiveMood(mood.label)}>
+            <button key={mood.label} className={activeMood === mood.label ? 'active' : ''} aria-pressed={activeMood === mood.label} onClick={() => setActiveMood(mood.label)}>
               <strong>{mood.label}</strong>
               <span>{mood.detail}</span>
             </button>
@@ -1337,6 +1414,14 @@ onPointerCancel={handleCardPointerEnd}
       <section className='todayQuotePreview'>
         <p>{progress.quoteReminderEnabled ? "Today's reminder" : 'Yesterday / preview quote'}</p>
         <strong>{progress.quoteReminderEnabled ? dailyQuote.text : yesterdayQuote.text}</strong>
+      </section>
+      <section className='installPanel' aria-labelledby='install-title'>
+        <div>
+          <h2 id='install-title'>{isInstalled ? 'MindSwipe is installed' : 'Use MindSwipe like an app'}</h2>
+          <p>{isInstalled ? 'Open it from your home screen or desktop app list.' : 'Install from Chrome on Android or desktop for a standalone, offline-ready experience.'}</p>
+        </div>
+        {!isInstalled ? <button className='secondaryWide' onClick={installMindSwipe}>{installPrompt ? 'Install MindSwipe' : 'Show install help'}</button> : null}
+        {installMessage ? <p className='statusLine' role='status'>{installMessage}</p> : null}
       </section>
       <section className='recentPanel'>
         <div className='sectionHeader compact'>
@@ -1380,7 +1465,7 @@ onPointerCancel={handleCardPointerEnd}
       <button className='secondary' onClick={enableQuoteReminder}>{progress.quoteReminderEnabled ? 'Update' : 'Turn on'}</button>
     </div>
     {progress.quoteReminderEnabled ? <button className='secondaryWide dangerText' onClick={disableQuoteReminder}>Turn off reminder</button> : null}
-    {quoteMessage ? <p className='statusLine'>{quoteMessage}</p> : null}
+    {quoteMessage ? <p className='statusLine' role='status'>{quoteMessage}</p> : null}
   </section>
 ) : null}
 
@@ -1473,11 +1558,13 @@ onPointerCancel={handleCardPointerEnd}
       </div>
       <button onClick={() => setScreen('onboarding')}>Edit interests<span>Open</span></button>
       <button onClick={() => { hapticSelect(); setActivePage('Quote'); }}>Notifications<span>Open</span></button>
-      <button>Appearance<span>Coming soon</span></button>
-      <button>Contact & support<span>Coming soon</span></button>
-      <button>Privacy policy<span>Coming soon</span></button>
+      <button onClick={installMindSwipe} disabled={isInstalled}>Install MindSwipe<span>{isInstalled ? 'Installed' : installPrompt ? 'Ready' : 'Chrome menu'}</span></button>
+      <button disabled>Appearance<span>Planned</span></button>
+      <a href='https://github.com/daniel-techAI/MindSwipe/issues' target='_blank' rel='noreferrer'>Contact & support<span>GitHub, new tab</span></a>
+      <a href={`${import.meta.env.BASE_URL}privacy.html`}>Privacy policy<span>Open</span></a>
       <button className='dangerText' onClick={resetProgress}>Reset local progress<span>Reset</span></button>
     </section>
+    {installMessage ? <p className='statusLine' role='status'>{installMessage}</p> : null}
   </section>
 ) : null}
 
@@ -1491,7 +1578,14 @@ onPointerCancel={handleCardPointerEnd}
         </div>
       ) : null}
     </main>
+    </>
   );
+}
+
+if (import.meta.env.PROD && !Capacitor.isNativePlatform()) {
+  registerMindSwipeServiceWorker().catch(() => {
+    // The web app still works online when service-worker registration is unavailable.
+  });
 }
 
 createRoot(document.getElementById('root')).render(<App />);

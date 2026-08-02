@@ -1,6 +1,6 @@
 export default function MindSwipeLogo({ className = '' }) {
   return (
-    <svg className={className} viewBox='0 0 64 64' role='img' aria-label='MindSwipe logo'>
+    <svg className={className} viewBox='0 0 64 64' aria-hidden='true' focusable='false'>
       <defs>
         <linearGradient id='ms-gold-mark' x1='12' y1='8' x2='52' y2='58' gradientUnits='userSpaceOnUse'>
           <stop stopColor='#fff3cf' />
