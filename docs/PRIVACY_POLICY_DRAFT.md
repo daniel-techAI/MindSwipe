@@ -1,39 +1,75 @@
-# MindSwipe Privacy Policy Draft
+# MindSwipe privacy policy - draft
 
-Last updated: 2026-06-26
+Last updated: 2026-08-16
 
-MindSwipe is designed to work without accounts, tracking, or a remote user database in the current version.
+Status: **OWNER AND LEGAL REVIEW REQUIRED.**
 
-## Information We Collect
+Operator: `[OWNER DECISION REQUIRED]`
 
-In the current version, MindSwipe does not collect personal information on a server.
+Support email: `[OWNER DECISION REQUIRED]`
 
-The app stores your progress locally on your device, including selected interests, saved cards, XP, streaks, reminder time, and completed sessions. This information stays on your device unless a future version adds cloud sync or another connected service.
+Public policy URL: `[OWNER DECISION REQUIRED]`
+
+## Overview
+
+MindSwipe currently works without an account, remote user database, analytics SDK, advertising SDK, payment SDK, cloud sync, or location access.
+
+## Information stored on the device
+
+MindSwipe stores the following locally in browser/app storage:
+
+- tutorial/onboarding status and selected interests;
+- content-pack and reminder preferences;
+- completed/recent/saved card IDs and saved place IDs;
+- XP, streaks, session counters, and related local progress;
+- local trips, day/stop organization, and user-written trip notes;
+- one migration backup of an older progress record, or one corrupt-record backup if recovery is needed.
+
+This data is used to operate and personalize the app on that device. The current code does not transmit it to a MindSwipe server. Android cloud backup is disabled for the app.
 
 ## Notifications
 
-MindSwipe can schedule local daily quote notifications if you turn reminders on. Notification reminders are created on your device through Android local notification APIs. You can turn reminders off inside the app or through Android system notification settings.
+If the user enables reminders, MindSwipe schedules local notifications on the device. Android may request notification permission. If the user explicitly selects exact delivery, Android may also open its **Alarms and reminders** setting for exact-alarm access. Flexible delivery does not require exact timing.
 
-## Information Sharing
+Users can disable reminders in MindSwipe or Android system settings.
 
-MindSwipe does not sell personal data.
+## Location
 
-In the current version, MindSwipe does not share user data with advertisers, analytics providers, or backend services.
+MindSwipe does not request or use GPS, approximate location, precise location, background location, or geofencing in the current version. Destinations are selected manually.
 
-## Data Storage
+## Network and third parties
 
-MindSwipe stores app progress locally on your device. You can remove this local data by clearing app storage or uninstalling the app.
+MindSwipe makes no hidden analytics or profile requests. Network use can occur when:
+
+- the web/PWA is loaded from its host;
+- the user opens a cited source or image-license page;
+- the user chooses a Google Maps or Waze action;
+- the user opens the public privacy/support page.
+
+Those external services apply their own terms and privacy policies. The app sends only the encoded place/directions parameters necessary for the user-selected handoff; it does not send local progress or trip notes.
+
+## Sharing and sale
+
+The current version does not sell personal data or share local progress with advertisers, analytics providers, or an application backend.
+
+## Removing local data
+
+The in-app reset removes the active local progress record and local migration/recovery backups. Users can also clear site/app storage or uninstall. MindSwipe has no server copy to delete in this version.
 
 ## Children
 
-MindSwipe is not currently designed as a children-directed app.
+`[OWNER DECISION REQUIRED]` Confirm the intended age/target audience before store publication. The current product is not intentionally designed as a child-directed service.
 
-## Future Changes
+## Security and retention
 
-If MindSwipe later adds accounts, analytics, advertising, payments, AI services, cloud sync, or other network features, this privacy policy and the Play Store Data safety answers must be updated before release.
+Local data remains until the user resets it, clears storage, or uninstalls. Device/browser security controls access. Do not enter highly sensitive information in free-text trip notes.
+
+## Future changes
+
+Accounts, analytics, advertising, payments, crash reporting, AI services, remote destination packs, cloud sync, or location would change this policy and store disclosures. Review and publish those changes before enabling such features.
 
 ## Contact
 
-Prototype contact: use the repository's GitHub Issues page for general project questions, but never post personal or sensitive information there. Add a monitored public support email before store submission.
+`[OWNER DECISION REQUIRED: monitored privacy/support contact]`
 
-This is a working draft, not legal advice. Review it before using it publicly.
+For pre-release repository issues, users may use GitHub Issues but should never post personal or sensitive information publicly.

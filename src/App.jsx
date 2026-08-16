@@ -3,13 +3,20 @@ import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { createRoot } from 'react-dom/client';
+import { ArrowDown, ArrowLeft, ArrowRight, Bell, Bookmark, BookOpen, Check, Compass, Home, Library, MapPin, Settings, UserRound } from 'lucide-react';
 import { dailyQuotes, extraActionMoves, extraLessons, packOptions } from './content.js';
+import { knowledgeActionMoves, knowledgeInterestCategories, knowledgeInterests, knowledgeLessons } from './knowledgeContent.js';
 import { famousQuotes } from './quoteBank.js';
 import MindSwipeLogo from './MindSwipeLogo.jsx';
 import { registerMindSwipeServiceWorker } from './pwa.js';
+import { completeSession, corruptProgressBackupKey, progressBackupKey, progressStorageKey, readProgress, saveProgress } from './progress.js';
+import TripEditor from './TripEditor.jsx';
+import { ExplorePage, SavedPage } from './TravelViews.jsx';
+import { getDestination, getPlace, getTravelCards, travelAssetUrl, travelCards } from './travelData.js';
 import './styles.css';
 import './packs.css';
 import './app-shell.css';
+import './v2.css';
 
 const quoteNotificationBaseId = 43000;
 const quoteScheduleDays = 30;
@@ -271,7 +278,7 @@ const bookActionMoves = {
   'book-targeting-one-person': 'Write one person, one painful problem, one moment they feel it.'
 };
 
-const interestCategories = [
+const baseInterestCategories = [
   { id: 'mind', label: 'Mind & emotions', detail: 'stress, confidence, identity, mental reset' },
   { id: 'focus', label: 'Focus & discipline', detail: 'attention, habits, motivation, phone loops' },
   { id: 'money', label: 'Money & career', detail: 'income, work, economics, selling, options' },
@@ -281,7 +288,7 @@ const interestCategories = [
   { id: 'learning', label: 'Learning & strategy', detail: 'skills, decisions, systems, creativity' }
 ];
 
-const broadInterests = [
+const baseBroadInterests = [
   { id: 'mindset', category: 'mind', label: 'Mindset', detail: 'confidence, emotions, self-talk', areas: ['Mind'], moods: ['Stressed'], packs: ['starter', 'confidence', 'work'] },
   { id: 'stress', category: 'mind', label: 'Stress control', detail: 'calm, pressure, overthinking', areas: ['Mind', 'Health'], moods: ['Stressed'], packs: ['starter', 'comeback'] },
   { id: 'mental-reset', category: 'mind', label: 'Mental reset', detail: 'spirals, bad days, recovery', areas: ['Mind', 'Philosophy'], moods: ['Stressed'], packs: ['comeback', 'starter'] },
@@ -328,9 +335,10 @@ const reminderPresets = [
   { label: 'Night', time: '21:30' }
 ];
 
-const pages = ['Home', 'Quote', 'History', 'Profile', 'Settings'];
-const allLessons = [...baseLessons, ...bookLessons, ...extraLessons];
-const allActionMoves = { ...baseActionMoves, ...bookActionMoves, ...extraActionMoves };
+const interestCategories = [...baseInterestCategories, ...knowledgeInterestCategories];
+const broadInterests = [...baseBroadInterests, ...knowledgeInterests];
+const allLessons = [...baseLessons, ...bookLessons, ...extraLessons, ...knowledgeLessons];
+const allActionMoves = { ...baseActionMoves, ...bookActionMoves, ...extraActionMoves, ...knowledgeActionMoves };
 const allQuotes = [...dailyQuotes, ...famousQuotes];
 
 const quizBank = [
@@ -438,7 +446,7 @@ function addDays(date, days) {
 }
 
 function getMove(lesson) {
-  return allActionMoves[lesson.id] || 'Use the idea once today, then keep moving.';
+  return lesson?.action || allActionMoves[lesson?.id] || 'Use the idea once today, then keep moving.';
 }
 
 function normalizeInterestIds(value = []) {
@@ -562,10 +570,18 @@ async function cancelNativeQuoteReminders() {
   await LocalNotifications.cancel({ notifications: quoteNotificationIds() });
 }
 
-async function scheduleNativeQuoteReminders({ time, mood, activePack, interestIds }) {
+async function scheduleNativeQuoteReminders({ time, mood, activePack, interestIds, mode = 'background-flexible' }) {
   if (!Capacitor.isNativePlatform()) return { scheduled: false, message: 'Browser reminders only work while the app is open.' };
   const allowed = await ensureNativeNotificationPermission();
   if (!allowed) return { scheduled: false, message: 'Notification permission was not granted.' };
+
+  if (mode === 'background-exact' && Capacitor.getPlatform() === 'android') {
+    let exact = await LocalNotifications.checkExactNotificationSetting();
+    if (exact.exact_alarm !== 'granted') exact = await LocalNotifications.changeExactNotificationSetting();
+    if (exact.exact_alarm !== 'granted') {
+      return { scheduled: false, message: 'Exact timing is not enabled in Android settings. Choose flexible timing or enable Alarms and reminders.' };
+    }
+  }
 
   await prepareNativeQuoteChannel();
   await cancelNativeQuoteReminders();
@@ -582,49 +598,14 @@ async function scheduleNativeQuoteReminders({ time, mood, activePack, interestId
       summaryText: 'Daily quote reminder',
       channelId: quoteChannelId,
       autoCancel: true,
-      schedule: { at, allowWhileIdle: true },
+      schedule: { at, allowWhileIdle: mode === 'background-exact' },
       extra: { type: 'dailyQuote', quoteId: quote.id }
     };
   });
 
   await LocalNotifications.schedule({ notifications });
-  return { scheduled: true, message: `Daily reminders active at ${time}.` };
-}
-
-function readProgress() {
-  const fallback = {
-    tutorialSeen: false,
-    onboarded: false,
-    interests: [],
-    activePack: 'all',
-    reminderTime: '20:30',
-    quoteReminderTime: '12:00',
-    quoteReminderEnabled: false,
-    quoteNotifiedToday: '',
-    xp: 0,
-    streak: 0,
-    freezes: 1,
-    completed: [],
-    saved: [],
-    recent: [],
-    sessions: 0,
-    minutesReplaced: 0,
-    lastActive: '',
-    savedToday: '',
-    reviewedToday: ''
-  };
-
-  try {
-    const saved = JSON.parse(localStorage.getItem('mindSwipeProgress'));
-    if (!saved) return fallback;
-    return { ...fallback, ...saved, interests: normalizeInterestIds(saved.interests || []) };
-  } catch {
-    return fallback;
-  }
-}
-
-function saveProgress(progress) {
-  localStorage.setItem('mindSwipeProgress', JSON.stringify(progress));
+  const timing = mode === 'background-exact' ? 'exact' : 'battery-friendly';
+  return { scheduled: true, message: `${timing} daily reminders active around ${time}.` };
 }
 
 function vibrateFallback(pattern = 10) {
@@ -699,13 +680,45 @@ function isRunningStandalone() {
 }
 
 function SkipLink() {
-  return <a className='skipLink' href='#main-content'>Skip to main content</a>;
+  function focusMain(event) {
+    event.preventDefault();
+    document.getElementById('main-content')?.focus();
+  }
+
+  return <a className='skipLink' href='#main-content' onClick={focusMain}>Skip to main content</a>;
+}
+
+const bottomNavigation = [
+  { id: 'home', label: 'Home', icon: Home },
+  { id: 'learn', label: 'Learn', icon: BookOpen },
+  { id: 'explore', label: 'Explore', icon: Compass },
+  { id: 'saved', label: 'Saved', icon: Library },
+  { id: 'profile', label: 'Profile', icon: UserRound }
+];
+
+function routeFromHash() {
+  if (!window.location.hash.startsWith('#/')) return null;
+  return window.location.hash.slice(2).replace(/^\/+|\/+$/g, '') || 'home';
+}
+
+function BottomNavigation({ route, navigate }) {
+  const activeRoot = route.startsWith('trip/') ? 'saved' : route.split('/')[0];
+  return (
+    <nav className='bottomNav' aria-label='Primary navigation'>
+      {bottomNavigation.map(({ id, label, icon: Icon }) => (
+        <button type='button' key={id} className={activeRoot === id ? 'active' : ''} aria-current={activeRoot === id ? 'page' : undefined} onClick={() => navigate(id === 'saved' ? 'saved/cards' : id)}>
+          <Icon size={21} strokeWidth={activeRoot === id ? 2.4 : 1.8} />
+          <span>{label}</span>
+        </button>
+      ))}
+    </nav>
+  );
 }
 
 function App() {
   const [progress, setProgress] = useState(readProgress);
   const [screen, setScreen] = useState(progress.tutorialSeen ? (progress.onboarded ? 'home' : 'onboarding') : 'tutorial');
-  const [activePage, setActivePage] = useState('Home');
+  const [route, setRoute] = useState(() => routeFromHash() || 'home');
   const [selectedInterests, setSelectedInterests] = useState(progress.onboarded ? normalizeInterestIds(progress.interests) : []);
   const [activeMood, setActiveMood] = useState('Need focus');
   const [activePack, setActivePack] = useState(progress.activePack || 'all');
@@ -722,16 +735,35 @@ function App() {
   const [dragState, setDragState] = useState({ x: 0, y: 0, active: false });
   const [actionFlash, setActionFlash] = useState(null);
   const [sessionResult, setSessionResult] = useState(null);
+  const [sessionMode, setSessionMode] = useState('learn');
+  const [travelSession, setTravelSession] = useState([]);
+  const [reminderMode, setReminderMode] = useState(progress.quoteReminderMode || 'off');
   const touchStartRef = useRef(null);
+  const actionLockRef = useRef(false);
   const [swipeFeedback, setSwipeFeedback] = useState('');
   const [installPrompt, setInstallPrompt] = useState(null);
   const [installMessage, setInstallMessage] = useState(isRunningStandalone() ? 'MindSwipe is installed on this device.' : '');
   const [isInstalled, setIsInstalled] = useState(isRunningStandalone);
 
   function commit(next) {
-    setProgress(next);
-    saveProgress(next);
+    const normalized = saveProgress(next);
+    setProgress(normalized);
   }
+
+  function navigate(nextRoute) {
+    const clean = nextRoute.replace(/^\/+|\/+$/g, '') || 'home';
+    setRoute(clean);
+    const nextHash = `#/${clean}`;
+    if (window.location.hash !== nextHash) window.history.pushState(null, '', nextHash);
+    window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+
+  const routeRoot = route.startsWith('trip/') ? 'trip' : route.split('/')[0];
+  const activePage = routeRoot === 'profile' && route.endsWith('/quote') ? 'Quote'
+    : routeRoot === 'profile' && route.endsWith('/settings') ? 'Settings'
+      : routeRoot === 'saved' ? 'Saved'
+        : routeRoot[0]?.toUpperCase() + routeRoot.slice(1);
+  const savedView = ['cards', 'places', 'trips', 'recent'].includes(route.split('/')[1]) ? route.split('/')[1] : 'cards';
 
   const today = todayKey();
   const dailyQuote = useMemo(() => getDailyQuote(today, activeMood, activePack, selectedInterests), [today, activeMood, activePack, selectedInterests]);
@@ -758,9 +790,9 @@ function App() {
 
   const savedLessons = allLessons.filter((lesson) => progress.saved.includes(lesson.id));
   const recentLessons = allLessons.filter((lesson) => progress.recent.includes(lesson.id)).slice(0, 6);
-  const completedLessons = allLessons.filter((lesson) => progress.completed.includes(lesson.id));
   const exploredAreas = [...new Set(recentLessons.map((lesson) => lesson.area))];
-  const currentLesson = nextSession[sessionIndex] || nextSession[0];
+  const currentSession = sessionMode === 'explore' ? travelSession : nextSession;
+  const currentLesson = currentSession[sessionIndex] || currentSession[0];
   const tutorialItems = [
     { label: 'Start', title: 'Start from the water button.', body: 'That opens the daily 3-card run. The app is built around fast action, not reading forever.', target: 'start' },
     { label: 'Swipe', title: 'Move the card, then let it fly.', body: 'Left saves it, down skips it, right marks it done. A real swipe throws the card off screen.', target: 'card' },
@@ -770,7 +802,25 @@ function App() {
   const activeTutorial = tutorialItems[tutorialStep] || tutorialItems[0];
 
   useEffect(() => {
-    if (!progress.quoteReminderEnabled || !progress.quoteReminderTime || Capacitor.isNativePlatform()) return undefined;
+    const previousScrollRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = 'manual';
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
+    function handleHashChange() {
+      const nextRoute = routeFromHash();
+      if (nextRoute) setRoute(nextRoute);
+    }
+    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleHashChange);
+    return () => {
+      window.history.scrollRestoration = previousScrollRestoration;
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handleHashChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (progress.quoteReminderMode !== 'in-app' || !progress.quoteReminderTime) return undefined;
     const target = getNextReminderDate(progress.quoteReminderTime);
     const timeoutId = window.setTimeout(() => {
       if (progress.quoteNotifiedToday === today) return;
@@ -787,20 +837,20 @@ function App() {
       });
     }, target.getTime() - Date.now());
     return () => window.clearTimeout(timeoutId);
-  }, [dailyQuote, progress.quoteNotifiedToday, progress.quoteReminderEnabled, progress.quoteReminderTime, today]);
+  }, [dailyQuote, progress.quoteNotifiedToday, progress.quoteReminderMode, progress.quoteReminderTime, today]);
 
   useEffect(() => {
-    if (!Capacitor.isNativePlatform() || !progress.quoteReminderEnabled) return;
-    scheduleNativeQuoteReminders({ time: progress.quoteReminderTime, mood: activeMood, activePack, interestIds: selectedInterests })
+    if (!Capacitor.isNativePlatform() || !progress.quoteReminderMode.startsWith('background-')) return;
+    scheduleNativeQuoteReminders({ time: progress.quoteReminderTime, mood: activeMood, activePack, interestIds: selectedInterests, mode: progress.quoteReminderMode })
       .catch(() => setQuoteMessage('Native quote reminder needs notification permission.'));
-  }, [activeMood, activePack, progress.quoteReminderEnabled, progress.quoteReminderTime, selectedInterests]);
+  }, [activeMood, activePack, progress.quoteReminderMode, progress.quoteReminderTime, selectedInterests]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined;
     let actionHandle;
     LocalNotifications.addListener('localNotificationActionPerformed', () => {
       setScreen('home');
-      setActivePage('Quote');
+      navigate('profile/quote');
     }).then((handle) => {
       actionHandle = handle;
     });
@@ -851,32 +901,40 @@ function App() {
 
   async function enableQuoteReminder() {
     hapticImpact(ImpactStyle.Light, 8);
-    if (Capacitor.isNativePlatform()) {
-      const result = await scheduleNativeQuoteReminders({ time: quoteReminderTime, mood: activeMood, activePack, interestIds: selectedInterests });
-      commit({ ...progress, quoteReminderTime, quoteReminderEnabled: result.scheduled });
+    if (reminderMode === 'off') {
+      await disableQuoteReminder();
+      return;
+    }
+    if (Capacitor.isNativePlatform() && reminderMode.startsWith('background-')) {
+      const result = await scheduleNativeQuoteReminders({ time: quoteReminderTime, mood: activeMood, activePack, interestIds: selectedInterests, mode: reminderMode });
+      commit({ ...progress, quoteReminderTime, quoteReminderEnabled: result.scheduled, quoteReminderMode: result.scheduled ? reminderMode : 'off' });
       setQuoteMessage(result.message);
       return;
     }
 
-    let message = 'Browser reminder saved while MindSwipe is open.';
+    await cancelNativeQuoteReminders();
+    let message = 'In-app reminder saved. MindSwipe must be open at that time.';
     if ('Notification' in window) {
       const permission = Notification.permission === 'default' ? await Notification.requestPermission() : Notification.permission;
-      message = permission === 'granted' ? 'Browser reminder ready while MindSwipe is open.' : 'Reminder saved. In-app popup will show when possible.';
+      message = permission === 'granted' ? 'In-app reminder ready while MindSwipe is open.' : 'In-app reminder saved; MindSwipe will show its own popup while open.';
     }
-    commit({ ...progress, quoteReminderTime, quoteReminderEnabled: true });
+    commit({ ...progress, quoteReminderTime, quoteReminderEnabled: true, quoteReminderMode: 'in-app' });
     setQuoteMessage(message);
   }
 
   async function disableQuoteReminder() {
     hapticImpact(ImpactStyle.Light, 8);
     await cancelNativeQuoteReminders();
-    commit({ ...progress, quoteReminderEnabled: false, quoteReminderTime });
+    setReminderMode('off');
+    commit({ ...progress, quoteReminderEnabled: false, quoteReminderMode: 'off', quoteReminderTime });
     setQuoteMessage('Daily reminder turned off.');
   }
 
   function startSession(mood = activeMood) {
     hapticImpact(ImpactStyle.Medium, 18);
+    setSessionMode('learn');
     setActiveMood(mood);
+    actionLockRef.current = false;
     setSessionIndex(0);
     setSwipeFeedback('');
     setExitSwipe('');
@@ -886,6 +944,33 @@ function App() {
     setQuiz(null);
     setQuizSelected([]);
     setPendingProgress(null);
+    setScreen('session');
+  }
+
+  function startExploreSession(destinationId, category = 'Mixed') {
+    const filtered = getTravelCards(destinationId, category);
+    const filteredIds = new Set(filtered.map((item) => item.id));
+    const fallback = getTravelCards(destinationId, 'Mixed').filter((item) => !filteredIds.has(item.id));
+    const pool = [...filtered, ...fallback];
+    if (!pool.length) {
+      setQuoteMessage('No verified cards are available for this destination yet.');
+      return;
+    }
+    const offset = (progress.exploreSessions * sessionSize) % pool.length;
+    const rotated = [...pool.slice(offset), ...pool.slice(0, offset)].slice(0, sessionSize);
+    hapticImpact(ImpactStyle.Medium, 18);
+    setSessionMode('explore');
+    setTravelSession(rotated);
+    setSessionIndex(0);
+    setSwipeFeedback('');
+    setExitSwipe('');
+    setDragState({ x: 0, y: 0, active: false });
+    setActionFlash(null);
+    setSessionResult(null);
+    setQuiz(null);
+    setQuizSelected([]);
+    setPendingProgress(null);
+    actionLockRef.current = false;
     setScreen('session');
   }
 
@@ -904,10 +989,27 @@ function App() {
       xp: progress.xp + (mode === 'skip' ? 0 : mode === 'save' ? 10 : 15)
     };
 
-    if (sessionIndex >= nextSession.length - 1) {
+    if (sessionIndex >= currentSession.length - 1) {
+      if (sessionMode === 'explore') {
+        const result = completeSession(nextProgress, { today, mode: 'explore' });
+        commit(result.progress);
+        setSessionResult({
+          streak: result.progress.streak,
+          xp: result.progress.xp,
+          newStreak: result.newStreak,
+          quote: dailyQuote,
+          mode: 'explore'
+        });
+        setSwipeFeedback('');
+        setExitSwipe('');
+        setDragState({ x: 0, y: 0, active: false });
+        navigate('explore');
+        setScreen('sessionComplete');
+        return;
+      }
       commit(nextProgress);
       setPendingProgress(nextProgress);
-      setQuiz(getQuizForSession(today, nextSession, quizAttempt));
+      setQuiz(getQuizForSession(today, currentSession, quizAttempt));
       setQuizSelected([]);
       setSwipeFeedback('');
       setExitSwipe('');
@@ -918,6 +1020,7 @@ function App() {
     }
 
     commit(nextProgress);
+    actionLockRef.current = false;
     setSessionIndex(sessionIndex + 1);
     setSwipeFeedback('');
     setExitSwipe('');
@@ -926,7 +1029,7 @@ function App() {
   }
 
   function handleCardPointerStart(event) {
-    if (exitSwipe) return;
+    if (exitSwipe || actionLockRef.current) return;
     event.currentTarget.setPointerCapture?.(event.pointerId);
     touchStartRef.current = { x: event.clientX, y: event.clientY };
     setDragState({ x: 0, y: 0, active: true });
@@ -934,7 +1037,7 @@ function App() {
   }
 
   function handleCardPointerMove(event) {
-    if (exitSwipe) return;
+    if (exitSwipe || actionLockRef.current) return;
     const touchStart = touchStartRef.current;
     if (!touchStart) return;
     const dx = event.clientX - touchStart.x;
@@ -956,7 +1059,7 @@ function App() {
   }
 
   function handleCardPointerEnd(event) {
-    if (exitSwipe) return;
+    if (exitSwipe || actionLockRef.current) return;
     const touchStart = touchStartRef.current;
     if (!touchStart) return;
     const dx = event.clientX - touchStart.x;
@@ -980,7 +1083,8 @@ function App() {
   }
 
   function queueCardAction(mode) {
-    if (exitSwipe) return;
+    if (exitSwipe || actionLockRef.current) return;
+    actionLockRef.current = true;
     const labels = { save: 'Save', skip: 'Skip', done: 'Done' };
     const label = labels[mode];
     hapticSwipe(mode);
@@ -1016,32 +1120,28 @@ function App() {
 
     hapticNotify(NotificationType.Success, [18, 20, 30]);
     const base = pendingProgress || progress;
-    const wasActiveToday = base.lastActive === today;
-    const nextProgress = {
-      ...base,
-      lastActive: today,
-      streak: wasActiveToday ? base.streak : base.streak + 1,
-      sessions: base.sessions + 1,
-      minutesReplaced: base.minutesReplaced + 3
-    };
-    commit(nextProgress);
+    const result = completeSession(base, { today, mode: 'learn' });
+    const nextProgress = result.progress;
+    commit(result.progress);
     setSessionResult({
       streak: nextProgress.streak,
       xp: nextProgress.xp,
-      newStreak: !wasActiveToday,
-      quote: dailyQuote
+      newStreak: result.newStreak,
+      quote: dailyQuote,
+      mode: 'learn'
     });
     setPendingProgress(null);
     setQuiz(null);
     setQuizSelected([]);
     setQuizAttempt(0);
     setSwipeFeedback('');
-    setActivePage('Home');
+    navigate('home');
     setScreen('sessionComplete');
   }
 
   function retryAfterQuiz() {
     hapticImpact(ImpactStyle.Medium, 18);
+    actionLockRef.current = false;
     setQuiz(null);
     setQuizSelected([]);
     setPendingProgress(null);
@@ -1055,7 +1155,10 @@ function App() {
 
   function resetProgress() {
     if (!window.confirm('Reset all MindSwipe progress stored on this device? This cannot be undone.')) return;
-    localStorage.removeItem('mindSwipeProgress');
+    localStorage.removeItem(progressStorageKey);
+    localStorage.removeItem(progressBackupKey);
+    localStorage.removeItem(corruptProgressBackupKey);
+    cancelNativeQuoteReminders().catch(() => {});
     const fresh = readProgress();
     setProgress(fresh);
     setSelectedInterests([]);
@@ -1068,9 +1171,13 @@ function App() {
     setDragState({ x: 0, y: 0, active: false });
     setActionFlash(null);
     setSessionResult(null);
+    setSessionMode('learn');
+    setTravelSession([]);
+    setReminderMode('off');
+    actionLockRef.current = false;
     setSwipeFeedback('');
     setScreen('tutorial');
-    setActivePage('Home');
+    navigate('home');
   }
 
   async function installMindSwipe() {
@@ -1176,7 +1283,7 @@ function App() {
           </div>
           <section className='packGrid' aria-labelledby='content-style-title'>
             <h2 id='content-style-title' className='visuallyHidden'>Choose a content style</h2>
-            {packOptions.slice(0, 4).map((pack) => (
+            {packOptions.map((pack) => (
               <button key={pack.id} className={activePack === pack.id ? 'packCard active' : 'packCard'} aria-pressed={activePack === pack.id} onClick={() => { hapticSelect(); setActivePack(pack.id); }}>
                 <strong>{pack.label}</strong>
                 <span>{pack.detail}</span>
@@ -1194,6 +1301,7 @@ function App() {
 
   if (screen === 'session') {
     const sessionCardClass = ['sessionCard', swipeFeedback ? `swipe${swipeFeedback}` : '', exitSwipe ? `exit${exitSwipe}` : ''].filter(Boolean).join(' ');
+    const sessionPlace = currentLesson?.placeId ? getPlace(currentLesson.placeId) : null;
     const dragRotation = Math.max(-10, Math.min(10, dragState.x / 14));
     const sessionCardStyle = {
       '--drag-x': `${dragState.x}px`,
@@ -1206,10 +1314,10 @@ function App() {
       <main id='main-content' className='appShell' tabIndex='-1'>
         <header className='appTop'>
 <button className='iconButton' aria-label='Close session' onClick={() => { hapticImpact(ImpactStyle.Light, 8); setScreen('home'); }}><span className='closeMark' /></button>
-<div className='sessionCounter' aria-label={`Card ${sessionIndex + 1} of ${nextSession.length}`}>
-  <strong>{sessionIndex + 1} / {nextSession.length}</strong>
+<div className='sessionCounter' aria-label={`Card ${sessionIndex + 1} of ${currentSession.length}`}>
+  <strong>{sessionIndex + 1} / {currentSession.length}</strong>
   <div className='sessionDots' aria-hidden='true'>
-    {nextSession.map((lesson, index) => (
+    {currentSession.map((lesson, index) => (
       <span key={lesson.id} className={index <= sessionIndex ? 'active' : ''} />
     ))}
   </div>
@@ -1227,19 +1335,27 @@ onPointerUp={handleCardPointerEnd}
 onPointerCancel={handleCardPointerEnd}
         >
 {swipeFeedback ? <div className='swipeFeedback' role='status'>{swipeFeedback}</div> : null}
-<div className='sessionMeta'><span className='pill'>{currentLesson.area}</span></div>
+{sessionPlace?.image ? <img className='travelSessionImage' src={travelAssetUrl(sessionPlace.image.src)} alt={sessionPlace.image.alt} draggable='false' /> : null}
+<div className='sessionMeta'><span className='pill'>{currentLesson.type === 'travel' ? currentLesson.category : currentLesson.area}</span>{currentLesson.type === 'travel' ? <span className='sessionModeLabel'><Compass size={14} /> Explore</span> : null}</div>
 <h1 id='session-card-title'>{currentLesson.title}</h1>
 <p className='sessionHook'>{currentLesson.hook}</p>
 <p className='sessionBody'>{currentLesson.body}</p>
 <div className='moveBox open'>
-  <span className='miniLabel'>Tiny move</span>
+  <span className='miniLabel'>{currentLesson.type === 'travel' ? 'Notice this' : 'Tiny move'}</span>
   <strong>{getMove(currentLesson)}</strong>
 </div>
+{currentLesson.type === 'travel' ? (
+  <details className='sessionSource' onPointerDown={(event) => event.stopPropagation()}>
+    <summary>Source and verification</summary>
+    <span>Verified {currentLesson.lastVerified}</span>
+    {currentLesson.sources.map((source) => <a key={source.url} href={source.url} target='_blank' rel='noreferrer'>{source.name}</a>)}
+  </details>
+) : null}
 <p id='session-card-instructions' className='visuallyHidden'>Swipe left to save, down to skip, or right to mark done. You can also use the three buttons below.</p>
 <div className='gestureGuide gestureActions' aria-label='Card actions'>
-  <button type='button' data-arrow='←' onPointerDown={(event) => event.stopPropagation()} onClick={() => queueCardAction('save')}>Save</button>
-  <button type='button' data-arrow='↓' onPointerDown={(event) => event.stopPropagation()} onClick={() => queueCardAction('skip')}>Skip</button>
-  <button type='button' data-arrow='→' onPointerDown={(event) => event.stopPropagation()} onClick={() => queueCardAction('done')}>Done</button>
+  <button type='button' disabled={Boolean(exitSwipe)} onPointerDown={(event) => event.stopPropagation()} onClick={() => queueCardAction('save')}><ArrowLeft size={15} /><Bookmark size={18} />Save</button>
+  <button type='button' disabled={Boolean(exitSwipe)} onPointerDown={(event) => event.stopPropagation()} onClick={() => queueCardAction('skip')}><ArrowDown size={18} />Skip</button>
+  <button type='button' disabled={Boolean(exitSwipe)} onPointerDown={(event) => event.stopPropagation()} onClick={() => queueCardAction('done')}><Check size={18} />Done<ArrowRight size={15} /></button>
 </div>
         </article>
         {actionFlash ? (
@@ -1310,7 +1426,8 @@ onPointerCancel={handleCardPointerEnd}
   }
 
   if (screen === 'sessionComplete') {
-    const result = sessionResult || { streak: progress.streak, xp: progress.xp, newStreak: false, quote: dailyQuote };
+    const result = sessionResult || { streak: progress.streak, xp: progress.xp, newStreak: false, quote: dailyQuote, mode: 'learn' };
+    const exploreComplete = result.mode === 'explore';
     const level = getLevelFromXp(result.xp);
     const levelProgress = getLevelProgress(result.xp);
     const xpToNext = getXpToNextLevel(result.xp);
@@ -1328,9 +1445,9 @@ onPointerCancel={handleCardPointerEnd}
 <div className='completeOrb'>
   <span>{result.newStreak ? '+1' : 'OK'}</span>
 </div>
-<p className='eyebrow'>{result.newStreak ? 'Streak earned' : 'Daily run complete'}</p>
+<p className='eyebrow'>{exploreComplete ? 'Explore complete' : result.newStreak ? 'Streak earned' : 'Daily run complete'}</p>
 <h1>{result.newStreak ? `${result.streak} day streak` : 'Already counted today'}</h1>
-<p className='quizHint'>You finished 3 cards, passed the check, and kept the loop clean.</p>
+<p className='quizHint'>{exploreComplete ? 'You finished 3 sourced destination cards and turned curiosity into a place you can use.' : 'You finished 3 cards, passed the check, and kept the loop clean.'}</p>
 <div className='rewardTrack'>
   <div>
     <span>Level {level}</span>
@@ -1343,7 +1460,7 @@ onPointerCancel={handleCardPointerEnd}
 <div className='rewardChips' aria-label='Rewards earned'>
   <span>Streak protected</span>
   <span>3 cards cleared</span>
-  <span>Quiz passed</span>
+  <span>{exploreComplete ? 'Destination explored' : 'Quiz passed'}</span>
 </div>
 <div className='completeStats'>
   <div><strong>{result.xp}</strong><span>XP</span></div>
@@ -1354,10 +1471,31 @@ onPointerCancel={handleCardPointerEnd}
   <span>Keep in mind</span>
   <strong>{result.quote.text}</strong>
 </article>
-<button className='primaryWide' onClick={() => { hapticImpact(ImpactStyle.Light, 8); setScreen('home'); }}>Back home</button>
-<button className='secondaryWide' onClick={() => startSession(activeMood)}>Another run</button>
+<button className='primaryWide' onClick={() => { hapticImpact(ImpactStyle.Light, 8); navigate(exploreComplete ? 'explore' : 'home'); setScreen('home'); }}>{exploreComplete ? 'Back to Explore' : 'Back home'}</button>
+<button className='secondaryWide' onClick={() => exploreComplete ? startExploreSession(progress.lastDestinationId, progress.travelCategory) : startSession(activeMood)}>Another run</button>
         </section>
       </main>
+      </>
+    );
+  }
+
+  if (routeRoot === 'trip') {
+    const tripId = route.split('/')[1];
+    const trip = progress.trips.find((item) => item.id === tripId);
+    return (
+      <>
+        <SkipLink />
+        <main id='main-content' className='appShell v2Shell' tabIndex='-1'>
+          {trip ? <TripEditor trip={trip} progress={progress} commit={commit} navigate={navigate} /> : (
+            <section className='missingRoute'>
+              <MapPin size={30} />
+              <h1>Trip not found</h1>
+              <p>This trip may have been removed from local storage.</p>
+              <button type='button' className='primaryWide' onClick={() => navigate('saved/trips')}>Back to trips</button>
+            </section>
+          )}
+          <BottomNavigation route={route} navigate={navigate} />
+        </main>
       </>
     );
   }
@@ -1365,23 +1503,15 @@ onPointerCancel={handleCardPointerEnd}
   return (
     <>
     <SkipLink />
-    <main id='main-content' className='appShell' tabIndex='-1'>
+    <main id='main-content' className='appShell v2Shell' tabIndex='-1'>
       <header className='appTop'>
         <span className='topSpacer' aria-hidden='true' />
         <div className='brandLockup'>
           <MindSwipeLogo className='topLogo' />
           <h1 className='brandTitle'>MindSwipe</h1>
         </div>
-        <button className='iconButton' aria-label='Profile' onClick={() => { hapticSelect(); setActivePage('Profile'); }}><span className='smallLabel'>{progress.streak}</span></button>
+        <button className='iconButton streakButton' aria-label={`Profile, ${progress.streak} day streak`} onClick={() => { hapticSelect(); navigate('profile'); }}><span className='smallLabel'>{progress.streak}</span></button>
       </header>
-
-      <nav className='pageRail' aria-label='MindSwipe sections'>
-        {pages.map((page) => (
-          <button key={page} className={activePage === page ? 'active' : ''} aria-current={activePage === page ? 'page' : undefined} onClick={() => { hapticSelect(); setActivePage(page); }}>
-            {page}
-          </button>
-        ))}
-      </nav>
 
 
 {activePage === 'Home' ? (
@@ -1394,39 +1524,23 @@ onPointerCancel={handleCardPointerEnd}
       <div className='startOrbWrap'>
         <button className='bigStart' onClick={() => startSession(activeMood)}>
           <span>Start</span>
-          <small>A new swipe</small>
+          <small>3 useful cards</small>
         </button>
       </div>
-      <section className='moodPanel' aria-label="Choose today's mood">
-        <div className='sectionHeader compact'>
-          <span>Today feels like</span>
-          <strong>{activeMood}</strong>
-        </div>
-        <div className='moodGrid'>
-          {moodOptions.map((mood) => (
-            <button key={mood.label} className={activeMood === mood.label ? 'active' : ''} aria-pressed={activeMood === mood.label} onClick={() => setActiveMood(mood.label)}>
-              <strong>{mood.label}</strong>
-              <span>{mood.detail}</span>
-            </button>
-          ))}
-        </div>
-      </section>
+      <button type='button' className='homeExploreEntry' onClick={() => navigate('explore')}>
+        <span><Compass size={20} />Explore the Netherlands</span>
+        <strong>Amsterdam, Utrecht, Rotterdam</strong>
+        <ArrowRight size={19} />
+      </button>
       <section className='todayQuotePreview'>
-        <p>{progress.quoteReminderEnabled ? "Today's reminder" : 'Yesterday / preview quote'}</p>
+        <p>{progress.quoteReminderEnabled ? "Today's reminder" : "Today's thought"}</p>
         <strong>{progress.quoteReminderEnabled ? dailyQuote.text : yesterdayQuote.text}</strong>
-      </section>
-      <section className='installPanel' aria-labelledby='install-title'>
-        <div>
-          <h2 id='install-title'>{isInstalled ? 'MindSwipe is installed' : 'Use MindSwipe like an app'}</h2>
-          <p>{isInstalled ? 'Open it from your home screen or desktop app list.' : 'Install from Chrome on Android or desktop for a standalone, offline-ready experience.'}</p>
-        </div>
-        {!isInstalled ? <button className='secondaryWide' onClick={installMindSwipe}>{installPrompt ? 'Install MindSwipe' : 'Show install help'}</button> : null}
-        {installMessage ? <p className='statusLine' role='status'>{installMessage}</p> : null}
+        <button type='button' className='inlineLink' onClick={() => navigate('profile/quote')}>Reminder settings</button>
       </section>
       <section className='recentPanel'>
         <div className='sectionHeader compact'>
           <span>Recent themes</span>
-          <strong>{exploredAreas.length || nextSession.length}</strong>
+          <button type='button' className='inlineLink' onClick={() => navigate('saved/recent')}>View trail</button>
         </div>
         <div className='recentList'>
           {(exploredAreas.length ? exploredAreas : nextSession.map((lesson) => lesson.area)).map((area) => <span key={area}>{area}</span>)}
@@ -1436,13 +1550,48 @@ onPointerCancel={handleCardPointerEnd}
   </section>
 ) : null}
 
+{activePage === 'Learn' ? (
+  <section className='dashboardPage learnPage'>
+    <div className='pageIntro'>
+      <span>Learn mode</span>
+      <h2>Three cards. One useful action.</h2>
+      <p>Your interests shape the order. The streak check keeps the swipe honest.</p>
+    </div>
+    <section className='learnLaunch'>
+      <div className='sectionHeader compact'><span>Today feels like</span><strong>{activeMood}</strong></div>
+      <div className='moodGrid'>
+        {moodOptions.map((mood) => (
+          <button type='button' key={mood.label} className={activeMood === mood.label ? 'active' : ''} aria-pressed={activeMood === mood.label} onClick={() => setActiveMood(mood.label)}>
+            <strong>{mood.label}</strong><span>{mood.detail}</span>
+          </button>
+        ))}
+      </div>
+      <div className='sectionHeader compact'><span>Content style</span><strong>{packOptions.find((pack) => pack.id === activePack)?.label || 'All styles'}</strong></div>
+      <div className='filterRail packRail' aria-label='Content style'>
+        {packOptions.map((pack) => <button type='button' key={pack.id} className={activePack === pack.id ? 'active' : ''} aria-pressed={activePack === pack.id} onClick={() => { setActivePack(pack.id); commit({ ...progress, activePack: pack.id }); }}>{pack.label}</button>)}
+      </div>
+      <button type='button' className='primaryWide learnStart' onClick={() => startSession(activeMood)}><BookOpen size={19} />Start Learn</button>
+    </section>
+    <section className='learnTopics'>
+      <div className='sectionHeader'><span>Your lanes</span><button type='button' className='inlineLink' onClick={() => setScreen('onboarding')}>Edit interests</button></div>
+      <div className='recentList'>
+        {selectedInterests.map((id) => broadInterests.find((interest) => interest.id === id)?.label).filter(Boolean).map((label) => <span key={label}>{label}</span>)}
+      </div>
+    </section>
+  </section>
+) : null}
+
+{activePage === 'Explore' ? <ExplorePage progress={progress} commit={commit} onStartExplore={startExploreSession} navigate={navigate} /> : null}
+
+{activePage === 'Saved' ? <SavedPage progress={progress} commit={commit} learnLessons={allLessons} getLearnMove={getMove} view={savedView} navigate={navigate} /> : null}
+
 
 {activePage === 'Quote' ? (
   <section className='dashboardPage'>
     <div className='pageIntro'>
       <span>Daily reminder</span>
       <h2>Set the quote when it will actually hit.</h2>
-      <p>Pick a time, then MindSwipe will use your mood and interests for the reminder.</p>
+      <p>Choose how precise the reminder needs to be. Exact Android timing is optional and asks for a special system setting only when selected.</p>
     </div>
     <article className='quoteCardLarge'>
       <span className='quoteSource'>{dailyQuote.source || 'MindSwipe'}</span>
@@ -1460,58 +1609,25 @@ onPointerCancel={handleCardPointerEnd}
         </button>
       ))}
     </div>
+    <fieldset className='reminderModes'>
+      <legend>Delivery mode</legend>
+      <button type='button' className={reminderMode === 'in-app' ? 'active' : ''} aria-pressed={reminderMode === 'in-app'} onClick={() => setReminderMode('in-app')}>
+        <Bell size={18} /><span><strong>While open</strong><small>No special Android setting</small></span>
+      </button>
+      <button type='button' disabled={!Capacitor.isNativePlatform()} className={reminderMode === 'background-flexible' ? 'active' : ''} aria-pressed={reminderMode === 'background-flexible'} onClick={() => setReminderMode('background-flexible')}>
+        <Bell size={18} /><span><strong>Background flexible</strong><small>Android may deliver near the chosen time</small></span>
+      </button>
+      <button type='button' disabled={!Capacitor.isNativePlatform()} className={reminderMode === 'background-exact' ? 'active' : ''} aria-pressed={reminderMode === 'background-exact'} onClick={() => setReminderMode('background-exact')}>
+        <Bell size={18} /><span><strong>Background exact</strong><small>Requires Android Alarms and reminders access</small></span>
+      </button>
+      {!Capacitor.isNativePlatform() ? <p>Install the Android build to use background delivery. The web app can remind you only while it is open.</p> : null}
+    </fieldset>
     <div className='reminderRow'>
       <input aria-label='Quote reminder time' type='time' value={quoteReminderTime} onChange={(event) => setQuoteReminderTime(event.target.value)} />
-      <button className='secondary' onClick={enableQuoteReminder}>{progress.quoteReminderEnabled ? 'Update' : 'Turn on'}</button>
+      <button className='secondary' onClick={enableQuoteReminder} disabled={reminderMode === 'off'}>{progress.quoteReminderEnabled ? 'Update' : 'Turn on'}</button>
     </div>
     {progress.quoteReminderEnabled ? <button className='secondaryWide dangerText' onClick={disableQuoteReminder}>Turn off reminder</button> : null}
     {quoteMessage ? <p className='statusLine' role='status'>{quoteMessage}</p> : null}
-  </section>
-) : null}
-
-
-{activePage === 'History' ? (
-  <section className='dashboardPage'>
-    <div className='pageIntro'>
-      <span>Your trail</span>
-      <h2>What you saw, saved, and acted on.</h2>
-      <p>Use this page to come back to useful cards without repeating the whole run.</p>
-    </div>
-    <section className='cleanPanel'>
-      <div className='sectionHeader'>
-        <span>Recently seen</span>
-        <strong>{recentLessons.length || nextSession.length}</strong>
-      </div>
-      <div className='list'>
-        {(recentLessons.length ? recentLessons : nextSession).map((lesson) => (
-          <article className='miniCard' key={lesson.id}>
-            <span className='pill'>{lesson.area}</span>
-            <h3>{lesson.title}</h3>
-            <p>{lesson.hook}</p>
-          </article>
-        ))}
-      </div>
-    </section>
-    <section className='cleanPanel'>
-      <div className='sectionHeader'>
-        <span>Saved moves</span>
-        <strong>{savedLessons.length}</strong>
-      </div>
-      <div className='list'>
-        {savedLessons.length ? savedLessons.map((lesson) => (
-          <article className='miniCard savedMove' key={lesson.id}>
-            <span className='pill'>{lesson.area}</span>
-            <h3>{lesson.title}</h3>
-            <p>{getMove(lesson)}</p>
-          </article>
-        )) : (
-          <div className='emptyState'>
-            <strong>No saved moves yet</strong>
-            <p>Swipe a card left during a run and it will land here.</p>
-          </div>
-        )}
-      </div>
-    </section>
   </section>
 ) : null}
 
@@ -1526,7 +1642,7 @@ onPointerCancel={handleCardPointerEnd}
     <div className='statGrid'>
       <div><strong>{progress.xp}</strong><span>XP</span></div>
       <div><strong>{progress.streak}</strong><span>streak</span></div>
-      <div><strong>{completedLessons.length}</strong><span>done cards</span></div>
+      <div><strong>{progress.completed.length}</strong><span>done cards</span></div>
     </div>
     <section className='cleanPanel'>
       <div className='sectionHeader'>
@@ -1539,6 +1655,10 @@ onPointerCancel={handleCardPointerEnd}
         <div><strong>Reminder set</strong><span>{progress.quoteReminderEnabled ? 'Unlocked' : 'Locked'}</span></div>
         <div><strong>Comeback week</strong><span>{progress.streak >= 7 ? 'Unlocked' : 'Locked'}</span></div>
       </div>
+    </section>
+    <section className='cleanPanel menuList profileMenu'>
+      <button type='button' onClick={() => navigate('profile/quote')}><Bell size={19} />Quote reminder<span>{progress.quoteReminderEnabled ? progress.quoteReminderTime : 'Off'}</span></button>
+      <button type='button' onClick={() => navigate('profile/settings')}><Settings size={19} />Settings<span>Open</span></button>
     </section>
   </section>
 ) : null}
@@ -1557,9 +1677,9 @@ onPointerCancel={handleCardPointerEnd}
         <strong>Local</strong>
       </div>
       <button onClick={() => setScreen('onboarding')}>Edit interests<span>Open</span></button>
-      <button onClick={() => { hapticSelect(); setActivePage('Quote'); }}>Notifications<span>Open</span></button>
+      <button onClick={() => { hapticSelect(); navigate('profile/quote'); }}>Notifications<span>Open</span></button>
       <button onClick={installMindSwipe} disabled={isInstalled}>Install MindSwipe<span>{isInstalled ? 'Installed' : installPrompt ? 'Ready' : 'Chrome menu'}</span></button>
-      <button disabled>Appearance<span>Planned</span></button>
+      <button disabled>Appearance<span>Noir / ivory</span></button>
       <a href='https://github.com/daniel-techAI/MindSwipe/issues' target='_blank' rel='noreferrer'>Contact & support<span>GitHub, new tab</span></a>
       <a href={`${import.meta.env.BASE_URL}privacy.html`}>Privacy policy<span>Open</span></a>
       <button className='dangerText' onClick={resetProgress}>Reset local progress<span>Reset</span></button>
@@ -1567,6 +1687,19 @@ onPointerCancel={handleCardPointerEnd}
     {installMessage ? <p className='statusLine' role='status'>{installMessage}</p> : null}
   </section>
 ) : null}
+
+      {!progress.v2IntroSeen ? (
+        <div className='modalBackdrop v2IntroBackdrop' role='presentation'>
+          <section className='v2Welcome' role='dialog' aria-modal='true' aria-labelledby='v2-welcome-title'>
+            <MindSwipeLogo className='v2WelcomeLogo' />
+            <p className='eyebrow'>MindSwipe V2</p>
+            <h2 id='v2-welcome-title'>Learn here. Explore out there.</h2>
+            <p>Learn keeps your focused three-card runs. Explore adds sourced destination cards, useful places, and local trips for Amsterdam, Utrecht, and Rotterdam.</p>
+            <div><span><BookOpen size={18} />Learn</span><span><Compass size={18} />Explore</span><span><MapPin size={18} />Plan</span></div>
+            <button type='button' className='primaryWide' onClick={() => commit({ ...progress, v2IntroSeen: true })}>Enter MindSwipe</button>
+          </section>
+        </div>
+      ) : null}
 
       {quoteToast ? (
         <div className='quoteToast' role='status'>
@@ -1577,6 +1710,7 @@ onPointerCancel={handleCardPointerEnd}
           <button className='textButton' onClick={() => setQuoteToast(null)}>Close</button>
         </div>
       ) : null}
+      <BottomNavigation route={route} navigate={navigate} />
     </main>
     </>
   );

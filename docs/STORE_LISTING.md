@@ -1,49 +1,54 @@
-# MindSwipe Store Listing Draft
+# MindSwipe store listing draft
 
-## Direction
+Status: **DRAFT. Owner and store review required.**
 
-Audience: people replacing unproductive scrolling with practical, short learning sessions.
-Tone: direct bro, store-safe, practical, blunt without being cringe.
-Public brand: MindSwipe.
+## Name
 
-## Short Description
+MindSwipe
 
-Before you doomscroll, swipe 3 cards that help you rebuild discipline, money, and focus.
+## Short description
 
-## Full Description
+Replace doomscrolling with three useful cards, then turn curiosity into real places.
+
+## Full description
 
 MindSwipe is built for the moment your thumb wants the feed.
 
-Instead of opening an endless scroll, choose your mood and swipe through three short cards. Each card gives you a sharp idea and one tiny move you can actually use today.
+Choose Learn for a focused three-card run based on your interests, from money and psychology to AI, science, history, philosophy, and practical life skills. Each card gives you one clear idea and a small action. Complete the check to protect your streak.
 
-MindSwipe is for the broke comeback phase: low cash, low discipline, too much scrolling, and the pressure to get your life moving again.
+Choose Explore to understand a destination in short, sourced swipes. The Netherlands pilot covers Amsterdam, Utrecht, and Rotterdam with local history, culture, architecture, etiquette, language, useful context, and important places.
 
-Current packs include No Money Comeback, Discipline, Social Confidence, Work Grind, Focus, and Online Income Basics.
+Save cards and places, organize stops into simple day-by-day trips, then open supported directions in Google Maps or navigate to the next stop with Waze.
 
-MindSwipe tracks XP, streaks, saved ideas, daily missions, and minutes rescued from scrolling. Progress is stored on your device in this version.
+MindSwipe works without an account. Progress, saved items, and trips stay on your device in this version. The pilot content and images are available offline after installation; external sources and navigation require connectivity.
 
-## Feature Bullets
+## Feature bullets
 
-- 3-card rescue sessions
-- Swipe-style Save, Skip, and Done controls
-- Hook-first cards with practical tiny moves
-- Content packs for discipline, money, work, focus, and confidence
-- Saved ideas replay
-- Daily missions and streaks
-- Local progress storage
+- Three-card Learn and Explore sessions
+- Interest-based useful knowledge
+- Sourced Netherlands destination cards
+- Saved cards and places
+- Local day-by-day trips and notes
+- Google Maps and Waze handoff
+- Shared XP and streaks
+- Optional local quote reminders
+- Offline-capable PWA and Android app
+- No account, analytics, ads, or location tracking in V2
 
-## Release Details Still Required
-
-- Support email: not set; add a monitored public address before store submission
-- Developer name: MindSwipe
-- Privacy policy URL: add hosted URL before Play Store submission
-- App category: Education or Productivity
-- Content rating: likely Everyone / teen-safe, confirm in Play Console questionnaire
-
-## Screenshot Captions
+## Screenshot captions
 
 1. Open MindSwipe before the feed.
-2. Pick your rescue mood.
-3. Swipe three useful cards.
-4. Save ideas worth stealing.
-5. Track streaks and rescued minutes.
+2. Learn one useful idea in three cards.
+3. Explore Amsterdam, Utrecht, and Rotterdam.
+4. Save places worth seeing.
+5. Build a simple trip by day.
+6. Hand the route to Google Maps or Waze.
+
+## Required decisions/assets
+
+- `[OWNER DECISION REQUIRED]` Developer/publisher name.
+- `[OWNER DECISION REQUIRED]` Support email.
+- `[OWNER DECISION REQUIRED]` Privacy-policy and Terms URLs.
+- Final category: likely Education or Productivity; validate in Play Console.
+- Content rating and target audience.
+- Final icon, screenshots, feature graphic, and release notes.

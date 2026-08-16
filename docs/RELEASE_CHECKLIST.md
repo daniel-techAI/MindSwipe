@@ -1,43 +1,59 @@
-# MindSwipe Release Checklist
+# MindSwipe V2 release checklist
 
-## Build
+## Automated repository checks
 
-- [ ] Manually run the Android workflow and confirm its APK installs on Android.
-- [ ] Confirm `Test notification` fires after 5 seconds.
-- [ ] Confirm scheduled quote reminder fires when the app is closed.
-- [ ] Confirm Android notification permission denial is handled clearly.
-- [ ] Build signed release AAB.
-- [ ] Upload signed AAB to internal testing.
+- [x] ESLint includes React hooks and JSX accessibility rules.
+- [x] Unit tests cover progress migration/streaks, travel filtering/validation, trip operations, map/Waze links, and PWA path/offline generation.
+- [x] Playwright covers first run, keyboard use, Learn controls, Explore filtering/completion, Travel saves, trip persistence, reduced motion, accessibility, manifest, and desktop/Android-sized viewports.
+- [x] Android project targets API 36 and is committed.
+- [x] Android workflow verifies no location permission and builds debug APK/AAB.
 
-## Product
+## Native build and device testing
 
-- [ ] Replace default Capacitor app icon.
-- [ ] Add splash screen/launch screen polish.
-- [ ] Add final app name and package name check: `com.mindswipe.app`.
-- [ ] Review all visible copy for typos and tone.
-- [ ] Add enough content so repeat users do not see the same cards too fast.
-- [ ] Add a clean first-run reminder prompt.
+- [ ] Run the manual Android workflow and retain successful Gradle lint/test/build logs.
+- [ ] Install the generated debug APK on at least one real API 36 device/emulator and one older supported device.
+- [ ] Test upgrade from the previous APK and confirm progress migration/backup.
+- [ ] Test offline launch after a successful online install/sync.
+- [ ] Test flexible reminder while app is backgrounded and terminated.
+- [ ] Test exact reminder grant, denial, revocation, device restart, time change, timezone change, and battery restrictions.
+- [ ] Confirm notification tap opens quote settings.
+- [ ] Confirm source, Google Maps, and Waze handoffs on devices with and without target apps installed.
+- [ ] Confirm no location prompt appears.
+- [ ] Test TalkBack, larger fonts, dark contrast, keyboard/switch access where available, and reduced motion.
 
-## Store
+## Release engineering
 
-- [ ] Short description.
-- [ ] Full description.
-- [ ] App screenshots.
-- [ ] Feature graphic.
-- [ ] Privacy policy URL.
-- [ ] Data safety form.
-- [ ] Content rating questionnaire.
-- [ ] Target audience.
-- [ ] Ads declaration.
-- [ ] Contact email.
+- [ ] `[OWNER DECISION REQUIRED]` Create/protect upload key and signing configuration outside git.
+- [ ] Produce a signed release AAB, not a debug AAB.
+- [ ] Inspect merged release manifest and dependency report.
+- [ ] Verify release `versionCode`/`versionName` and reproducible source commit.
+- [ ] Enable minification only after release-rule testing; document the decision.
+- [ ] Define rollback and hotfix process.
 
-## Monetization Later
+## Product/content
 
-Start without heavy monetization if the first goal is users and feedback.
+- [ ] Human copy/typo pass on every screen and both viewport classes.
+- [ ] Human source and image-license pass on all 24 cards and 12 places.
+- [ ] Open every citation, license, Google Maps, and Waze link.
+- [ ] Confirm disclaimer is visible without overwhelming the core experience.
+- [ ] Decide whether the current app icon/launch screen is final.
+- [ ] Run a multi-day retention test to evaluate repetition and streak behavior.
 
-Best first options:
-- Free app with optional premium content packs.
-- One-time unlock for extra packs.
-- Later subscription only if the app has real retention.
+## Store and legal
 
-Avoid adding ads before the app feels useful. Ads can make a motivational app feel cheap fast.
+- [ ] `[OWNER DECISION REQUIRED]` Publisher/operator identity.
+- [ ] `[OWNER DECISION REQUIRED]` Monitored support email.
+- [ ] `[OWNER DECISION REQUIRED]` Permanent privacy and Terms URLs.
+- [ ] Human/legal review of privacy, Terms, travel disclaimer, licensing, and launch-market requirements.
+- [ ] Data safety form based on the signed artifact.
+- [ ] Exact-alarm permission policy review/declaration where required.
+- [ ] Content rating, target audience, ads declaration, category, and app-access details.
+- [ ] Final screenshots, feature graphic, descriptions, release notes, and support path.
+- [ ] Play developer/publisher verification and current testing-track requirements.
+
+## Explicitly later
+
+- [ ] Analytics only after owner decision and privacy/store review.
+- [ ] Monetization only after retention evidence and fresh billing/legal review.
+- [ ] Optional foreground/approximate location only after explicit product/privacy decision.
+- [ ] iOS only after shared product and legal identity are stable.

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MindSwipe</string>
+    <string name="title_activity_main">MindSwipe</string>
+    <string name="package_name">com.mindswipe.app</string>
+    <string name="custom_url_scheme">com.mindswipe.app</string>
+</resources>

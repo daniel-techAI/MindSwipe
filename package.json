@@ -1,6 +1,6 @@
 {
   "name": "mind-swipe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Focused three-card learning sessions that replace doomscrolling with practical actions.",
   "private": true,
   "type": "module",
@@ -21,19 +21,20 @@
     "android:open": "cap open android"
   },
   "dependencies": {
+    "@capacitor/core": "^8.3.4",
+    "@capacitor/haptics": "^8.0.0",
+    "@capacitor/local-notifications": "^8.0.0",
     "@vitejs/plugin-react": "^5.0.4",
-    "vite": "^7.3.2",
-    "typescript": "~5.9.3",
+    "lucide-react": "^0.539.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "@capacitor/core": "^8.3.4",
-    "@capacitor/local-notifications": "^8.0.0",
-    "@capacitor/haptics": "^8.0.0"
+    "typescript": "~5.9.3",
+    "vite": "^7.3.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@capacitor/android": "^8.3.4",
     "@capacitor/cli": "^8.3.4",
-    "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.62.1",
     "eslint": "^9.39.2",
