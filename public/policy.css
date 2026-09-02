@@ -203,6 +203,11 @@ h3 {
   border: 1px solid var(--line);
 }
 
+.dataTableWrap:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+}
+
 table {
   width: 100%;
   min-width: 640px;
