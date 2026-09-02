@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const port = Number(process.env.PLAYWRIGHT_PORT || 4175);
+const baseURL = `http://127.0.0.1:${port}/`;
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
@@ -8,7 +11,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
-    baseURL: 'http://127.0.0.1:4175/',
+    baseURL,
     trace: 'retain-on-failure'
   },
   projects: [
@@ -16,8 +19,8 @@ export default defineConfig({
     { name: 'android-chromium', use: { ...devices['Pixel 7'] } }
   ],
   webServer: {
-    command: 'npm run preview -- --port 4175 --strictPort',
-    url: 'http://127.0.0.1:4175/',
+    command: `npm run preview -- --port ${port} --strictPort`,
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000
   }
