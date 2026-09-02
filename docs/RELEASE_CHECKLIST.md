@@ -7,10 +7,13 @@
 - [x] Playwright covers first run, keyboard use, Learn controls, Explore filtering/completion, Travel saves, trip persistence, reduced motion, accessibility, manifest, and desktop/Android-sized viewports.
 - [x] Android project targets API 36 and is committed.
 - [x] Android workflow verifies no location permission and builds debug APK/AAB.
+- [x] Release Gradle configuration reads credentials only from environment variables and fails closed when absent.
+- [x] Manual release workflow definition builds and verifies a signed AAB from protected GitHub Actions secrets.
+- [x] Public Privacy, Terms, and Support pages identify Daniel Laky and `daniellaky5.c@gmail.com`.
 
 ## Native build and device testing
 
-- [ ] Run the manual Android workflow and retain successful Gradle lint/test/build logs.
+- [x] Run the manual debug Android workflow and retain successful Gradle lint/test/build logs.
 - [ ] Install the generated debug APK on at least one real API 36 device/emulator and one older supported device.
 - [ ] Test upgrade from the previous APK and confirm progress migration/backup.
 - [ ] Test offline launch after a successful online install/sync.
@@ -23,8 +26,9 @@
 
 ## Release engineering
 
-- [ ] `[OWNER DECISION REQUIRED]` Create/protect upload key and signing configuration outside git.
-- [ ] Produce a signed release AAB, not a debug AAB.
+- [x] Create/protect upload key and signing configuration outside git.
+- [ ] Configure the four required GitHub Actions signing secrets.
+- [ ] Produce and cryptographically verify the first signed release AAB through GitHub Actions.
 - [ ] Inspect merged release manifest and dependency report.
 - [ ] Verify release `versionCode`/`versionName` and reproducible source commit.
 - [ ] Enable minification only after release-rule testing; document the decision.
@@ -41,9 +45,11 @@
 
 ## Store and legal
 
-- [ ] `[OWNER DECISION REQUIRED]` Publisher/operator identity.
-- [ ] `[OWNER DECISION REQUIRED]` Monitored support email.
-- [ ] `[OWNER DECISION REQUIRED]` Permanent privacy and Terms URLs.
+- [x] Public operator name: Daniel Laky.
+- [x] Monitored support email: `daniellaky5.c@gmail.com`.
+- [x] Privacy, Terms, and Support page files and intended GitHub Pages URLs are prepared.
+- [ ] Merge/deploy the pages and verify all three public URLs return successfully.
+- [ ] `[OWNER DECISION REQUIRED]` Final legal form, launch countries, and any mandatory business/postal address disclosure.
 - [ ] Human/legal review of privacy, Terms, travel disclaimer, licensing, and launch-market requirements.
 - [ ] Data safety form based on the signed artifact.
 - [ ] Exact-alarm permission policy review/declaration where required.

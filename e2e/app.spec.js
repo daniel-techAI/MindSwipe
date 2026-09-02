@@ -138,3 +138,14 @@ test('ships a project-path-safe install manifest', async ({ request }) => {
     expect.objectContaining({ sizes: '512x512', type: 'image/png', purpose: 'maskable' })
   ]));
 });
+
+test('publishes complete Privacy, Terms, and Support pages', async ({ request }) => {
+  for (const pageName of ['privacy', 'terms', 'support']) {
+    const response = await request.get(`./${pageName}.html`);
+    expect(response.ok()).toBeTruthy();
+    const body = await response.text();
+    expect(body).toContain('Daniel Laky');
+    expect(body).toContain('daniellaky5.c@gmail.com');
+    expect(body).not.toMatch(/OWNER DECISION REQUIRED|pre-release draft/i);
+  }
+});

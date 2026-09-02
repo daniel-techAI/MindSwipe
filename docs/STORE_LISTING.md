@@ -44,11 +44,17 @@ MindSwipe works without an account. Progress, saved items, and trips stay on you
 5. Build a simple trip by day.
 6. Hand the route to Google Maps or Waze.
 
+## Developer contact and public policies
+
+- Developer/operator: Daniel Laky
+- Support email: `daniellaky5.c@gmail.com`
+- Privacy: https://daniel-techai.github.io/MindSwipe/privacy.html
+- Terms: https://daniel-techai.github.io/MindSwipe/terms.html
+- Support: https://daniel-techai.github.io/MindSwipe/support.html
+
 ## Required decisions/assets
 
-- `[OWNER DECISION REQUIRED]` Developer/publisher name.
-- `[OWNER DECISION REQUIRED]` Support email.
-- `[OWNER DECISION REQUIRED]` Privacy-policy and Terms URLs.
+- `[OWNER DECISION REQUIRED]` Final legal form, launch countries, and any required address disclosure.
 - Final category: likely Education or Productivity; validate in Play Console.
-- Content rating and target audience.
+- Confirm age 16+ target audience in Play Console and complete content rating.
 - Final icon, screenshots, feature graphic, and release notes.

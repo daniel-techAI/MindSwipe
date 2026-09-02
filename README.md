@@ -5,7 +5,7 @@ MindSwipe is a privacy-first anti-doomscrolling microlearning app. It turns the 
 - **Learn:** three short cards selected from the user's interests, followed by a streak check.
 - **Explore:** three sourced destination cards, useful places, and local trip planning that hands navigation to Google Maps or Waze.
 
-> **Status: public beta candidate, not a production store release.** The web/PWA implementation and Android debug build path are functional. Play publication still requires signing, real-device and track testing, final operator/support details, store assets, and human policy/legal review.
+> **Status: public beta candidate, not a production store release.** The web/PWA implementation, signed-AAB workflow definition, policy/support pages, and Android debug path are implemented. The feature branch still needs review and deployment; signed release generation also requires GitHub Actions secrets and a successful first run. Play publication additionally requires real-device and Play-track testing, store assets/forms, publisher verification, and human policy/legal review.
 
 ## Current V2 scope
 
@@ -41,7 +41,8 @@ No hidden telemetry or automatic content API exists. Network access happens only
 - loading the deployed PWA itself;
 - a user opening a cited source or image-license page;
 - a user launching Google Maps or Waze;
-- a user opening GitHub support/privacy links.
+- a user opening the hosted Privacy, Terms, or Support pages;
+- a user emailing support.
 
 The Android manifest declares `INTERNET`, `POST_NOTIFICATIONS`, and `SCHEDULE_EXACT_ALARM`. Exact-alarm settings are requested only if the user selects **Background exact**. No location permission is declared.
 
@@ -85,7 +86,7 @@ npm run android:open
 
 The manual **Build Android APK** workflow installs API 36, runs web checks, syncs Capacitor, verifies the permission boundary, runs Gradle lint/unit tests, and builds debug APK/AAB artifacts.
 
-Debug artifacts are not Play Store releases. A production release needs a protected signing key and signed release AAB. Never commit a keystore, signing password, service-account key, or `local.properties`.
+The manual **Build signed Android release** workflow is defined to restore an encrypted GitHub Actions secret to an isolated runner, build and verify a signed release AAB, upload the AAB as a private workflow artifact, and remove the temporary keystore. It cannot run until the required repository secrets are configured. See [Signing and release](docs/SIGNING_AND_RELEASE.md). Debug artifacts are not Play Store releases. Never commit a keystore, signing password, service-account key, or `local.properties`.
 
 ## Repository map
 
@@ -107,9 +108,11 @@ Debug artifacts are not Play Store releases. A production release needs a protec
 - [Architecture](docs/ARCHITECTURE.md)
 - [Travel mode](docs/TRAVEL_MODE.md)
 - [Content sourcing](docs/CONTENT_SOURCING.md)
-- [Privacy draft](docs/PRIVACY_POLICY_DRAFT.md)
+- [Privacy policy](docs/PRIVACY_POLICY.md)
 - [Legal and compliance](docs/LEGAL_AND_COMPLIANCE.md)
-- [Terms draft](docs/TERMS_OF_USE_DRAFT.md)
+- [Terms of use](docs/TERMS_OF_USE.md)
+- [Signing and release](docs/SIGNING_AND_RELEASE.md)
+- [Policy research](docs/POLICY_RESEARCH.md)
 - [Play Store preparation](docs/PLAY_STORE_PREP.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [Measurement plan](docs/MEASUREMENT_PLAN.md)
@@ -117,9 +120,8 @@ Debug artifacts are not Play Store releases. A production release needs a protec
 
 ## Owner decisions required
 
-- `[OWNER DECISION REQUIRED]` Legal publisher/operator name and country.
-- `[OWNER DECISION REQUIRED]` Monitored support email.
-- `[OWNER DECISION REQUIRED]` Permanent hosted privacy-policy URL.
+- `[OWNER DECISION REQUIRED]` Final legal form, country, and address disclosures required for commercial publication.
+- `[OWNER DECISION REQUIRED]` Play Console publisher account verification and launch countries.
 - `[OWNER DECISION REQUIRED]` Monetization timing and model.
 - `[OWNER DECISION REQUIRED]` Whether analytics will ever be added and which privacy-reviewed stack to use.
 - `[OWNER DECISION REQUIRED]` Whether a future opt-in location feature is valuable enough to justify permission and policy work.

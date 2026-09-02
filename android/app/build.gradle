@@ -1,5 +1,16 @@
 apply plugin: 'com.android.application'
 
+def releaseStorePath = System.getenv('MINDSWIPE_KEYSTORE_PATH')
+def releaseStorePassword = System.getenv('MINDSWIPE_KEYSTORE_PASSWORD')
+def releaseKeyAlias = System.getenv('MINDSWIPE_KEY_ALIAS')
+def releaseKeyPassword = System.getenv('MINDSWIPE_KEY_PASSWORD')
+def hasReleaseSigning = [
+    releaseStorePath,
+    releaseStorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword
+].every { value -> value != null && !value.trim().isEmpty() }
+
 android {
     namespace = "com.mindswipe.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +27,20 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (hasReleaseSigning) {
+                storeFile file(releaseStorePath)
+                storeType 'PKCS12'
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -40,6 +63,18 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+}
+
+gradle.taskGraph.whenReady { taskGraph ->
+    def releaseArtifactRequested = taskGraph.allTasks.any { task ->
+        task.path in [':app:assembleRelease', ':app:bundleRelease', ':app:packageRelease']
+    }
+    if (releaseArtifactRequested && !hasReleaseSigning) {
+        throw new GradleException(
+            'Release signing is not configured. Set MINDSWIPE_KEYSTORE_PATH, ' +
+            'MINDSWIPE_KEYSTORE_PASSWORD, MINDSWIPE_KEY_ALIAS, and MINDSWIPE_KEY_PASSWORD.'
+        )
+    }
 }
 
 apply from: 'capacitor.build.gradle'

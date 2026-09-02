@@ -1,24 +1,25 @@
 # Legal and compliance preparation
 
-Status: **TECHNICAL DRAFT ONLY. This document does not claim legal compliance or provide legal advice.**
+Status: **TECHNICAL PREPARATION ONLY. This document does not claim legal compliance or provide legal advice.**
 
-Last updated: 2026-08-16
+Last updated: 2026-09-02
 
 ## Owner information
 
-- Publisher/operator: `[OWNER DECISION REQUIRED]`
-- Legal form/registration: `[OWNER DECISION REQUIRED]`
-- Country and business address requirements: `[OWNER DECISION REQUIRED]`
-- Monitored support email: `[OWNER DECISION REQUIRED]`
-- Privacy-policy URL: `[OWNER DECISION REQUIRED]`
-- Terms URL: `[OWNER DECISION REQUIRED]`
+- Public operator: Daniel Laky, independent developer.
+- Support/privacy email: `daniellaky5.c@gmail.com`.
+- Privacy-policy URL: https://daniel-techai.github.io/MindSwipe/privacy.html
+- Terms URL: https://daniel-techai.github.io/MindSwipe/terms.html
+- Support URL: https://daniel-techai.github.io/MindSwipe/support.html
+- Intended audience: age 16 and older; not designed as child-directed.
+- Legal form/registration, launch country, and any required business/postal address: `[OWNER DECISION REQUIRED]` before paid commercial publication.
 
 ## Current technical facts
 
 - No account, remote profile, backend, analytics, ad SDK, payment SDK, Firebase, cloud sync, or GPS.
 - Learn progress, Saved items, trips, free-text trip notes, and preferences remain in local storage.
 - Android local notifications are opt-in. Exact timing opens the Android exact-alarm setting only after explicit selection.
-- External requests occur only when serving the app or when the user opens a source, image-license, Google Maps, Waze, privacy, or support link.
+- External requests occur only when serving the hosted app, when the user opens a source, image-license page, Google Maps, Waze, or GitHub Issue, or when the user chooses to email support.
 - Android cloud backup and cleartext traffic are disabled.
 - Bundled third-party images carry attribution/license metadata.
 
@@ -26,9 +27,10 @@ These facts must be revalidated against the signed release artifact and dependen
 
 ## Documents and surfaces
 
-- In-app/public privacy page: `public/privacy.html`.
-- Maintainer privacy draft: `docs/PRIVACY_POLICY_DRAFT.md`.
-- Terms draft: `docs/TERMS_OF_USE_DRAFT.md`.
+- Public privacy page: `public/privacy.html`; repository copy: `docs/PRIVACY_POLICY.md`.
+- Public Terms page: `public/terms.html`; repository copy: `docs/TERMS_OF_USE.md`.
+- Public support page: `public/support.html`.
+- Policy-source record: `docs/POLICY_RESEARCH.md`.
 - Sourcing rules: `docs/CONTENT_SOURCING.md`.
 - Travel limitations: `docs/TRAVEL_MODE.md`.
 - Store preparation: `docs/PLAY_STORE_PREP.md`.
@@ -49,19 +51,19 @@ MindSwipe should state that Travel content is informational/educational and can 
 
 Human completion is required for:
 
-- developer/publisher identity verification;
+- Play developer/publisher identity and contact verification;
 - Data safety form based on the release artifact;
 - target audience and content rating;
 - ads declaration;
 - app access instructions if later required;
-- privacy-policy URL;
+- public policy/support URLs and any address disclosure required for the selected account type/markets;
 - exact-alarm permission eligibility/policy review;
 - store listing, screenshots, icon, feature graphic, and support contact;
 - internal/closed testing and production access requirements.
 
 ## Regional/legal questions
 
-`[OWNER DECISION REQUIRED]` Identify launch countries. The owner should obtain qualified advice where required concerning consumer terms, operator disclosures, age/children rules, intellectual property, electronic communications, accessibility, tax/VAT, and business registration.
+`[OWNER DECISION REQUIRED]` Identify the legal form and launch countries. The owner should obtain qualified advice where required concerning operator/address disclosures, consumer terms, age rules, intellectual property, electronic communications, accessibility, tax/VAT, and business registration.
 
 ## Monetization gate
 
@@ -69,4 +71,4 @@ No monetization code exists. Before adding paid destination packs, one-time unlo
 
 ## Release rule
 
-Technical preparation is not legal approval. Do not mark a release compliant solely because these drafts exist or a debug build installs.
+Technical preparation is not legal approval. Do not mark a release compliant solely because policies exist or a signed build installs. Re-review the published text whenever data flows, permissions, monetization, identity, or launch markets change.

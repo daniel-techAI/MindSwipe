@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { createRoot } from 'react-dom/client';
-import { ArrowDown, ArrowLeft, ArrowRight, Bell, Bookmark, BookOpen, Check, Compass, Home, Library, MapPin, Settings, UserRound } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, Bell, Bookmark, BookOpen, Check, CircleHelp, Compass, Home, Library, MapPin, Scale, Settings, ShieldCheck, UserRound } from 'lucide-react';
 import { dailyQuotes, extraActionMoves, extraLessons, packOptions } from './content.js';
 import { knowledgeActionMoves, knowledgeInterestCategories, knowledgeInterests, knowledgeLessons } from './knowledgeContent.js';
 import { famousQuotes } from './quoteBank.js';
@@ -1680,8 +1680,9 @@ onPointerCancel={handleCardPointerEnd}
       <button onClick={() => { hapticSelect(); navigate('profile/quote'); }}>Notifications<span>Open</span></button>
       <button onClick={installMindSwipe} disabled={isInstalled}>Install MindSwipe<span>{isInstalled ? 'Installed' : installPrompt ? 'Ready' : 'Chrome menu'}</span></button>
       <button disabled>Appearance<span>Noir / ivory</span></button>
-      <a href='https://github.com/daniel-techAI/MindSwipe/issues' target='_blank' rel='noreferrer'>Contact & support<span>GitHub, new tab</span></a>
-      <a href={`${import.meta.env.BASE_URL}privacy.html`}>Privacy policy<span>Open</span></a>
+      <a href={`${import.meta.env.BASE_URL}support.html`}><CircleHelp size={19} />Contact & support<span>Email + help</span></a>
+      <a href={`${import.meta.env.BASE_URL}privacy.html`}><ShieldCheck size={19} />Privacy policy<span>Open</span></a>
+      <a href={`${import.meta.env.BASE_URL}terms.html`}><Scale size={19} />Terms of use<span>Open</span></a>
       <button className='dangerText' onClick={resetProgress}>Reset local progress<span>Reset</span></button>
     </section>
     {installMessage ? <p className='statusLine' role='status'>{installMessage}</p> : null}

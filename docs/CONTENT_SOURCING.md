@@ -58,4 +58,4 @@ Legacy Learn cards are bundled editorial content. New V2 AI, science, history, p
 
 ## Takedown/correction process
 
-`[OWNER DECISION REQUIRED]` Add a monitored support email and documented process for factual corrections, attribution fixes, and copyright/licensing concerns before commercial release.
+Factual corrections, attribution fixes, and copyright/licensing concerns can be sent to `daniellaky5.c@gmail.com` or through the public Support page. Review reports against the cited source, correct verified problems promptly, and retain enough internal context to explain the change without storing unnecessary personal data.

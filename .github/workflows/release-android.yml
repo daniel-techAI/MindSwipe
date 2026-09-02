@@ -1,0 +1,82 @@
+name: Build signed Android release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mindswipe-android-release
+  cancel-in-progress: false
+
+jobs:
+  build-release:
+    name: Verify and build signed AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      MINDSWIPE_KEYSTORE_PATH: ${{ runner.temp }}/mindswipe-upload.p12
+      MINDSWIPE_KEYSTORE_PASSWORD: ${{ secrets.MINDSWIPE_KEYSTORE_PASSWORD }}
+      MINDSWIPE_KEY_ALIAS: ${{ secrets.MINDSWIPE_KEY_ALIAS }}
+      MINDSWIPE_KEY_PASSWORD: ${{ secrets.MINDSWIPE_KEY_PASSWORD }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+
+      - name: Install Android 16 SDK
+        run: sdkmanager "platforms;android-36"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify repository and sync Android
+        run: |
+          npm run check
+          npx cap sync android
+
+      - name: Restore protected upload key
+        env:
+          MINDSWIPE_UPLOAD_KEYSTORE_B64: ${{ secrets.MINDSWIPE_UPLOAD_KEYSTORE_B64 }}
+        run: |
+          test -n "$MINDSWIPE_UPLOAD_KEYSTORE_B64"
+          printf '%s' "$MINDSWIPE_UPLOAD_KEYSTORE_B64" | base64 --decode > "$MINDSWIPE_KEYSTORE_PATH"
+          test -s "$MINDSWIPE_KEYSTORE_PATH"
+          chmod 600 "$MINDSWIPE_KEYSTORE_PATH"
+
+      - name: Build release AAB
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew lintRelease testReleaseUnitTest bundleRelease
+
+      - name: Verify AAB signature
+        run: jarsigner -verify -strict -certs android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload signed AAB
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: MindSwipe-v0.2.0-signed-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Remove upload key from runner
+        if: always()
+        run: rm -f "$MINDSWIPE_KEYSTORE_PATH"
