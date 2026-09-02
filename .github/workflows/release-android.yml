@@ -16,7 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      MINDSWIPE_KEYSTORE_PATH: ${{ runner.temp }}/mindswipe-upload.p12
       MINDSWIPE_KEYSTORE_PASSWORD: ${{ secrets.MINDSWIPE_KEYSTORE_PASSWORD }}
       MINDSWIPE_KEY_ALIAS: ${{ secrets.MINDSWIPE_KEY_ALIAS }}
       MINDSWIPE_KEY_PASSWORD: ${{ secrets.MINDSWIPE_KEY_PASSWORD }}
@@ -56,9 +55,11 @@ jobs:
           MINDSWIPE_UPLOAD_KEYSTORE_B64: ${{ secrets.MINDSWIPE_UPLOAD_KEYSTORE_B64 }}
         run: |
           test -n "$MINDSWIPE_UPLOAD_KEYSTORE_B64"
-          printf '%s' "$MINDSWIPE_UPLOAD_KEYSTORE_B64" | base64 --decode > "$MINDSWIPE_KEYSTORE_PATH"
-          test -s "$MINDSWIPE_KEYSTORE_PATH"
-          chmod 600 "$MINDSWIPE_KEYSTORE_PATH"
+          keystore_path="$RUNNER_TEMP/mindswipe-upload.p12"
+          printf '%s' "$MINDSWIPE_UPLOAD_KEYSTORE_B64" | base64 --decode > "$keystore_path"
+          test -s "$keystore_path"
+          chmod 600 "$keystore_path"
+          echo "MINDSWIPE_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
 
       - name: Build release AAB
         working-directory: android
