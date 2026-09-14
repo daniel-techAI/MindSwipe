@@ -1,48 +1,43 @@
-# MindSwipe Personalization
+# MindSwipe product direction
 
-These choices are now locked in as the working product direction.
+Last updated: 2026-08-16
 
-## Selected Direction
+## Product thesis
 
-- Audience: broke comeback
-- Tone: direct bro, store-safe
-- Public brand: MindSwipe
-- Creator identity: not public-facing for now
+Use the addictive simplicity of scrolling to create curiosity, then use that curiosity to push the user back into the real world.
 
 ## Audience
 
-MindSwipe is for people with low money, low discipline, too much scrolling, and pressure to fix life fast.
+Primary: people who reach for a feed during boredom, stress, avoidance, or low-focus moments and want a fast useful alternative.
 
-Primary use cases:
+The earlier "broke comeback" tone remains one content lane, not the entire market identity. Interests now cover mind/emotions, focus/discipline, money/career, people/influence, philosophy/meaning, body/lifestyle, learning/strategy, AI, science, history, psychology, technology, and social skills.
 
-- User is about to doomscroll and wants a better 3-minute input.
-- User feels broke, stuck, or behind and needs one useful move.
-- User wants discipline without a fake motivational lecture.
-- User is working hard or moving countries and needs quick mental anchors.
+## Modes
 
-## Tone Rules
+- **Learn:** short practical knowledge based on selected interests; three cards and one answer check.
+- **Explore:** sourced destination knowledge; three cards, useful places, and a bridge into local trips/navigation.
 
-- Plain words.
-- Direct, not corporate.
-- Blunt, but not abusive.
-- Practical over inspirational.
-- No school-style quizzes.
-- No fake guru energy.
-- Every card should leave one small move.
+## Tone
 
-## Personal Details Needed Later
+- Plain and direct.
+- Practical before inspirational.
+- Confident without insults, fake urgency, or guru claims.
+- Short enough for a swipe, substantial enough to teach one thing.
+- Travel claims remain respectful, sourced, and specific.
+- No fake testimonials, ratings, partnerships, or creator authority.
 
-- Support email
-- Privacy policy hosted URL
-- Final developer name for Google Play
-- Preferred reminder phrase
-- Any topics to avoid
+Truthful founder positioning for future marketing:
 
-## Content Packs To Add Next
+> I'm building MindSwipe because I wanted something useful to open in the moments when I'd normally doomscroll.
 
-- Netherlands starter pack
-- Warehouse/work survival pack
-- First 1000 euros saved pack
-- Stop TikTok relapse pack
-- Confidence with people pack
-- Simple online service pack
+## Product boundary
+
+MindSwipe should remain an independent learning/exploration product. Clothing, art, freelance web services, housesitting, Workaway, and other founder projects should not be inserted into the app. They may inform truthful external content/marketing later.
+
+## Owner decisions
+
+- Publisher/operator identity and support contact.
+- Initial market and target age.
+- Monetization timing.
+- Analytics/no-analytics decision.
+- Whether future location discovery solves a validated need.

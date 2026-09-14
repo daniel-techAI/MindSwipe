@@ -1,18 +1,18 @@
 {
   "name": "MindSwipe",
   "short_name": "MindSwipe",
-  "description": "Replace doomscrolling with short useful rescue sessions.",
+  "description": "Replace doomscrolling with three useful cards, sourced destination learning, and local trips.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "background_color": "#0f1115",
-  "theme_color": "#0f1115",
+  "background_color": "#050505",
+  "theme_color": "#050505",
   "orientation": "any",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["education", "productivity", "health"],
+  "categories": ["education", "productivity", "travel"],
   "icons": [
     {
       "src": "icons/icon-192.png",

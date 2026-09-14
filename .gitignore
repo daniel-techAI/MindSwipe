@@ -1,6 +1,5 @@
 node_modules
 dist
-android
 playwright-report
 test-results
 *.log
