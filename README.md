@@ -5,7 +5,7 @@ MindSwipe is a privacy-first anti-doomscrolling microlearning app. It turns the 
 - **Learn:** three short cards selected from the user's interests, followed by a streak check.
 - **Explore:** three sourced destination cards, useful places, and local trip planning that hands navigation to Google Maps or Waze.
 
-> **Status: public beta candidate, not a production store release.** The web/PWA implementation, signed-AAB workflow definition, policy/support pages, and Android debug path are implemented. The feature branch still needs review and deployment; signed release generation also requires GitHub Actions secrets and a successful first run. Play publication additionally requires real-device and Play-track testing, store assets/forms, publisher verification, and human policy/legal review.
+> **Status: public beta candidate, not a production store release.** Learn and Explore are merged. Android release signing secrets are configured, and the release workflow builds an installable APK plus a Play-ready-format AAB. Successful builds and artifact links are recorded in GitHub Actions. Store publication still requires device/track testing, store forms/assets, publisher verification, and human policy/legal review. The repository is currently private; a public Pages deployment has not been verified.
 
 ## Current V2 scope
 
@@ -86,7 +86,7 @@ npm run android:open
 
 The manual **Build Android APK** workflow installs API 36, runs web checks, syncs Capacitor, verifies the permission boundary, runs Gradle lint/unit tests, and builds debug APK/AAB artifacts.
 
-The manual **Build signed Android release** workflow is defined to restore an encrypted GitHub Actions secret to an isolated runner, build and verify a signed release AAB, upload the AAB as a private workflow artifact, and remove the temporary keystore. It cannot run until the required repository secrets are configured. See [Signing and release](docs/SIGNING_AND_RELEASE.md). Debug artifacts are not Play Store releases. Never commit a keystore, signing password, service-account key, or `local.properties`.
+The manual **Build signed Android release** workflow restores the upload key from encrypted GitHub Actions secrets, builds a signed APK and AAB, verifies both signatures, uploads the artifacts, and removes the temporary key. Install the APK directly for testing; the AAB is for Play Console upload. See [Signing and release](docs/SIGNING_AND_RELEASE.md). Never commit a keystore, signing password, service-account key, or `local.properties`.
 
 ## Repository map
 

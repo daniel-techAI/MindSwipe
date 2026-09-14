@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build-release:
-    name: Verify and build signed AAB
+    name: Verify and build signed APK and AAB
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -61,14 +61,28 @@ jobs:
           chmod 600 "$keystore_path"
           echo "MINDSWIPE_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
 
-      - name: Build release AAB
+      - name: Build release APK and AAB
         working-directory: android
         run: |
           chmod +x ./gradlew
-          ./gradlew lintRelease testReleaseUnitTest bundleRelease
+          ./gradlew lintRelease testReleaseUnitTest assembleRelease bundleRelease
 
       - name: Verify AAB signature
-        run: jarsigner -verify -strict -certs android/app/build/outputs/bundle/release/app-release.aab
+        run: |
+          jarsigner -verify -strict -certs -keystore "$MINDSWIPE_KEYSTORE_PATH" -storepass:env MINDSWIPE_KEYSTORE_PASSWORD android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Verify APK signature
+        run: |
+          apksigner_path=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -n 1)
+          "$apksigner_path" verify --verbose --print-certs android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload installable signed APK
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: MindSwipe-v0.2.0-signed-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Upload signed AAB
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -80,4 +94,4 @@ jobs:
 
       - name: Remove upload key from runner
         if: always()
-        run: rm -f "$MINDSWIPE_KEYSTORE_PATH"
+        run: rm -f "$RUNNER_TEMP/mindswipe-upload.p12"
