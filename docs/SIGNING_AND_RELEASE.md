@@ -35,7 +35,7 @@ The repository's `Build signed Android release` workflow expects:
 
 These secrets must be configured in the GitHub repository before the workflow can run. Their values must never be committed or copied into workflow files, logs, issues, or support messages.
 
-The workflow writes the keystore only to the isolated runner temporary directory, restricts its file mode, builds `bundleRelease`, verifies the AAB signature with `jarsigner`, uploads only the signed AAB artifact, and removes the temporary key in an `always()` step. GitHub Actions secrets are never available to untrusted pull-request code.
+The workflow writes the keystore only to the isolated runner temporary directory, restricts its file mode, builds signed APK and AAB artifacts, verifies them with Android's `apksigner` and Java's `jarsigner`, uploads only those signed artifacts, and removes the temporary key in an `always()` step. GitHub Actions secrets are never available to untrusted pull-request code.
 
 ## Local recovery record
 
