@@ -33,7 +33,7 @@ The repository commits the Capacitor Android project. The debug workflow:
 
 Debug artifacts are not acceptable as a production release.
 
-The manual `Build signed Android release` workflow is implemented to run the same repository checks, restore an upload keystore from protected GitHub Actions secrets, build signed APK and AAB artifacts, verify them with `apksigner` and `jarsigner`, upload both as private workflow artifacts, and remove the temporary key from the runner. Gradle fails closed if a release artifact is requested without all signing variables. The required GitHub Actions secrets are configured; a successful release run must still be verified for each source commit intended for distribution.
+The manual `Build signed Android release` workflow is implemented to run the same repository checks, restore an upload keystore from protected GitHub Actions secrets, build signed APK and AAB artifacts, verify them with `apksigner` and `jarsigner`, publish both to a GitHub prerelease, and remove the temporary key from the runner. Gradle fails closed if a release artifact is requested without all signing variables. The required GitHub Actions secrets are configured; a successful release run must still be verified for each source commit intended for distribution.
 
 ## Permissions
 

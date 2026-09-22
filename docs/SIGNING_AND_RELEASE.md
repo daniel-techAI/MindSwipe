@@ -35,7 +35,7 @@ The repository's `Build signed Android release` workflow expects:
 
 These secrets must be configured in the GitHub repository before the workflow can run. Their values must never be committed or copied into workflow files, logs, issues, or support messages.
 
-The workflow writes the keystore only to the isolated runner temporary directory, restricts its file mode, builds signed APK and AAB artifacts, verifies them with Android's `apksigner` and Java's `jarsigner`, uploads only those signed artifacts, and removes the temporary key in an `always()` step. GitHub Actions secrets are never available to untrusted pull-request code.
+The workflow writes the keystore only to the isolated runner temporary directory, restricts its file mode, builds signed APK and AAB artifacts, verifies them with Android's `apksigner` and Java's `jarsigner`, publishes only those signed files to a GitHub prerelease, and removes the temporary key in an `always()` step. GitHub Actions secrets are never available to untrusted pull-request code.
 
 ## Local recovery record
 
@@ -53,7 +53,7 @@ Back up that private folder to a secure encrypted location that the owner contro
 1. Open the GitHub Actions page.
 2. Run **Build signed Android release** on the intended commit.
 3. Confirm repository checks, Android lint/tests, `bundleRelease`, and `jarsigner` verification pass.
-4. Download `MindSwipe-v0.2.0-signed-release-apk` for installation, or `MindSwipe-v0.2.0-signed-release-aab` for Play Console upload, from that workflow run.
+4. Download `MindSwipe-v0.2.0-beta.1.apk` for installation, or `MindSwipe-v0.2.0-beta.1.aab` for Play Console upload, from the GitHub prerelease created by that workflow run.
 5. Record the source commit and artifact hash with the release notes.
 
 The workflow does not upload to Google Play automatically. This intentionally keeps production publication behind Play Console review and human verification.

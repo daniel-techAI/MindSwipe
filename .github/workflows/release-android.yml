@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: mindswipe-android-release
@@ -78,21 +78,28 @@ jobs:
           apksigner_path=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -n 1)
           "$apksigner_path" verify --verbose --print-certs android/app/build/outputs/apk/release/app-release.apk
 
-      - name: Upload installable signed APK
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: MindSwipe-v0.2.0-signed-release-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
-          if-no-files-found: error
-          retention-days: 30
+      - name: Publish signed Android beta
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: v0.2.0-beta.1
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk MindSwipe-v0.2.0-beta.1.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab MindSwipe-v0.2.0-beta.1.aab
 
-      - name: Upload signed AAB
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: MindSwipe-v0.2.0-signed-release-aab
-          path: android/app/build/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
-          retention-days: 30
+          if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "MindSwipe V2 0.2.0 beta 1" \
+              --notes "Signed Android beta for device testing. The APK is for direct installation; the AAB is for Play Console testing tracks. This is not a production store release." \
+              --prerelease
+          fi
+
+          gh release upload "$RELEASE_TAG" \
+            MindSwipe-v0.2.0-beta.1.apk \
+            MindSwipe-v0.2.0-beta.1.aab \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
 
       - name: Remove upload key from runner
         if: always()

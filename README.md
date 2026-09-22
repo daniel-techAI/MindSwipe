@@ -5,7 +5,7 @@ MindSwipe is a privacy-first anti-doomscrolling microlearning app. It turns the 
 - **Learn:** three short cards selected from the user's interests, followed by a streak check.
 - **Explore:** three sourced destination cards, useful places, and local trip planning that hands navigation to Google Maps or Waze.
 
-> **Status: public beta candidate, not a production store release.** Learn and Explore are merged. Android release signing secrets are configured, and the release workflow builds an installable APK plus a Play-ready-format AAB. Successful builds and artifact links are recorded in GitHub Actions. Store publication still requires device/track testing, store forms/assets, publisher verification, and human policy/legal review. The repository is currently private; a public Pages deployment has not been verified.
+> **Status: public beta candidate, not a production store release.** Learn and Explore are merged. Android release signing secrets are configured, and the release workflow builds an installable APK plus a Play-ready-format AAB. Verified builds are published as GitHub prerelease downloads. Store publication still requires device/track testing, store forms/assets, publisher verification, and human policy/legal review. The repository is currently private; a public Pages deployment has not been verified.
 
 ## Current V2 scope
 
