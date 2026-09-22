@@ -1,6 +1,6 @@
 # Android signing and release
 
-Last updated: 2026-09-02
+Last updated: 2026-09-14
 
 Status: **REPOSITORY WORKFLOW COMPLETE. GITHUB ACTIONS SECRETS AND THE FIRST SIGNED RUN REMAIN OWNER WORK.**
 
@@ -35,7 +35,7 @@ The repository's `Build signed Android release` workflow expects:
 
 These secrets must be configured in the GitHub repository before the workflow can run. Their values must never be committed or copied into workflow files, logs, issues, or support messages.
 
-The workflow writes the keystore only to the isolated runner temporary directory, restricts its file mode, builds `bundleRelease`, verifies the AAB signature with `jarsigner`, uploads only the signed AAB artifact, and removes the temporary key in an `always()` step. GitHub Actions secrets are never available to untrusted pull-request code.
+The workflow writes the keystore only to the isolated runner temporary directory, restricts its file mode, builds signed APK and AAB artifacts, verifies them with Android's `apksigner` and Java's `jarsigner`, uploads only those signed artifacts, and removes the temporary key in an `always()` step. GitHub Actions secrets are never available to untrusted pull-request code.
 
 ## Local recovery record
 
@@ -53,7 +53,7 @@ Back up that private folder to a secure encrypted location that the owner contro
 1. Open the GitHub Actions page.
 2. Run **Build signed Android release** on the intended commit.
 3. Confirm repository checks, Android lint/tests, `bundleRelease`, and `jarsigner` verification pass.
-4. Download `MindSwipe-v0.2.0-signed-release-aab` from that workflow run.
+4. Download `MindSwipe-v0.2.0-signed-release-apk` for installation, or `MindSwipe-v0.2.0-signed-release-aab` for Play Console upload, from that workflow run.
 5. Record the source commit and artifact hash with the release notes.
 
 The workflow does not upload to Google Play automatically. This intentionally keeps production publication behind Play Console review and human verification.
@@ -69,3 +69,18 @@ The workflow does not upload to Google Play automatically. This intentionally ke
 - keep signing credentials out of support logs and issue reports.
 
 A signed AAB is a release input, not proof that the app is production-ready.
+
+## September 14 signing setup
+
+The four repository secrets are configured. The final upload certificate SHA-256 is
+`D3:0F:D5:07:B0:74:EC:B3:2F:E8:A4:DB:F3:7F:B8:C6:E1:74:3C:24:65:67:40:AF:DA:6B:62:7A:80:FD:20:2C`.
+The recovery record is protected with Windows DPAPI on the current owner's PC.
+The earlier key on the previous PC was never uploaded by this task.
+
+The release job checks AAB signatures against the upload keystore as an explicit
+trust source for the self-signed Android certificate. APK signatures are checked
+with Android's `apksigner`. Both artifacts use the same source commit and key.
+
+An older debug APK has a different signing certificate. Android may refuse to
+update it with a release APK. Do not recommend uninstalling it without warning
+that MindSwipe progress and trips are stored only in that app installation.

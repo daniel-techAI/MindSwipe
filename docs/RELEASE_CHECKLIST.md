@@ -27,7 +27,7 @@
 ## Release engineering
 
 - [x] Create/protect upload key and signing configuration outside git.
-- [ ] Configure the four required GitHub Actions signing secrets.
+- [x] Configure the four required GitHub Actions signing secrets.
 - [ ] Produce and cryptographically verify the first signed release AAB through GitHub Actions.
 - [ ] Inspect merged release manifest and dependency report.
 - [ ] Verify release `versionCode`/`versionName` and reproducible source commit.

@@ -39,10 +39,13 @@ test('Android signing credentials are excluded from version control', () => {
   assert.doesNotMatch(appGradle, /keyPassword\s+['"][^'"]+['"]/);
 });
 
-test('release workflow builds and verifies a protected signed AAB', () => {
+test('release workflow builds and verifies protected signed APK and AAB artifacts', () => {
   assert.match(releaseWorkflow, /MINDSWIPE_UPLOAD_KEYSTORE_B64/);
+  assert.match(releaseWorkflow, /assembleRelease/);
   assert.match(releaseWorkflow, /bundleRelease/);
   assert.match(releaseWorkflow, /jarsigner -verify -strict -certs/);
+  assert.match(releaseWorkflow, /apksigner.*verify/);
+  assert.match(releaseWorkflow, /MindSwipe-v0\.2\.0-signed-release-apk/);
   assert.match(releaseWorkflow, /MindSwipe-v0\.2\.0-signed-release-aab/);
   assert.doesNotMatch(releaseWorkflow, /ACCESS_[A-Z_]*LOCATION/);
 });
