@@ -8,7 +8,7 @@
 - [x] Android project targets API 36 and is committed.
 - [x] Android workflow verifies no location permission and builds debug APK/AAB.
 - [x] Release Gradle configuration reads credentials only from environment variables and fails closed when absent.
-- [x] Manual release workflow definition builds and verifies a signed AAB from protected GitHub Actions secrets.
+- [x] Manual release workflow definition builds and verifies signed APK and AAB files from protected GitHub Actions secrets.
 - [x] Public Privacy, Terms, and Support pages identify Daniel Laky and `daniellaky5.c@gmail.com`.
 
 ## Native build and device testing
@@ -28,9 +28,9 @@
 
 - [x] Create/protect upload key and signing configuration outside git.
 - [x] Configure the four required GitHub Actions signing secrets.
-- [ ] Produce and cryptographically verify the first signed release AAB through GitHub Actions.
+- [x] Produce and cryptographically verify the first signed release APK and AAB through GitHub Actions ([run 35709335448](https://github.com/daniel-techAI/MindSwipe/actions/runs/35709335448)).
 - [ ] Inspect merged release manifest and dependency report.
-- [ ] Verify release `versionCode`/`versionName` and reproducible source commit.
+- [x] Verify release `versionCode` 2, `versionName` 0.2.0, and source commit `635f03c8cd322bf12cb92665f205dcc24359081a`.
 - [ ] Enable minification only after release-rule testing; document the decision.
 - [ ] Define rollback and hotfix process.
 
