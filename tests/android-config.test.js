@@ -41,6 +41,7 @@ test('Android signing credentials are excluded from version control', () => {
 
 test('release workflow builds and verifies protected signed APK and AAB artifacts', () => {
   assert.match(releaseWorkflow, /MINDSWIPE_UPLOAD_KEYSTORE_B64/);
+  assert.match(releaseWorkflow, /packages:\s*platform-tools/);
   assert.match(releaseWorkflow, /assembleRelease/);
   assert.match(releaseWorkflow, /bundleRelease/);
   assert.match(releaseWorkflow, /jarsigner -verify -strict -certs/);
