@@ -46,7 +46,9 @@ test('release workflow builds and verifies protected signed APK and AAB artifact
   assert.match(releaseWorkflow, /bundleRelease/);
   assert.match(releaseWorkflow, /jarsigner -verify -strict -certs/);
   assert.match(releaseWorkflow, /apksigner.*verify/);
-  assert.match(releaseWorkflow, /MindSwipe-v0\.2\.0-signed-release-apk/);
-  assert.match(releaseWorkflow, /MindSwipe-v0\.2\.0-signed-release-aab/);
+  assert.match(releaseWorkflow, /contents:\s*write/);
+  assert.match(releaseWorkflow, /gh release create/);
+  assert.match(releaseWorkflow, /MindSwipe-v0\.2\.0-beta\.1\.apk/);
+  assert.match(releaseWorkflow, /MindSwipe-v0\.2\.0-beta\.1\.aab/);
   assert.doesNotMatch(releaseWorkflow, /ACCESS_[A-Z_]*LOCATION/);
 });
